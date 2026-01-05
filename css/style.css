@@ -255,7 +255,15 @@ footer .social-links a:hover {
 }
 
 .features h2 {
-    font-size: 48px;
+.filter-buttons {
+    position: relative;
+    z-index: 10; /* Ensures they sit above the background grid */
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}    font-size: 48px;
     color: var(--white);
     text-align: center;
     margin-bottom: 50px;
