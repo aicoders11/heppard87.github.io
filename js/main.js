@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-
-    // 1. Scroll-Triggered Animations (Reveal)
+    
+    // --- 1. SCROLL REVEAL ANIMATION ---
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -11,15 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
- // 2. Card Flip Logic
+    // --- 2. CARD FLIP LOGIC ---
+    // Selects all cards with the 'feature-item' class
     const featureItems = document.querySelectorAll('.feature-item');
-    console.log("Found " + featureItems.length + " cards."); // DEBUG SIGNAL 1
-
+    
     featureItems.forEach(item => {
         item.addEventListener('click', function(e) {
-            console.log("Card Clicked!"); // DEBUG SIGNAL 2
-            
-            // Prevent flip if clicking the "Read More" button
+            // Prevent flipping if they click the "Read More" button directly
             if (e.target.classList.contains('read-more-btn')) return;
             
             // Toggle the flip class
@@ -27,29 +25,32 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 3. Filter Logic (AI, Data, Cloud buttons)
+    // --- 3. FILTER BUTTONS LOGIC ---
     const filterButtons = document.querySelectorAll('.filter-btn');
     
-    filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const filterValue = button.getAttribute('data-filter');
+    if (filterButtons.length > 0) {
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const filterValue = button.getAttribute('data-filter');
 
-            // Update active button style
-            filterButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
+                // Update active button style
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
 
-            // Show/Hide items based on category
-            featureItems.forEach(item => {
-                const category = item.getAttribute('data-category');
-                
-                if (filterValue === 'all' || category === filterValue) {
-                    item.style.display = 'block';
-                    setTimeout(() => item.classList.add('visible'), 10);
-                } else {
-                    item.style.display = 'none';
-                    item.classList.remove('visible');
-                }
+                // Show/Hide items based on category
+                featureItems.forEach(item => {
+                    const category = item.getAttribute('data-category');
+                    
+                    if (filterValue === 'all' || category === filterValue) {
+                        item.style.display = 'block';
+                        // Small delay to allow the display:block to apply before animating opacity
+                        setTimeout(() => item.classList.add('visible'), 10);
+                    } else {
+                        item.style.display = 'none';
+                        item.classList.remove('visible');
+                    }
+                });
             });
         });
-    });
+    }
 });
