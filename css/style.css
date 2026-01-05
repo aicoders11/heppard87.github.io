@@ -913,3 +913,29 @@ body::after {
     margin-bottom: 8px;
     font-size: 0.9rem;
 }
+/* Base state for all items */
+.feature-item {
+    transition: all 0.5s ease-in-out;
+}
+
+/* WEB: Slide in from the left */
+.feature-item[data-category="web"] {
+    transform: translateX(-20px);
+}
+
+/* SECURITY: Scale/Zoom effect */
+.feature-item[data-category="security"] {
+    transform: scale(0.9);
+}
+
+/* CLOUD: 3D Flip effect */
+.feature-item[data-category="cloud"] {
+    transform: rotateY(90deg);
+}
+
+/* Active state triggered by JS */
+.feature-item.show {
+    opacity: 1 !important;
+    transform: translate(0) scale(1) rotateY(0) !important;
+    display: block !important;
+}
