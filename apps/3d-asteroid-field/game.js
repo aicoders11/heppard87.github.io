@@ -1,0 +1,36 @@
+
+// 1. SETUP
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Starfield Background
+const starGeo = new THREE.BufferGeometry();
+const starCount = 5000;
+const starPos = new Float32Array(starCount * 3);
+for(let i=0; i<starCount*3; i++) starPos[i] = (Math.random() - 0.5) * 2000;
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({color: 0xffffff, size: 0.5});
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+// 2. PLAYER SHIP (A cool triangular fighter)
+const ship = new THREE.Group();
+const bodyGeo = new THREE.ConeGeometry(0.5, 2, 4);
+const bodyMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, wireframe: true });
+const body = new THREE.Mesh(bodyGeo, bodyMat);
+body.rotation.x = Math.PI / 2; // Point forward
+body.rotation.y = Math.PI / 4; // Rotate so flat side is down
+ship.add(body);
+
+// Engine Glow
+const engineGeo = new THREE.SphereGeometry(0.3, 8, 8);
+const engineMat = new THREE.MeshBasicMaterial({ color: 0xff0055 });
+const engine = new THREE.Mesh(engineGeo, engineMat);
+engine.position.z = 1;
+ship.add(engine);
+
+scene.add(ship);
+ship.position.z = 10; // Start closer to camera
