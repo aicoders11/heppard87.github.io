@@ -1292,3 +1292,10 @@ footer {
     opacity: 1;
     transform: scale(1.05);
 }
+.logo-img {
+    height: 40px; /* This will force it to be much smaller */
+    width: auto;  /* This keeps the circle shape from getting squished */
+    object-fit: contain;
+    display: inline-block;
+    margin: 10px;
+}
