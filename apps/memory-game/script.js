@@ -1,79 +1,69 @@
-const cards = document.querySelectorAll('.card');
-const gameGrid = document.querySelector('#memory-game-board');
-
-let hasFlippedCard = false;
-let lockBoard = false;
-let firstCard, secondCard;
-
-const cardValues = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-const gameCards = [...cardValues, ...cardValues];
+const cards = ['A', 'A', 'B', 'B', 'C', 'C', 'D', 'D', 'E', 'E', 'F', 'F', 'G', 'G', 'H', 'H'];
+let flippedCards = [];
+let matchedPairs = 0;
+let moves = 0;
+let time = 0;
+let timer;
 
 function shuffle(array) {
-  array.sort(() => Math.random() - 0.5);
+    return array.sort(() => Math.random() - 0.5);
 }
 
-function createBoard() {
-  shuffle(gameCards);
-  gameCards.forEach(value => {
-    const card = document.createElement('div');
-    card.classList.add('card');
-    card.dataset.value = value;
-
-    const frontFace = document.createElement('div');
-    frontFace.classList.add('front-face');
-    frontFace.textContent = '?';
-
-    const backFace = document.createElement('div');
-    backFace.classList.add('back-face');
-    backFace.textContent = value;
-
-    card.appendChild(frontFace);
-    card.appendChild(backFace);
-
-    gameGrid.appendChild(card);
-    card.addEventListener('click', flipCard);
-  });
+function initGame() {
+    const grid = document.querySelector('.memory-grid');
+    grid.innerHTML = '';
+    shuffle(cards).forEach(val => {
+        const card = document.createElement('div');
+        card.classList.add('card');
+        card.dataset.value = val;
+        card.innerText = '?';
+        card.addEventListener('click', flipCard);
+        grid.appendChild(card);
+    });
 }
 
 function flipCard() {
-  if (lockBoard) return;
-  if (this === firstCard) return;
+    if (flippedCards.length < 2 && !this.classList.contains('flipped')) {
+        if (moves === 0 && time === 0) startTimer();
+        this.classList.add('flipped');
+        this.innerText = this.dataset.value;
+        flippedCards.push(this);
 
-  this.classList.add('flip');
-
-  if (!hasFlippedCard) {
-    hasFlippedCard = true;
-    firstCard = this;
-    return;
-  }
-
-  secondCard = this;
-  checkForMatch();
+        if (flippedCards.length === 2) {
+            moves++;
+            document.getElementById('moves').innerText = `Moves: ${moves}`;
+            checkMatch();
+        }
+    }
 }
 
-function checkForMatch() {
-  let isMatch = firstCard.dataset.value === secondCard.dataset.value;
-  isMatch ? disableCards() : unflipCards();
+function checkMatch() {
+    const [c1, c2] = flippedCards;
+    if (c1.dataset.value === c2.dataset.value) {
+        matchedPairs++;
+        flippedCards = [];
+        if (matchedPairs === 8) endGame();
+    } else {
+        setTimeout(() => {
+            c1.classList.remove('flipped');
+            c2.classList.remove('flipped');
+            c1.innerText = '?';
+            c2.innerText = '?';
+            flippedCards = [];
+        }, 1000);
+    }
 }
 
-function disableCards() {
-  firstCard.removeEventListener('click', flipCard);
-  secondCard.removeEventListener('click', flipCard);
-  resetBoard();
+function startTimer() {
+    timer = setInterval(() => {
+        time++;
+        document.getElementById('timer').innerText = `Time: ${time}`;
+    }, 1000);
 }
 
-function unflipCards() {
-  lockBoard = true;
-  setTimeout(() => {
-    firstCard.classList.remove('flip');
-    secondCard.classList.remove('flip');
-    resetBoard();
-  }, 1500);
+function endGame() {
+    clearInterval(timer);
+    alert(`System Overridden! Moves: ${moves}, Time: ${time}s`);
 }
 
-function resetBoard() {
-  [hasFlippedCard, lockBoard] = [false, false];
-  [firstCard, secondCard] = [null, null];
-}
-
-createBoard();
+initGame();
