@@ -262,10 +262,11 @@ footer .social-links a:hover {
 }
 
 .features-grid {
-    display: grid !important; /* Forces the grid layout */
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Side-by-side */
-    gap: 20px;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
     width: 100%;
+    padding: 20px 0;
 }
 
 .feature-item {
