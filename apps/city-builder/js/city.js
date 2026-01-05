@@ -57,14 +57,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const buildingMaterial = new THREE.MeshStandardMaterial({
             color: 0x00ffff,
             emissive: 0x00ffff,
-            emissiveIntensity: 1,
-            metalness: 0.5,
-            roughness: 0.5,
+            emissiveIntensity: 0.5,
+            metalness: 0.8,
+            roughness: 0.2,
         });
 
         const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
 
-        // Snap to grid
+        // Snap to grid integers
         building.position.x = Math.round(position.x);
         building.position.z = Math.round(position.z);
         building.position.y = buildingHeight / 2;
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer.render(scene, camera);
     }
 
-    // Load OrbitControls and then start the animation
+    // Load OrbitControls dynamically
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
     script.onload = () => {
@@ -100,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
         controls.screenSpacePanning = false;
         controls.maxPolarAngle = Math.PI / 2.1;
         
-        // Start the animation loop only after everything is set up
         animate();
     };
     document.body.appendChild(script);
