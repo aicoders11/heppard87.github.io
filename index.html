@@ -186,6 +186,8 @@
         </div>
     </footer>
 
+ </footer>
+
     <div id="newsletterModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
@@ -195,37 +197,15 @@
                 <input type="email" placeholder="Enter your email" required>
                 <button type="submit" class="cta-button">Subscribe</button>
             </form>
-        </div>/* =========================================
-   12. FLOATING THEME BUTTON (FORCE FIX)
-   ========================================= */
-#theme-toggle-button {
-    /* FORCE the position to the bottom-left */
-    position: fixed !important;
-    bottom: 30px !important;
-    left: 30px !important;
-    top: auto !important;   /* Resets any "top" settings */
-    right: auto !important; /* Resets any "right" settings */
-    z-index: 9999 !important;
+        </div>
+    </div> 
+    
+    <button id="theme-toggle-button">Change Theme</button>
 
-    /* Styling */
-    background: linear-gradient(90deg, var(--cyan), var(--magenta));
-    color: var(--dark-violet);
-    font-family: var(--font-mono);
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: none;
-    padding: 15px 30px;
-    cursor: pointer;
-
-    /* Shape */
- <button id="theme-toggle-button">Change Theme</button>
-    </div>
     <script src="js/main.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/filter.js"></script>
     <script src="js/modal.js"></script>
-    
-    </body>
+</body>
 </html>
