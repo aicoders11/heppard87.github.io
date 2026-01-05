@@ -1,40 +1,128 @@
-/* =========================================
-   1. VARIABLES & SETUP
-   ========================================= */
 :root {
     --dark-violet: #0d0221;
-    --black-blue: #0c1445;
     --cyan: #00f5d4;
     --magenta: #ff00f5;
     --light-slate: #ccd6f6;
     --white: #e6f1ff;
-    --font-sans: 'Inter', sans-serif;
-    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
-    --grid-size: 50px;
-    --grid-color-cyan: rgba(0, 245, 212, 0.5);
-    --grid-color-magenta: rgba(255, 0, 245, 0.5);
-}
-
-* {
-    box-sizing: border-box;
+    --font-mono: 'SF Mono', 'Fira Code', monospace;
 }
 
 body {
     background-color: var(--dark-violet);
     color: var(--light-slate);
-    font-family: var(--font-sans);
+    font-family: sans-serif;
     margin: 0;
-    padding: 0;
-    font-size: 18px;
-    line-height: 1.5;
     overflow-x: hidden;
-    position: relative;
-    min-height: 100vh;
 }
 
-/* --- Background Grid Animation --- */
-body::before {
-    content: '';
+/* CRT Overlay - pointer-events:none allows clicking through it */
+body::after {
+    content: " ";
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    z-index: 9999;
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+}
+
+header {
+    padding: 20px 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--cyan);
+}
+
+.logo {
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 24px;
+    text-shadow: 0 0 10px var(--cyan);
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 50px;
+}
+
+/* THE FIX: Fixed min-height prevents layout collapse */
+.feature-item {
+    position: relative;
+    min-height: 400px; 
+    perspective: 1000px;
+}
+
+.feature-item-inner {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.feature-item.is-flipped .feature-item-inner {
+    transform: rotateY(180deg);
+}
+
+.feature-front, .feature-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border: 1px solid var(--cyan);
+    border-radius: 10px;
+    background: rgba(13, 2, 33, 0.9);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.feature-back {
+    transform: rotateY(180deg);
+    border-color: var(--magenta);
+}
+
+/* Filter Buttons */
+.filter-buttons {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.filter-btn {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 10px 20px;
+    cursor: pointer;
+    margin: 5px;
+    transition: 0.3s;
+}
+
+.filter-btn.active, .filter-btn:hover {
+    background: var(--cyan);
+    color: var(--dark-violet);
+    box-shadow: 0 0 15px var(--cyan);
+}
+
+/* Reveal Animations */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.6s ease-out;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}    content: '';
     position: fixed;
     top: 0;
     left: 0;
