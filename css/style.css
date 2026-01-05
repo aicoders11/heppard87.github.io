@@ -2130,3 +2130,66 @@ body::after {
     perspective: 1000px;
     margin-bottom: 20px;
 }
+/* --- Scroll Animation Styles --- */
+
+/* 1. The starting state of the section (hidden) */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px); /* Moves it down slightly */
+    transition: all 0.8s ease-out; /* Controls speed of the fade/slide */
+    will-change: opacity, transform; /* Performance hint for browser */
+}
+
+/* 2. The active state when it enters the viewport (visible) */
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0); /* Returns to original position */
+}
+
+
+/* --- Card Flip Styles --- */
+
+/* The container for the card */
+.feature-item {
+    perspective: 1000px; /* Creates the 3D depth effect */
+    cursor: pointer;
+    /* Add width/height as needed for your design */
+    min-height: 200px; 
+}
+
+/* The inner wrapper that actually spins */
+.feature-item-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+/* The class added by your JS to trigger the flip */
+.feature-item.is-flipped .feature-item-inner {
+    transform: rotateY(180deg);
+}
+
+/* Common styles for front and back faces */
+.feature-front, .feature-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Hides the back when flipped away */
+    -webkit-backface-visibility: hidden; /* Safari support */
+}
+
+/* Style the front */
+.feature-front {
+    background-color: #fff;
+    color: black;
+}
+
+/* Style the back (initially hidden by rotation) */
+.feature-back {
+    background-color: #2980b9;
+    color: white;
+    transform: rotateY(180deg);
+}
