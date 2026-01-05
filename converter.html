@@ -16,6 +16,12 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            text-align: left;
+        }
+        label {
+            color: var(--cyan);
+            font-size: 0.9em;
+            margin-left: 5px;
         }
         select, input {
             padding: 12px;
@@ -24,12 +30,22 @@
             color: var(--white);
             border-radius: 5px;
             font-family: var(--font-mono);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--cyan);
         }
         #result-display {
             font-size: 24px;
             color: var(--magenta);
             text-shadow: 0 0 10px var(--magenta);
-            margin-top: 20px;
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px dashed var(--magenta);
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -39,8 +55,9 @@
             <a href="index.html" class="logo">CyberSolutionsOhio</a>
             <ul>
                 <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
                 <li><a href="converter.html" class="active">Converter</a></li>
-                <li><a href="apps.html">Apps</a></li>
             </ul>
         </nav>
     </header>
@@ -48,76 +65,118 @@
     <main>
         <div class="content-card converter-container">
             <h1>Unit Converter</h1>
+            
             <div class="input-group">
                 <label>Input Value</label>
-                <input type="number" id="inputValue" placeholder="Enter number...">
+                <input type="number" id="inputValue" placeholder="Enter number..." step="any">
             </div>
-            <div class="input-group">
-                <label>From</label>
-               <select id="convertFrom">
-    <optgroup label="Length">
-        <option value="m">Meters (m)</option>
-        <option value="ft">Feet (ft)</option>
-        <option value="km">Kilometers (km)</option>
-        <option value="mi">Miles (mi)</option>
-    </optgroup>
-    <optgroup label="Weight">
-        <option value="kg">Kilograms (kg)</option>
-        <option value="lbs">Pounds (lbs)</option>
-        <option value="g">Grams (g)</option>
-    </optgroup>
-    <optgroup label="Data (Cyber)">
-        <option value="MB">Megabytes (MB)</option>
-        <option value="GB">Gigabytes (GB)</option>
-        <option value="TB">Terabytes (TB)</option>
-    </optgroup>
-</select>
 
-<select id="convertTo">
-    <optgroup label="Length">
-        <option value="m">Meters (m)</option>
-        <option value="ft">Feet (ft)</option>
-        <option value="km">Kilometers (km)</option>
-        <option value="mi">Miles (mi)</option>
-    </optgroup>
-    <optgroup label="Weight">
-        <option value="kg">Kilograms (kg)</option>
-        <option value="lbs">Pounds (lbs)</option>
-        <option value="g">Grams (g)</option>
-    </optgroup>
-    <optgroup label="Data (Cyber)">
-        <option value="MB">Megabytes (MB)</option>
-        <option value="GB">Gigabytes (GB)</option>
-        <option value="TB">Terabytes (TB)</option>
-    </optgroup>
-</select>
+            <div class="input-group">
+                <label>From Unit</label>
+                <select id="convertFrom">
+                    <optgroup label="Length">
+                        <option value="m">Meters (m)</option>
+                        <option value="ft">Feet (ft)</option>
+                        <option value="km">Kilometers (km)</option>
+                        <option value="mi">Miles (mi)</option>
+                    </optgroup>
+                    <optgroup label="Weight">
+                        <option value="kg">Kilograms (kg)</option>
+                        <option value="lbs">Pounds (lbs)</option>
+                        <option value="g">Grams (g)</option>
+                    </optgroup>
+                    <optgroup label="Data (Cyber)">
+                        <option value="MB">Megabytes (MB)</option>
+                        <option value="GB">Gigabytes (GB)</option>
+                        <option value="TB">Terabytes (TB)</option>
+                        <option value="PB">Petabytes (PB)</option>
+                    </optgroup>
+                </select>
             </div>
+
+            <div class="input-group">
+                <label>To Unit</label>
+                <select id="convertTo">
+                    <optgroup label="Length">
+                        <option value="m">Meters (m)</option>
+                        <option value="ft">Feet (ft)</option>
+                        <option value="km">Kilometers (km)</option>
+                        <option value="mi">Miles (mi)</option>
+                    </optgroup>
+                    <optgroup label="Weight">
+                        <option value="kg">Kilograms (kg)</option>
+                        <option value="lbs">Pounds (lbs)</option>
+                        <option value="g">Grams (g)</option>
+                    </optgroup>
+                    <optgroup label="Data (Cyber)">
+                        <option value="MB">Megabytes (MB)</option>
+                        <option value="GB">Gigabytes (GB)</option>
+                        <option value="TB">Terabytes (TB)</option>
+                        <option value="PB">Petabytes (PB)</option>
+                    </optgroup>
+                </select>
+            </div>
+
             <button class="cta-button" onclick="convert()">Calculate</button>
             <div id="result-display">Result: --</div>
         </div>
     </main>
 
     <script>
-        function convert() {
-            const val = parseFloat(document.getElementById('inputValue').value);
-            const from = document.getElementById('fromUnit').value;
-            const to = document.getElementById('toUnit').value;
-            const display = document.getElementById('result-display');
+        // 1. Define the Logic Database
+        // 'rate' is the conversion factor to the BASE unit (Meter, Kg, or MB)
+        const units = {
+            // Length (Base: Meter)
+            'm':  { type: 'length', rate: 1 },
+            'km': { type: 'length', rate: 1000 },
+            'ft': { type: 'length', rate: 0.3048 },
+            'mi': { type: 'length', rate: 1609.34 },
 
+            // Weight (Base: Kilogram)
+            'kg': { type: 'weight', rate: 1 },
+            'g':  { type: 'weight', rate: 0.001 },
+            'lbs':{ type: 'weight', rate: 0.453592 },
+
+            // Data (Base: Megabyte)
+            'MB': { type: 'data', rate: 1 },
+            'GB': { type: 'data', rate: 1024 },
+            'TB': { type: 'data', rate: 1048576 },
+            'PB': { type: 'data', rate: 1073741824 }
+        };
+
+        function convert() {
+            // 2. Get Elements
+            const val = parseFloat(document.getElementById('inputValue').value);
+            const fromSelect = document.getElementById('convertFrom');
+            const toSelect = document.getElementById('convertTo');
+            const resultDisplay = document.getElementById('result-display');
+            
+            const fromUnit = fromSelect.value;
+            const toUnit = toSelect.value;
+
+            // 3. Validation: Is it a number?
             if (isNaN(val)) {
-                display.innerText = "Please enter a number";
+                resultDisplay.innerHTML = "Result: <span style='color: red'>Please enter a number</span>";
                 return;
             }
 
-            // Logic for common cybersecurity/hardware units
-            let result;
-            if (from === "meters" && to === "feet") result = val * 3.28084;
-            else if (from === "feet" && to === "meters") result = val * 0.3048;
-            else if (from === "kg" && to === "lbs") result = val * 2.20462;
-            else if (from === "lbs" && to === "kg") result = val * 0.453592;
-            else result = val; // Same units
+            const fromData = units[fromUnit];
+            const toData = units[toUnit];
 
-            display.innerText = `Result: ${result.toFixed(2)} ${to}`;
+            // 4. Logic: Are types compatible? (e.g., prevent Length -> Weight)
+            if (fromData.type !== toData.type) {
+                resultDisplay.innerHTML = `Result: <span style='color: red'>Cannot convert ${fromData.type} to ${toData.type}</span>`;
+                return;
+            }
+
+            // 5. The Math: (Value * FromRate) / ToRate
+            const rawResult = (val * fromData.rate) / toData.rate;
+
+            // Clean up the number (max 6 decimal places)
+            const cleanResult = parseFloat(rawResult.toFixed(6));
+
+            // 6. Display Result
+            resultDisplay.innerHTML = `Result: <span style='color: var(--cyan)'>${cleanResult} ${toUnit}</span>`;
         }
     </script>
 </body>
