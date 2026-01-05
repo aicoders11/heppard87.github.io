@@ -905,3 +905,42 @@ footer {
     border-radius: 5px;
     font-family: var(--font-mono);
 }
+/* =========================================
+   12. FLOATING THEME BUTTON
+   ========================================= */
+#theme-toggle-button {
+    /* 1. Positioning: Sticks it to the bottom-left */
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    z-index: 2000; /* Ensures it sits on top of everything */
+
+    /* 2. Cyberpunk Styling */
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    color: var(--dark-violet);
+    font-family: var(--font-mono);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    padding: 15px 30px;
+    cursor: pointer;
+
+    /* 3. The Shape: "Chamfered" (Cut) Corners */
+    clip-path: polygon(
+        20px 0, 100% 0, 
+        100% calc(100% - 20px), calc(100% - 20px) 100%, 
+        0 100%, 0 20px
+    );
+
+    /* 4. Animation */
+    transition: all 0.3s ease;
+    /* Use filter for shadow because clip-path cuts off normal box-shadow */
+    filter: drop-shadow(0 0 5px var(--cyan));
+}
+
+#theme-toggle-button:hover {
+    transform: scale(1.1) translate(5px, -5px); /* Pops up slightly */
+    filter: drop-shadow(0 0 15px var(--magenta));
+    color: var(--white);
+}
