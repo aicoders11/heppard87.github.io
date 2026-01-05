@@ -783,4 +783,44 @@ input:checked + .slider:before {
     font-size: 1.2em;
     padding: 12px 25px;
 }
+/* --- Neon Flicker Animation --- */
 
+/* Targets the main title and logo for that unstable neon look */
+.hero-right h1, 
+header .logo,
+.page-header h1 {
+    animation: neon-flicker 2s infinite alternate;
+}
+
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow:
+            0 0 4px #fff,
+            0 0 10px #fff,
+            0 0 20px var(--cyan),
+            0 0 40px var(--cyan),
+            0 0 80px var(--magenta);
+        opacity: 1;
+    }
+    /* These percentages represent the "blinks" or "glitches" */
+    20%, 22%, 24%, 55% {       
+        text-shadow: none;
+        opacity: 0.8;
+    }
+}
+
+/* --- Added CRT Scanline Overlay --- */
+body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 9999;
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none; /* Allows you to still click buttons underneath */
+}
