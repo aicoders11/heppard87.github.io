@@ -1226,3 +1226,72 @@ footer {
         margin-bottom: 30px;
     }
 }
+/* =========================================
+   DASHBOARD LAYOUT FIX
+   ========================================= */
+
+/* 1. FORCE GRID LAYOUT (Side-by-Side) */
+.dashboard-main {
+    display: grid !important;
+    grid-template-columns: 260px 1fr !important; /* Sidebar gets 260px, Terminal gets the rest */
+    gap: 40px;
+    align-items: start;
+    padding: 120px 5% 50px;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: 80vh;
+}
+
+/* 2. STYLE THE SIDEBAR */
+.sidebar {
+    background: rgba(10, 10, 15, 0.8); /* Dark background */
+    border: 1px solid var(--cyan);
+    padding: 25px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+    position: sticky; /* Keeps it visible while scrolling */
+    top: 120px;
+    z-index: 10;
+}
+
+.sidebar h3 {
+    color: var(--magenta);
+    border-bottom: 1px solid var(--magenta);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+}
+
+/* 3. FIX THE WHITE INPUT BOX */
+.sidebar-input {
+    width: 100%;
+    background: #000 !important; /* Forces black background */
+    border: 1px solid var(--cyan) !important;
+    color: var(--cyan) !important;
+    padding: 12px;
+    margin-bottom: 15px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+}
+
+.sidebar-label {
+    color: var(--white);
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Mobile Fix: Stack on small screens */
+@media (max-width: 768px) {
+    .dashboard-main {
+        grid-template-columns: 1fr !important;
+    }
+    .sidebar {
+        position: relative;
+        top: 0;
+        margin-bottom: 30px;
+    }
+}
