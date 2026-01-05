@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converter | CyberSolutionsOhio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="neon-dark">
+    <header>
+        <nav>
+            <div class="search-container">
+                <form action="https://www.google.com/search" method="GET" target="_blank">
+                    <input type="text" name="q" id="site-search" placeholder="Search the web...">
+                    <button type="submit" class="cta-button">Search</button>
+                </form>
+            </div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="converter.html">Converter</a></li>
+                <li><a href="games.html">Games</a></li>
+                <li><a href="apps.html">Apps</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <button id="theme-toggle-button" class="cta-button">Change Theme</button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="content-section">
+            <h1 class="page-title" style="text-align: center;">Data Stream Converter</h1>
+            <div class="content-card">
+                <h2 style="color: var(--neon-teal);">Metric & Imperial Shift</h2>
+                <p>Convert your physical data into the digital standard.</p>
+                
+                <div class="converter-box" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                    <input type="number" id="feetInput" placeholder="Enter Feet" class="cta-button" style="background: rgba(0,0,0,0.5); width: 100%;">
+                    <button onclick="convertFeetToMeters()" class="cta-button" style="width: 100%;">Convert to Meters</button>
+                    <div id="output" style="font-size: 1.5rem; color: var(--neon-pink); text-align: center; min-height: 40px;"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        function convertFeetToMeters() {
+            const feet = document.getElementById('feetInput').value;
+            const meters = (feet * 0.3048).toFixed(2);
+            const outputDiv = document.getElementById('output');
+            if (feet) {
+                outputDiv.innerHTML = `${feet} FT = ${meters} M`;
+            } else {
+                outputDiv.innerHTML = "Please enter a value";
+            }
+        }
+    </script>
+    <script src="js/theme.js"></script>
+</body>
+</html>
