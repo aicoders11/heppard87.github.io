@@ -69,3 +69,20 @@ document.addEventListener('DOMContentLoaded', () => {
         showUtilities.addEventListener('change', filterApps);
     }
 });
+function filterGallery(category) {
+    let visibleCount = 0;
+    featureItems.forEach(item => {
+        item.classList.remove('show');
+        if (item.getAttribute('data-category') === category) {
+            item.style.display = 'block';
+            const delay = visibleCount * 0.1; 
+            visibleCount++;
+            setTimeout(() => {
+                item.style.transitionDelay = `${delay}s`;
+                item.classList.add('show');
+            }, 50);
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
