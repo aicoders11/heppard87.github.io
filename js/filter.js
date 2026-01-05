@@ -125,3 +125,17 @@ function filterGallery(category) {
         }
     });
 }
+function filterGallery(category) {
+    const items = document.querySelectorAll('.feature-item');
+    
+    items.forEach(item => {
+        const itemCategory = item.getAttribute('data-category');
+        if (category === 'all' || itemCategory === category) {
+            item.style.display = 'block'; // Keeps it in the grid flow
+            setTimeout(() => item.classList.add('show'), 10);
+        } else {
+            item.style.display = 'none'; // Removes it from grid flow
+            item.classList.remove('show');
+        }
+    });
+}
