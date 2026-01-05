@@ -269,6 +269,7 @@ footer .social-links a:hover {
     margin-bottom: 50px;
 }
 
+/* Line 272 */
 .features-grid {
     display: grid !important;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -277,11 +278,12 @@ footer .social-links a:hover {
     padding: 20px 0;
 }
 
+/* Line 280 */
 .feature-item {
-    position: relative !important; /* This keeps them in their grid slot */
+    position: relative !important; /* Forces them into the grid slots */
     width: 100%;
-    height: 450px; /* Essential height for absolute children */
-    perspective: 1000px;
+    min-height: 450px; /* Gives the card enough height to show content */
+    display: block;
 }
 
 .feature-card-front, .feature-card-back {
