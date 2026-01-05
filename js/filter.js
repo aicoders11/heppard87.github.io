@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     filterButtons.forEach(button => {
     button.addEventListener('click', () => {
         // This removes the active color from all buttons
+       filterButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        // This removes the active color from all buttons
         filterButtons.forEach(btn => btn.classList.remove('active'));
         // This adds the active color to the one you just clicked
         button.classList.add('active');
