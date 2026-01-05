@@ -1021,3 +1021,17 @@ footer {
     filter: drop-shadow(0 0 15px var(--magenta));
     color: var(--white);
 }
+/* =========================================
+   EMERGENCY FOOTER FIX
+   ========================================= */
+footer {
+    /* clear the previous padding issues */
+    padding-bottom: 120px !important; 
+    
+    /* Ensure content is centered so it doesn't hit the left corner */
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
