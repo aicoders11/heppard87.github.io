@@ -50,3 +50,36 @@ document.addEventListener('DOMContentLoaded', () => {
         showUtilities.addEventListener('change', filterApps);
     }
 });
+document.addEventListener('DOMContentLoaded', () => {
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const featureItems = document.querySelectorAll('.feature-item');
+
+    // Function to filter items
+    function filterGallery(category) {
+        featureItems.forEach(item => {
+            if (item.getAttribute('data-category') === category) {
+                item.style.display = 'block';
+                // Trigger a small delay for fade-in effect if your CSS supports it
+                setTimeout(() => item.style.opacity = '1', 10);
+            } else {
+                item.style.opacity = '0';
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // Add click events to buttons
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all and add to clicked
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const filterValue = button.getAttribute('data-filter');
+            filterGallery(filterValue);
+        });
+    });
+
+    // Initialize the page with "Web" as the default view
+    filterGallery('web');
+});
