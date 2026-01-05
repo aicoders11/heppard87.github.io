@@ -1225,3 +1225,50 @@ footer {
         margin-bottom: 30px;
     }
 }
+/* =========================================
+   GAME CARD UPGRADE
+   ========================================= */
+
+/* The Grid Container */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Auto-fit columns */
+    gap: 20px;
+    padding: 20px 0;
+}
+
+/* The Individual Game Cards */
+.feature-item {
+    display: block; /* Makes the whole box clickable */
+    background: rgba(10, 10, 15, 0.8); /* Dark semi-transparent background */
+    border: 1px solid #00f5d4; /* Cyan border (adjust to your preference) */
+    padding: 20px;
+    border-radius: 8px;
+    text-decoration: none; /* Removes underline from links */
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0, 245, 212, 0.1); /* Subtle glow */
+}
+
+/* Card Hover Effect */
+.feature-item:hover {
+    transform: translateY(-5px); /* Moves up slightly */
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.4); /* Brighter glow */
+    background: rgba(0, 245, 212, 0.1); /* Slight cyan tint */
+}
+
+/* Headings inside the card */
+.feature-item h3 {
+    margin-top: 0;
+    color: #00f5d4; /* Cyan Text */
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+}
+
+/* Description text inside the card */
+.feature-item p {
+    color: #e0e0e0; /* Light gray text for readability */
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin-bottom: 0;
+}
