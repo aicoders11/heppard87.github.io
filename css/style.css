@@ -270,9 +270,18 @@ footer .social-links a:hover {
 }
 
 .feature-item {
-    position: relative !important; /* DO NOT use 'absolute' here */
-    display: block;
-    width: auto;
+    position: relative !important; /* This keeps them in their grid slot */
+    width: 100%;
+    height: 450px; /* Essential height for absolute children */
+    perspective: 1000px;
+}
+
+.feature-card-front, .feature-card-back {
+    position: absolute; /* Keep this for the flip effect */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 .feature-item:hover, .game-card:hover {
