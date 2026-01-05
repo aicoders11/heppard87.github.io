@@ -39,70 +39,57 @@
             </div>
         </aside>
 
-        <section class="app-collection">
-            <div class="content-card" style="margin-bottom: 30px; border: 1px solid var(--magenta);">
-                <h2 style="color: var(--cyan);">Security Terminal: Password Analyzer</h2>
+       <section class="app-collection">
+            <div class="content-card terminal-card">
+                <h2>Security Terminal: Password Analyzer</h2>
                 <p>Test your credential strength against our decryption algorithms.</p>
-                <div class="input-group" style="margin-top: 20px;">
-                    <input type="password" id="pwdInput" placeholder="Enter password to test..." 
-                           oninput="checkStrength()" class="cta-button" 
-                           style="background: rgba(0,0,0,0.5); width: 100%; text-align: left; border: 1px solid var(--cyan);">
+                
+                <div class="input-group">
+                    <input type="password" id="pwdInput" placeholder="Enter password to test..." oninput="checkStrength()">
                 </div>
-                <div id="strength-bar-container" style="width: 100%; height: 10px; background: #222; margin-top: 15px; border-radius: 5px; overflow: hidden;">
-                    <div id="strength-bar" style="width: 0%; height: 100%; transition: 0.5s;"></div>
+
+                <div id="strength-bar-container">
+                    <div id="strength-bar"></div>
                 </div>
-                <p id="strength-text" style="margin-top: 10px; font-weight: bold; color: var(--light-slate);">Clearance Level: Unknown</p>
+                
+                <p id="strength-text">Clearance Level: Unknown</p>
             </div>
 
             <div class="features-grid" id="apps-grid">
-                <a href="apps/3d-world-clock/index.html" class="feature-item" data-category="utility">
-                    <h3>Mr. Heppard's World Clock</h3>
-                    <p>An interactive globe displaying the time.</p>
-                </a>
-                <a href="apps/city-builder/index.html" class="feature-item" data-category="utility">
-                    <h3>Mr. Heppard's 3D City Builder</h3>
-                    <p>Create a sprawling neon city one block at a time.</p>
-                </a>
-            </div>
+                </div>
         </section>
     </main>
 
     <footer>
-        <div class="footer-content">
-            <p>&copy; 2026 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
-            <ul class="social-links">
-                <li><a href="#">LinkedIn</a></li>
-                <li><a href="#">Twitter</a></li>
-                <li><a href="#">GitHub</a></li>
-            </ul>
-        </div>
-    </footer>
-<button id="theme-toggle-button">Change Theme</button>
+        </footer>
+
+    <button id="theme-toggle-button">Change Theme</button>
+
     <script>
-    function checkStrength() {
-        const pwd = document.getElementById('pwdInput').value;
-        const bar = document.getElementById('strength-bar');
-        const text = document.getElementById('strength-text');
-        let score = 0;
-        if (pwd.length > 8) score++;
-        if (/[A-Z]/.test(pwd)) score++;
-        if (/[0-9]/.test(pwd)) score++;
-        if (/[^A-Za-z0-9]/.test(pwd)) score++;
-        const colors = ['#ff0055', '#ffaa00', '#00f5d4', '#00ff00'];
-        const levels = ['UNSAFE', 'WEAK', 'SECURE', 'OVERKILL'];
-        if (pwd.length === 0) {
-            bar.style.width = '0%';
-            text.innerText = 'Clearance Level: Unknown';
-        } else {
-            bar.style.width = (score + 1) * 25 + '%';
-            bar.style.background = colors[score] || colors[0];
-            text.innerText = 'Clearance Level: ' + (levels[score] || levels[0]);
-            text.style.color = colors[score] || colors[0];
+        function checkStrength() {
+            const pwd = document.getElementById('pwdInput').value;
+            const bar = document.getElementById('strength-bar');
+            const text = document.getElementById('strength-text');
+            let score = 0;
+            
+            if (pwd.length > 8) score++;
+            if (/[A-Z]/.test(pwd)) score++;
+            if (/[0-9]/.test(pwd)) score++;
+            if (/[^A-Za-z0-9]/.test(pwd)) score++;
+            
+            const colors = ['#ff0055', '#ffaa00', '#00f5d4', '#00ff00'];
+            const levels = ['UNSAFE', 'WEAK', 'SECURE', 'OVERKILL'];
+            
+            if (pwd.length === 0) {
+                bar.style.width = '0%';
+                text.innerHTML = 'Clearance Level: <span style="color: grey">Unknown</span>';
+            } else {
+                bar.style.width = (score + 1) * 25 + '%';
+                bar.style.background = colors[score] || colors[0];
+                text.innerHTML = 'Clearance Level: <span style="color:' + (colors[score] || colors[0]) + '">' + (levels[score] || levels[0]) + '</span>';
+            }
         }
-    }
-         <button id="theme-toggle-button" class="cta-button">Change Theme</button>
     </script>
-    
     <script src="js/theme.js"></script>
 </body>
 </html>
