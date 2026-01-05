@@ -26,6 +26,28 @@
     gap: 2rem; /* Space between cards */
     padding: 4rem 2rem;
     flex-wrap: wrap; /* Allows cards to stack on mobile */
+}/* Style for the Read More button inside the card */
+.read-more-btn {
+    display: inline-block;
+    margin-top: 15px; /* Spacing from the text */
+    padding: 8px 20px;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    text-decoration: none;
+    font-family: var(--font-mono); /* Uses your mono font */
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Hover Effect: Fills with Cyan and glows */
+.read-more-btn:hover {
+    background-color: var(--cyan);
+    color: var(--dark-violet);
+    box-shadow: 0 0 15px var(--cyan); /* Neon glow effect */
+    transform: translateY(-2px);
 }
 
 /* Update your existing .feature-item to be flexible */
