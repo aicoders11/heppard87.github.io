@@ -90,103 +90,5876 @@
             </div>
         </section>
 
-        <section class="content-section features">
-            <div class="page-header">
-                <h2>Core Offerings</h2>
+      Conversation with Gemini
+document.addEventListener('DOMContentLoaded', () => { can you check the code    // Smooth scrolling for anchor links
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+
+        anchor.addEventListener('click', function (e) {
+
+            e.preventDefault();
+
+
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+
+                behavior: 'smooth'
+
+            });
+
+        });
+
+    });
+
+
+    // Scroll-triggered animations
+
+    const observer = new IntersectionObserver((entries) => {
+
+        entries.forEach(entry => {
+
+            if (entry.isIntersecting) {
+
+                entry.target.classList.add('visible');
+
+            }
+
+        });
+
+    }, {
+
+        threshold: 0.1
+
+    });
+
+
+    document.querySelectorAll('section').forEach(section => {
+
+        section.classList.add('reveal');
+
+        observer.observe(section);
+
+    });
+
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const cards = document.querySelectorAll('.feature-item');
+
+    
+
+    cards.forEach(card => {
+
+        card.addEventListener('click', function() {
+
+            // This matches the '.feature-item.is-flipped' selector in your CSS
+
+            this.classList.toggle('is-flipped');
+
+        });
+
+    });
+
+});
+
+This code is functional and syntactically correct, but it can be optimized for better performance, robustness, and maintainability.
+
+Here is the refactored and optimized version, followed by a breakdown of the improvements.
+
+Refactored Code
+JavaScript
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Centralized Logic: Merged the two listeners into one
+    
+    // --- Smooth scrolling for anchor links ---
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href');
+            
+            // Safety Check: Prevent errors if href is just "#" or invalid
+            if (targetId === '#' || !targetId) return; 
+            
+            const targetElement = document.querySelector(targetId);
+            
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    // --- Scroll-triggered animations ---
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                
+                // Performance: Stop watching the element once it has been revealed
+                observer.unobserve(entry.target); 
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+
+    document.querySelectorAll('section').forEach(section => {
+        section.classList.add('reveal');
+        observer.observe(section);
+    });
+
+    // --- Card Flip Logic ---
+    const cards = document.querySelectorAll('.feature-item');
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            this.classList.toggle('is-flipped');
+        });
+    });
+});
+Key Improvements Made
+Consolidated DOMContentLoaded Listeners: You originally had two separate event listeners for the same event. Merging them improves readability and ensures all initialization logic happens in a single pass.
+
+Error Prevention (Smooth Scroll): In your original code, if a link had href="#" (common for placeholder links) or pointed to an ID that didn't exist, document.querySelector would throw an error and break the script. I added a check to ensure targetElement exists before trying to scroll to it.
+
+Performance (Intersection Observer): I added observer.unobserve(entry.target). Without this, the browser keeps checking the position of elements even after they have already animated in. This frees up resources once the animation is complete.
+
+Variable Scope: Used const for cards inside the single scope to keep it clean.
+
+A Quick Note on Accessibility
+For the card flip feature: If users navigate your site using a keyboard (Tab key), div elements are not focusable by default. To make this accessible:
+
+Ensure your .feature-item elements have tabindex="0".
+
+Add a keydown listener so users can flip the card by pressing "Enter" or "Space".
+
+Would you like me to write the CSS that corresponds to the .reveal and .visible animation classes?
+
+yes
+
+Here is the CSS to make your scroll animations and card flips work. I've included comments to help you adjust the timing and effects.
+
+CSS Styles
+CSS
+/* --- Scroll Animation Styles --- */
+
+/* 1. The starting state of the section (hidden) */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px); /* Moves it down slightly */
+    transition: all 0.8s ease-out; /* Controls speed of the fade/slide */
+    will-change: opacity, transform; /* Performance hint for browser */
+}
+
+/* 2. The active state when it enters the viewport (visible) */
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0); /* Returns to original position */
+}
+
+
+/* --- Card Flip Styles --- */
+
+/* The container for the card */
+.feature-item {
+    perspective: 1000px; /* Creates the 3D depth effect */
+    cursor: pointer;
+    /* Add width/height as needed for your design */
+    min-height: 200px; 
+}
+
+/* The inner wrapper that actually spins */
+.feature-item-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+/* The class added by your JS to trigger the flip */
+.feature-item.is-flipped .feature-item-inner {
+    transform: rotateY(180deg);
+}
+
+/* Common styles for front and back faces */
+.feature-front, .feature-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Hides the back when flipped away */
+    -webkit-backface-visibility: hidden; /* Safari support */
+}
+
+/* Style the front */
+.feature-front {
+    background-color: #fff;
+    color: black;
+}
+
+/* Style the back (initially hidden by rotation) */
+.feature-back {
+    background-color: #2980b9;
+    color: white;
+    transform: rotateY(180deg);
+}
+Quick Setup for the Cards
+For the card CSS to work, your HTML structure needs to look like this:
+
+HTML
+<div class="feature-item">
+    <div class="feature-item-inner">
+        <div class="feature-front">
+            <h3>Front Side</h3>
+        </div>
+        <div class="feature-back">
+            <h3>Back Side</h3>
+        </div>
+    </div>
+</div>
+Would you like me to adjust the animation speed or direction (e.g., slide in from the left instead of the bottom)?
+
+/* --- Scroll Animation Styles --- */
+
+
+/* 1. The starting state of the section (hidden) */
+
+.reveal {
+
+    opacity: 0;
+
+    transform: translateY(30px); /* Moves it down slightly */
+
+    transition: all 0.8s ease-out; /* Controls speed of the fade/slide */
+
+    will-change: opacity, transform; /* Performance hint for browser */
+
+}
+
+
+/* 2. The active state when it enters the viewport (visible) */
+
+.reveal.visible {
+
+    opacity: 1;
+
+    transform: translateY(0); /* Returns to original position */
+
+}
+
+
+
+/* --- Card Flip Styles --- */
+
+
+/* The container for the card */
+
+.feature-item {
+
+    perspective: 1000px; /* Creates the 3D depth effect */
+
+    cursor: pointer;
+
+    /* Add width/height as needed for your design */
+
+    min-height: 200px; 
+
+}
+
+
+/* The inner wrapper that actually spins */
+
+.feature-item-inner {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    text-align: center;
+
+    transition: transform 0.6s;
+
+    transform-style: preserve-3d;
+
+}
+
+
+/* The class added by your JS to trigger the flip */
+
+.feature-item.is-flipped .feature-item-inner {
+
+    transform: rotateY(180deg);
+
+}
+
+
+/* Common styles for front and back faces */
+
+.feature-front, .feature-back {
+
+    position: absolute;
+
+    width: 100%;
+
+    height: 100%;
+
+    backface-visibility: hidden; /* Hides the back when flipped away */
+
+    -webkit-backface-visibility: hidden; /* Safari support */
+
+}
+
+
+/* Style the front */
+
+.feature-front {
+
+    background-color: #fff;
+
+    color: black;
+
+}
+
+
+/* Style the back (initially hidden by rotation) */
+
+.feature-back {
+
+    background-color: #2980b9;
+
+    color: white;
+
+    transform: rotateY(180deg);
+
+}
+
+That looks correct! You are ready to drop that into your stylesheet.
+
+Since you have the base code, here are two common variations you might want to use to make the animations feel more dynamic or to adjust the card flip speed.
+
+1. Variation: Slide from Left (instead of Bottom)
+If you want sections to slide in from the side rather than rising up, replace your .reveal block with this:
+
+CSS
+.reveal {
+    opacity: 0;
+    /* Change translateY to translateX */
+    transform: translateX(-50px); 
+    transition: all 0.8s ease-out;
+    will-change: opacity, transform;
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+2. Variation: Slower Card Flip
+If the card flips too fast for the user to read the content during the spin, you can slow it down.
+
+Find .feature-item-inner and change the transition timing:
+
+CSS
+.feature-item-inner {
+    /* ... existing styles ... */
+    
+    /* Change 0.6s to 1.2s for a slower, smoother flip */
+    transition: transform 1.2s; 
+}
+Next Step: Would you like the HTML snippet for a row of 3 cards so you can see how they look side-by-side?
+
+yes
+
+Here is the HTML structure for a row of 3 cards, along with a small CSS snippet to arrange them side-by-side using Flexbox.
+
+1. The HTML
+You can paste this inside your <body> tag, preferably inside a <main> or <div> wrapper.
+
+HTML
+<section id="features" class="features-row">
+    <div class="feature-item">
+        <div class="feature-item-inner">
+            <div class="feature-front">
+                <h3>Web Design</h3>
+                <p>Modern & Responsive</p>
+                <small>(Click to flip)</small>
             </div>
-<div class="filter-controls">
-            <button class="filter-btn active" data-filter="web">Web</button>
-            <button class="filter-btn" data-filter="security">Security</button>
-            <button class="filter-btn" data-filter="cloud">Cloud</button>
+            <div class="feature-back">
+                <h3>Details</h3>
+                <p>We build websites that look great on any device using the latest technologies.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="feature-item">
+        <div class="feature-item-inner">
+            <div class="feature-front">
+                <h3>SEO Optimization</h3>
+                <p>Rank Higher</p>
+                <small>(Click to flip)</small>
+            </div>
+            <div class="feature-back">
+                <h3>Details</h3>
+                <p>Improve your visibility on Google and drive more organic traffic to your business.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="feature-item">
+        <div class="feature-item-inner">
+            <div class="feature-front">
+                <h3>Marketing</h3>
+                <p>Grow Your Audience</p>
+                <small>(Click to flip)</small>
+            </div>
+            <div class="feature-back">
+                <h3>Details</h3>
+                <p>Comprehensive strategies to help you reach your target customers effectively.</p>
+            </div>
+        </div>
+    </div>
+</section>
+2. The Container CSS
+Add this to your stylesheet to align the cards horizontally and ensure they wrap nicely on smaller screens.
+
+CSS
+/* Container for the row of cards */
+.features-row {
+    display: flex;
+    justify-content: center; /* Centers the cards */
+    gap: 2rem; /* Space between cards */
+    padding: 4rem 2rem;
+    flex-wrap: wrap; /* Allows cards to stack on mobile */
+}
+
+/* Update your existing .feature-item to be flexible */
+.feature-item {
+    flex: 1; /* Each card takes equal width */
+    min-width: 250px; /* Prevents them from getting too squished */
+    max-width: 350px; /* Prevents them from getting too wide */
+    
+    /* Keep the height consistent */
+    min-height: 250px; 
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+/* Optional: Add some padding to the inner content for better spacing */
+.feature-front, .feature-back {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Subtle shadow */
+}
+Next Step: Would you like to add a "Read More" button inside the back of the card that links to a different page?
+
+:root {
+
+    --dark-violet: #0d0221;
+
+    --black-blue: #0c1445;
+
+    --cyan: #00f5d4;
+
+    --magenta: #ff00f5;
+
+    --light-slate: #ccd6f6;
+
+    --white: #e6f1ff;
+
+    --font-sans: 'Inter', sans-serif;
+
+    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+
+    --grid-size: 50px;
+
+    --grid-color-cyan: rgba(0, 245, 212, 0.5);
+
+    --grid-color-magenta: rgba(255, 0, 245, 0.5);
+
+}
+
+/* Immediate color shift when the button is physically pressed */
+
+.filter-btn:active {
+
+    transform: scale(0.95); /* Tactile push-in effect */
+
+    background-color: var(--magenta); /* Flash magenta on click */
+
+    box-shadow: 0 0 20px var(--magenta);
+
+    color: var(--dark-violet);
+
+    transition: transform 0.1s ease;
+
+}
+
+/* Container for the row of cards */
+
+.features-row {
+
+    display: flex;
+
+    justify-content: center; /* Centers the cards */
+
+    gap: 2rem; /* Space between cards */
+
+    padding: 4rem 2rem;
+
+    flex-wrap: wrap; /* Allows cards to stack on mobile */
+
+}
+
+
+/* Update your existing .feature-item to be flexible */
+
+.feature-item {
+
+    flex: 1; /* Each card takes equal width */
+
+    min-width: 250px; /* Prevents them from getting too squished */
+
+    max-width: 350px; /* Prevents them from getting too wide */
+
+    
+
+    /* Keep the height consistent */
+
+    min-height: 250px; 
+
+    perspective: 1000px;
+
+    cursor: pointer;
+
+}
+
+
+/* Optional: Add some padding to the inner content for better spacing */
+
+.feature-front, .feature-back {
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+    border-radius: 10px; /* Rounded corners */
+
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Subtle shadow */
+
+}
+
+/* Persistent glow for the currently selected category */
+
+.filter-btn.active {
+
+    background-color: var(--cyan) !important;
+
+    color: var(--dark-violet) !important;
+
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta);
+
+    border-color: var(--white);
+
+}
+
+body {
+
+    background-color: var(--dark-violet);
+
+    color: var(--light-slate);
+
+    font-family: var(--font-sans);
+
+    margin: 0;
+
+    padding: 0;
+
+    font-size: 18px;
+
+    line-height: 1.5;
+
+    overflow-x: hidden;
+
+    position: relative;
+
+    min-height: 100vh;
+
+}
+
+
+body::before {
+
+    content: '';
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-image:
+
+        linear-gradient(var(--grid-color-cyan) 1px, transparent 1px),
+
+        linear-gradient(90deg, var(--grid-color-cyan) 1px, transparent 1px),
+
+        linear-gradient(var(--grid-color-magenta) 1px, transparent 1px),
+
+        linear-gradient(90deg, var(--grid-color-magenta) 1px, transparent 1px);
+
+    background-size:
+
+        var(--grid-size) var(--grid-size),
+
+        var(--grid-size) var(--grid-size),
+
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2),
+
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2);
+
+    animation: grid-scroll 20s linear infinite;
+
+    z-index: -1;
+
+    transform: perspective(600px) rotateX(45deg);
+
+}
+
+
+@keyframes grid-scroll {
+
+    from {
+
+        background-position: 0 0;
+
+    }
+
+    to {
+
+        background-position: var(--grid-size) var(--grid-size);
+
+    }
+
+}
+
+
+header {
+
+    background-color: rgba(0, 0, 0, 0.5);
+
+    backdrop-filter: blur(10px);
+
+    padding: 20px 50px;
+
+    position: fixed;
+
+    top: 0;
+
+    width: 100%;
+
+    z-index: 10;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    border-bottom: 1px solid var(--cyan);
+
+    box-shadow: 0 0 15px var(--cyan);
+
+}
+
+
+header nav {
+
+    width: 100%;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+}
+
+
+header .logo {
+
+    color: var(--cyan);
+
+    font-family: var(--font-mono);
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+    text-decoration: none;
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+
+.search-form {
+
+    display: flex;
+
+}
+
+
+.search-form input {
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    color: var(--light-slate);
+
+    padding: 5px;
+
+}
+
+
+.search-form button {
+
+    background-color: var(--magenta);
+
+    color: var(--dark-violet);
+
+    border: none;
+
+    padding: 5px 10px;
+
+    cursor: pointer;
+
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+}
+
+
+.search-form button:hover {
+
+    background-color: var(--cyan);
+
+    box-shadow: 0 0 10px var(--cyan);
+
+}
+
+
+header nav ul {
+
+    list-style: none;
+
+    margin: 0;
+
+    padding: 0;
+
+    display: flex;
+
+    gap: 30px;
+
+}
+
+
+header nav ul li a {
+
+    color: var(--light-slate);
+
+    text-decoration: none;
+
+    font-size: 16px;
+
+    font-family: var(--font-mono);
+
+    transition: color 0.3s ease;
+
+}
+
+
+header nav ul li a:hover {
+
+    color: var(--cyan);
+
+    text-shadow: 0 0 5px var(--cyan);
+
+}
+
+
+main {
+
+    padding: 120px 50px 50px; /* Adjust top padding to account for fixed header */
+
+}
+
+
+footer {
+
+    background-color: rgba(0, 0, 0, 0.5);
+
+    backdrop-filter: blur(10px);
+
+    padding: 20px 50px;
+
+    border-top: 1px solid var(--cyan);
+
+    box-shadow: 0 0 15px var(--cyan);
+
+}
+
+
+footer .footer-content {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+}
+
+
+footer .social-links {
+
+    list-style: none;
+
+    margin: 0;
+
+    padding: 0;
+
+    display: flex;
+
+    gap: 20px;
+
+}
+
+
+footer .social-links a {
+
+    color: var(--light-slate);
+
+    text-decoration: none;
+
+    transition: color 0.3s ease;
+
+}
+
+
+footer .social-links a:hover {
+
+    color: var(--cyan);
+
+    text-shadow: 0 0 5px var(--cyan);
+
+}
+
+
+/* Homepage specific styles */
+
+.hero.hero-two-column {
+
+    min-height: 60vh;
+
+    display: grid;
+
+    grid-template-columns: 1fr 2fr;
+
+    gap: 50px;
+
+    align-items: center;
+
+}
+
+
+.hero-left {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+}
+
+
+.profile-picture {
+
+    width: 300px;
+
+    height: 300px;
+
+    border-radius: 50%;
+
+    border: 5px solid var(--cyan);
+
+    box-shadow: 0 0 20px var(--cyan), 0 0 30px var(--magenta), inset 0 0 15px rgba(0, 245, 212, 0.5);
+
+    overflow: hidden;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+}
+
+
+.profile-picture img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
+
+.hero-right h1 {
+
+    font-size: 56px;
+
+    color: var(--white);
+
+    font-weight: 800;
+
+    margin-bottom: 20px;
+
+    text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+
+}
+
+
+.hero-right p {
+
+    font-size: 18px;
+
+    max-width: 600px;
+
+    margin-bottom: 40px;
+
+}
+
+
+.cta-button {
+
+    background: linear-gradient(45deg, var(--cyan), var(--magenta));
+
+    color: var(--dark-violet);
+
+    padding: 15px 30px;
+
+    text-decoration: none;
+
+    font-weight: bold;
+
+    border: none;
+
+    border-radius: 5px;
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    box-shadow: 0 0 15px var(--magenta);
+
+}
+
+
+.cta-button:hover {
+
+    transform: scale(1.05);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+    color: var(--dark-violet);
+
+}
+
+
+.features {
+
+    padding: 50px 0;
+
+}
+
+
+/* --- FEATURES SECTION --- */
+
+.features {
+
+    padding: 50px 0;
+
+}
+
+
+.features h2 {
+
+    font-size: 48px;
+
+    color: var(--white);
+
+    text-align: center;
+
+    margin-bottom: 50px;
+
+}
+
+
+.filter-buttons {
+
+    position: relative;
+
+    z-index: 10;
+
+    text-align: center;
+
+    margin-bottom: 30px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 10px;
+
+}
+
+
+/* Update the grid to manage side-by-side layout (Line 1667) */
+
+.features-grid {
+
+    display: grid !important; /* Force grid layout */
+
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+
+    gap: 40px;
+
+    padding: 40px 0;
+
+    justify-items: center; /* Centers cards in their grid slot */
+
+    width: 100%;
+
+}
+
+
+/* Ensure the container has height since inner cards are absolute (Line 1675) */
+
+.feature-item {
+
+    position: relative !important; /* Anchor for absolute children */
+
+    width: 100%;
+
+    max-width: 320px;
+
+    min-height: 450px; /* Forces space for the absolute card faces */
+
+    perspective: 1000px;
+
+    margin-bottom: 20px;
+
+    display: block;
+
+}
+
+
+/* Fix for the card faces to ensure they occupy the reserved space */
+
+.feature-card-front, 
+
+.feature-card-back {
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    backface-visibility: hidden;
+
+}
+
+
+.feature-item h3 {
+
+    font-size: 24px;
+
+    color: var(--cyan);
+
+    margin-bottom: 15px;
+
+    font-weight: 600;
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+
+.feature-item:hover {
+
+    transform: translateY(-5px) scale(1.02);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+/* Individual Card Wrapper */
+
+.feature-item {
+
+    position: relative !important; /* Required to anchor the absolute children */
+
+    width: 100%;
+
+    min-height: 450px; /* Essential height so the absolute faces don't collapse */
+
+    perspective: 1000px; /* Needed for the 3D flip effect */
+
+}
+
+
+/* The actual card faces (Front and Back) */
+
+.feature-card-front, 
+
+.feature-card-back {
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    backface-visibility: hidden; /* Important: hides the face that is turned away */
+
+    border: 1px solid var(--cyan);
+
+    background: rgba(13, 2, 33, 0.8);
+
+    padding: 30px;
+
+    border-radius: 10px;
+
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+}
+
+
+/* Card Headers */
+
+.feature-item h3 {
+
+    font-size: 24px;
+
+    color: var(--cyan);
+
+    margin-bottom: 15px;
+
+    font-weight: 600;
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+
+/* Hover effect for the entire card slot */
+
+.feature-item:hover {
+
+    transform: translateY(-5px);
+
+}
+
+.feature-item h3 {
+
+    font-size: 24px;
+
+    color: var(--cyan);
+
+    margin-bottom: 15px;
+
+    font-weight: 600;
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+.sidebar h3 {
+
+    color: var(--cyan);
+
+    font-family: var(--font-mono);
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+    text-align: center;
+
+    margin-top: 0;
+
+}
+
+
+.sidebar-control {
+
+    margin-bottom: 20px;
+
+}
+
+
+.sidebar-control input[type="search"] {
+
+    width: 100%;
+
+    padding: 10px;
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    color: var(--light-slate);
+
+    border-radius: 5px;
+
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+
+}
+
+
+.sidebar-control label {
+
+    display: flex;
+
+    align-items: center;
+
+    cursor: pointer;
+
+}
+
+
+.app-collection {
+
+    flex-grow: 1;
+
+}
+
+
+/* List View for Apps */
+
+.features-grid.list-view .feature-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 15px;
+
+}
+
+
+.features-grid.list-view .feature-item p {
+
+    display: none; /* Hide paragraph in list view */
+
+}
+
+
+/* Toggle Switch Styles */
+
+.switch {
+
+    position: relative;
+
+    display: inline-block;
+
+    width: 60px;
+
+    height: 34px;
+
+    margin: 0 10px;
+
+}
+
+
+.switch input {
+
+    opacity: 0;
+
+    width: 0;
+
+    height: 0;
+
+}
+
+
+.slider {
+
+    position: absolute;
+
+    cursor: pointer;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 0;
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    transition: .4s;
+
+}
+
+
+.slider:before {
+
+    position: absolute;
+
+    content: "";
+
+    height: 26px;
+
+    width: 26px;
+
+    left: 4px;
+
+    bottom: 4px;
+
+    background-color: white;
+
+    transition: .4s;
+
+}
+
+
+input:checked + .slider {
+
+    background-color: var(--cyan);
+
+    box-shadow: 0 0 10px var(--cyan);
+
+}
+
+
+input:focus + .slider {
+
+    box-shadow: 0 0 5px var(--magenta);
+
+}
+
+
+input:checked + .slider:before {
+
+    transform: translateX(26px);
+
+}
+
+
+.slider.round {
+
+    border-radius: 34px;
+
+}
+
+
+.slider.round:before {
+
+    border-radius: 50%;
+
+}
+
+
+.filter-buttons {
+
+    text-align: center;
+
+    margin-bottom: 30px;
+
+}
+
+
+.filter-btn {
+
+    background-color: transparent;
+
+    border: 1px solid var(--cyan);
+
+    color: var(--cyan);
+
+    padding: 10px 20px;
+
+    margin: 5px;
+
+    cursor: pointer;
+
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+
+    flex-grow: 1;
+
+    border-radius: 5px;
+
+}
+
+
+.filter-btn:hover,
+
+.filter-btn.active {
+
+    background-color: var(--cyan);
+
+    color: var(--dark-violet);
+
+    box-shadow: 0 0 15px var(--cyan);
+
+}
+
+
+.trust-bar {
+
+    padding: 50px 0;
+
+    text-align: center;
+
+}
+
+
+.trust-bar h2 {
+
+    font-size: 24px;
+
+    margin-bottom: 30px;
+
+    color: var(--light-slate);
+
+}
+
+
+.trust-logos {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 50px;
+
+    align-items: center;
+
+}
+
+
+.logo-placeholder {
+
+    border: 1px dashed var(--light-slate);
+
+    padding: 20px 40px;
+
+}
+
+
+/* About Us Page */
+
+/* =========================================
+
+   Static Page Content Styles
+
+   ========================================= */
+
+
+.content-section {
+
+    padding: 50px 0;
+
+}
+
+
+.content-card {
+
+    background: rgba(13, 2, 33, 0.7);
+
+    backdrop-filter: blur(10px);
+
+    border: 1px solid var(--cyan);
+
+    padding: 40px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.5), inset 0 0 10px rgba(255, 0, 245, 0.3);
+
+    margin-bottom: 30px;
+
+}
+
+
+.content-card h1,
+
+.content-card h2,
+
+.content-card h3 {
+
+    color: var(--cyan);
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+:root {
+
+    --dark-violet: #0d0221;
+
+    --black-blue: #0c1445;
+
+    --cyan: #00f5d4;
+
+    --magenta: #ff00f5;
+
+    --light-slate: #ccd6f6;
+
+    --white: #e6f1ff;
+
+    --font-sans: 'Inter', sans-serif;
+
+    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+
+    --grid-size: 50px;
+
+    --grid-color-cyan: rgba(0, 245, 212, 0.5);
+
+    --grid-color-magenta: rgba(255, 0, 245, 0.5);
+
+}
+
+/* Immediate color shift when the button is physically pressed */
+
+.filter-btn:active {
+
+    transform: scale(0.95); /* Tactile push-in effect */
+
+    background-color: var(--magenta); /* Flash magenta on click */
+
+    box-shadow: 0 0 20px var(--magenta);
+
+    color: var(--dark-violet);
+
+    transition: transform 0.1s ease;
+
+}
+
+
+/* Persistent glow for the currently selected category */
+
+.filter-btn.active {
+
+    background-color: var(--cyan) !important;
+
+    color: var(--dark-violet) !important;
+
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta);
+
+    border-color: var(--white);
+
+}
+
+body {
+
+    background-color: var(--dark-violet);
+
+    color: var(--light-slate);
+
+    font-family: var(--font-sans);
+
+    margin: 0;
+
+    padding: 0;
+
+    font-size: 18px;
+
+    line-height: 1.5;
+
+    overflow-x: hidden;
+
+    position: relative;
+
+    min-height: 100vh;
+
+}
+
+
+body::before {
+
+    content: '';
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-image:
+
+        linear-gradient(var(--grid-color-cyan) 1px, transparent 1px),
+
+        linear-gradient(90deg, var(--grid-color-cyan) 1px, transparent 1px),
+
+        linear-gradient(var(--grid-color-magenta) 1px, transparent 1px),
+
+        linear-gradient(90deg, var(--grid-color-magenta) 1px, transparent 1px);
+
+    background-size:
+
+        var(--grid-size) var(--grid-size),
+
+        var(--grid-size) var(--grid-size),
+
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2),
+
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2);
+
+    animation: grid-scroll 20s linear infinite;
+
+    z-index: -1;
+
+    transform: perspective(600px) rotateX(45deg);
+
+}
+
+
+@keyframes grid-scroll {
+
+    from {
+
+        background-position: 0 0;
+
+    }
+
+    to {
+
+        background-position: var(--grid-size) var(--grid-size);
+
+    }
+
+}
+
+
+header {
+
+    background-color: rgba(0, 0, 0, 0.5);
+
+    backdrop-filter: blur(10px);
+
+    padding: 20px 50px;
+
+    position: fixed;
+
+    top: 0;
+
+    width: 100%;
+
+    z-index: 10;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    border-bottom: 1px solid var(--cyan);
+
+    box-shadow: 0 0 15px var(--cyan);
+
+}
+
+
+header nav {
+
+    width: 100%;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+}
+
+
+header .logo {
+
+    color: var(--cyan);
+
+    font-family: var(--font-mono);
+
+    font-size: 24px;
+
+    font-weight: bold;
+
+    text-decoration: none;
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+
+.search-form {
+
+    display: flex;
+
+}
+
+
+.search-form input {
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    color: var(--light-slate);
+
+    padding: 5px;
+
+}
+
+
+.search-form button {
+
+    background-color: var(--magenta);
+
+    color: var(--dark-violet);
+
+    border: none;
+
+    padding: 5px 10px;
+
+    cursor: pointer;
+
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+}
+
+
+.search-form button:hover {
+
+    background-color: var(--cyan);
+
+    box-shadow: 0 0 10px var(--cyan);
+
+}
+
+
+header nav ul {
+
+    list-style: none;
+
+    margin: 0;
+
+    padding: 0;
+
+    display: flex;
+
+    gap: 30px;
+
+}
+
+
+header nav ul li a {
+
+    color: var(--light-slate);
+
+    text-decoration: none;
+
+    font-size: 16px;
+
+    font-family: var(--font-mono);
+
+    transition: color 0.3s ease;
+
+}
+
+
+header nav ul li a:hover {
+
+    color: var(--cyan);
+
+    text-shadow: 0 0 5px var(--cyan);
+
+}
+
+
+main {
+
+    padding: 120px 50px 50px; /* Adjust top padding to account for fixed header */
+
+}
+
+
+footer {
+
+    background-color: rgba(0, 0, 0, 0.5);
+
+    backdrop-filter: blur(10px);
+
+    padding: 20px 50px;
+
+    border-top: 1px solid var(--cyan);
+
+    box-shadow: 0 0 15px var(--cyan);
+
+}
+
+
+footer .footer-content {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+}
+
+
+footer .social-links {
+
+    list-style: none;
+
+    margin: 0;
+
+    padding: 0;
+
+    display: flex;
+
+    gap: 20px;
+
+}
+
+
+footer .social-links a {
+
+    color: var(--light-slate);
+
+    text-decoration: none;
+
+    transition: color 0.3s ease;
+
+}
+
+
+footer .social-links a:hover {
+
+    color: var(--cyan);
+
+    text-shadow: 0 0 5px var(--cyan);
+
+}
+
+
+/* Homepage specific styles */
+
+.hero.hero-two-column {
+
+    min-height: 60vh;
+
+    display: grid;
+
+    grid-template-columns: 1fr 2fr;
+
+    gap: 50px;
+
+    align-items: center;
+
+}
+
+
+.hero-left {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+}
+
+
+.profile-picture {
+
+    width: 300px;
+
+    height: 300px;
+
+    border-radius: 50%;
+
+    border: 5px solid var(--cyan);
+
+    box-shadow: 0 0 20px var(--cyan), 0 0 30px var(--magenta), inset 0 0 15px rgba(0, 245, 212, 0.5);
+
+    overflow: hidden;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+}
+
+
+.profile-picture img {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+}
+
+
+.hero-right h1 {
+
+    font-size: 56px;
+
+    color: var(--white);
+
+    font-weight: 800;
+
+    margin-bottom: 20px;
+
+    text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+
+}
+
+
+.hero-right p {
+
+    font-size: 18px;
+
+    max-width: 600px;
+
+    margin-bottom: 40px;
+
+}
+
+
+.cta-button {
+
+    background: linear-gradient(45deg, var(--cyan), var(--magenta));
+
+    color: var(--dark-violet);
+
+    padding: 15px 30px;
+
+    text-decoration: none;
+
+    font-weight: bold;
+
+    border: none;
+
+    border-radius: 5px;
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    box-shadow: 0 0 15px var(--magenta);
+
+}
+
+
+.cta-button:hover {
+
+    transform: scale(1.05);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+    color: var(--dark-violet);
+
+}
+
+
+.features {
+
+    padding: 50px 0;
+
+}
+
+
+.features h2 {
+
+    font-size: 48px;
+
+    color: var(--white);
+
+    text-align: center;
+
+    margin-bottom: 50px;
+
+}
+
+
+.features-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+    gap: 30px;
+
+}
+
+
+.feature-item, .game-card {
+
+    background: rgba(0, 0, 0, 0.6);
+
+    border: 1px solid var(--cyan);
+
+    padding: 30px;
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
+
+    text-decoration: none;
+
+    color: var(--light-slate);
+
+}
+
+
+.feature-item:hover, .game-card:hover {
+
+    transform: translateY(-5px) scale(1.05);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+.feature-item h3, .game-card h3 {
+
+    font-size: 24px;
+
+    color: var(--cyan);
+
+    margin-bottom: 15px;
+
+    font-weight: 600;
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+
+/* Apps Dashboard Layout */
+
+.dashboard-main {
+
+    display: flex;
+
+    gap: 30px;
+
+}
+
+
+.sidebar {
+
+    width: 250px;
+
+    flex-shrink: 0;
+
+    background-color: rgba(0, 0, 0, 0.5);
+
+    backdrop-filter: blur(10px);
+
+    border: 1px solid var(--cyan);
+
+    padding: 20px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 0 15px var(--cyan);
+
+}
+
+
+.sidebar h3 {
+
+    color: var(--cyan);
+
+    font-family: var(--font-mono);
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+    text-align: center;
+
+    margin-top: 0;
+
+}
+
+
+.sidebar-control {
+
+    margin-bottom: 20px;
+
+}
+
+
+.sidebar-control input[type="search"] {
+
+    width: 100%;
+
+    padding: 10px;
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    color: var(--light-slate);
+
+    border-radius: 5px;
+
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+
+}
+
+
+.sidebar-control label {
+
+    display: flex;
+
+    align-items: center;
+
+    cursor: pointer;
+
+}
+
+
+.app-collection {
+
+    flex-grow: 1;
+
+}
+
+
+/* List View for Apps */
+
+.features-grid.list-view .feature-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 15px;
+
+}
+
+
+.features-grid.list-view .feature-item p {
+
+    display: none; /* Hide paragraph in list view */
+
+}
+
+
+/* Toggle Switch Styles */
+
+.switch {
+
+    position: relative;
+
+    display: inline-block;
+
+    width: 60px;
+
+    height: 34px;
+
+    margin: 0 10px;
+
+}
+
+
+.switch input {
+
+    opacity: 0;
+
+    width: 0;
+
+    height: 0;
+
+}
+
+
+.slider {
+
+    position: absolute;
+
+    cursor: pointer;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    bottom: 0;
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    transition: .4s;
+
+}
+
+
+.slider:before {
+
+    position: absolute;
+
+    content: "";
+
+    height: 26px;
+
+    width: 26px;
+
+    left: 4px;
+
+    bottom: 4px;
+
+    background-color: white;
+
+    transition: .4s;
+
+}
+
+
+input:checked + .slider {
+
+    background-color: var(--cyan);
+
+    box-shadow: 0 0 10px var(--cyan);
+
+}
+
+
+input:focus + .slider {
+
+    box-shadow: 0 0 5px var(--magenta);
+
+}
+
+
+input:checked + .slider:before {
+
+    transform: translateX(26px);
+
+}
+
+
+.slider.round {
+
+    border-radius: 34px;
+
+}
+
+
+.slider.round:before {
+
+    border-radius: 50%;
+
+}
+
+
+.filter-buttons {
+
+    text-align: center;
+
+    margin-bottom: 30px;
+
+}
+
+
+.filter-btn {
+
+    background-color: transparent;
+
+    border: 1px solid var(--cyan);
+
+    color: var(--cyan);
+
+    padding: 10px 20px;
+
+    margin: 5px;
+
+    cursor: pointer;
+
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+
+    flex-grow: 1;
+
+    border-radius: 5px;
+
+}
+
+
+.filter-btn:hover,
+
+.filter-btn.active {
+
+    background-color: var(--cyan);
+
+    color: var(--dark-violet);
+
+    box-shadow: 0 0 15px var(--cyan);
+
+}
+
+
+.trust-bar {
+
+    padding: 50px 0;
+
+    text-align: center;
+
+}
+
+
+.trust-bar h2 {
+
+    font-size: 24px;
+
+    margin-bottom: 30px;
+
+    color: var(--light-slate);
+
+}
+
+
+.trust-logos {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 50px;
+
+    align-items: center;
+
+}
+
+
+.logo-placeholder {
+
+    border: 1px dashed var(--light-slate);
+
+    padding: 20px 40px;
+
+}
+
+
+/* About Us Page */
+
+/* =========================================
+
+   Static Page Content Styles
+
+   ========================================= */
+
+
+.content-section {
+
+    padding: 50px 0;
+
+}
+
+
+.content-card {
+
+    background: rgba(13, 2, 33, 0.7);
+
+    backdrop-filter: blur(10px);
+
+    border: 1px solid var(--cyan);
+
+    padding: 40px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.5), inset 0 0 10px rgba(255, 0, 245, 0.3);
+
+    margin-bottom: 30px;
+
+}
+
+
+.content-card h1,
+
+.content-card h2,
+
+.content-card h3 {
+
+    color: var(--cyan);
+
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+
+}
+
+
+/* Page-specific Headers */
+
+.page-header {
+
+    text-align: center;
+
+    margin-bottom: 50px;
+
+}
+
+
+.page-header h1 {
+
+    font-size: 56px;
+
+    color: var(--white);
+
+    font-weight: 800;
+
+    text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+
+    margin: 0;
+
+}
+
+
+.page-header p {
+
+    font-size: 20px;
+
+    max-width: 800px;
+
+    margin: 20px auto 0;
+
+    color: var(--light-slate);
+
+}
+
+
+.bento-item {
+
+    background: rgba(13, 2, 33, 0.7);
+
+    backdrop-filter: blur(10px);
+
+    border: 1px solid var(--cyan);
+
+    padding: 30px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.5);
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+}
+
+
+.bento-item:hover {
+
+    transform: translateY(-5px);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+.bento-item h3 {
+
+    font-size: 24px;
+
+    color: var(--cyan);
+
+    margin-bottom: 15px;
+
+    text-shadow: 0 0 5px var(--cyan);
+
+}
+
+
+
+.form-group input,
+
+.form-group textarea {
+
+    width: 100%;
+
+    padding: 15px;
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    color: var(--light-slate);
+
+    font-size: 16px;
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+
+}
+
+
+/* Games Hub */
+
+.games-hub h1 {
+
+    font-size: 48px;
+
+    color: var(--white);
+
+    margin-bottom: 20px;
+
+}
+
+
+.games-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+    gap: 30px;
+
+}
+
+
+/* Chatbot */
+
+.chatbot-widget {
+
+    position: fixed;
+
+    bottom: 20px;
+
+    right: 20px;
+
+    z-index: 1000;
+
+}
+
+
+.chat-icon {
+
+    width: 60px;
+
+    height: 60px;
+
+    background: linear-gradient(45deg, var(--cyan), var(--magenta));
+
+    color: var(--dark-violet);
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-size: 32px;
+
+    cursor: pointer;
+
+    box-shadow: 0 0 15px var(--magenta);
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+}
+
+
+.chat-icon:hover {
+
+    transform: scale(1.1);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+.chat-window {
+
+    display: none;
+
+    position: absolute;
+
+    bottom: 80px;
+
+    right: 0;
+
+    width: 300px;
+
+    height: 400px;
+
+    border: 1px solid var(--cyan);
+
+    background-color: rgba(13, 2, 33, 0.8);
+
+    backdrop-filter: blur(10px);
+
+    flex-direction: column;
+
+    box-shadow: 0 0 20px var(--magenta);
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+}
+
+
+.chat-window.show {
+
+    display: flex;
+
+}
+
+
+.chat-header {
+
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+
+    color: var(--dark-violet);
+
+    padding: 10px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+}
+
+
+.chat-body {
+
+    flex-grow: 1;
+
+    padding: 10px;
+
+    overflow-y: auto;
+
+}
+
+
+.chat-message {
+
+    margin-bottom: 10px;
+
+}
+
+
+.chat-message.bot {
+
+    color: var(--cyan);
+
+}
+
+
+.chat-message.user {
+
+    color: var(--light-slate);
+
+    text-align: right;
+
+}
+
+
+.chat-footer {
+
+    display: flex;
+
+    padding: 10px;
+
+}
+
+
+#chatInput {
+
+    flex-grow: 1;
+
+    border: 1px solid var(--magenta);
+
+    background-color: transparent;
+
+    color: var(--light-slate);
+
+    padding: 5px;
+
+    border-radius: 5px 0 0 5px;
+
+}
+
+
+#chatSendBtn {
+
+    background-color: var(--magenta);
+
+    color: var(--dark-violet);
+
+    border: none;
+
+    padding: 5px 10px;
+
+    cursor: pointer;
+
+    border-radius: 0 5px 5px 0;
+
+}
+
+
+/* Animations */
+
+.reveal {
+
+    opacity: 0;
+
+    transform: translateY(50px);
+
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+
+}
+
+
+.reveal.visible {
+
+    opacity: 1;
+
+    transform: translateY(0);
+
+}
+
+
+/* Modal Styles */
+
+.modal {
+
+    display: none;
+
+    position: fixed;
+
+    z-index: 1000;
+
+    left: 0;
+
+    top: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    overflow: auto;
+
+    background-color: rgba(0,0,0,0.6);
+
+}
+
+
+.modal-content {
+
+    background-color: var(--navy);
+
+    margin: 15% auto;
+
+    padding: 40px;
+
+    border: 2px solid var(--gold);
+
+    width: 80%;
+
+    max-width: 500px;
+
+    text-align: center;
+
+    position: relative;
+
+}
+
+
+.close-button {
+
+    color: var(--light-slate);
+
+    position: absolute;
+
+    top: 10px;
+
+    right: 20px;
+
+    font-size: 30px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+.close-button:hover,
+
+.close-button:focus {
+
+    color: var(--gold);
+
+}
+
+
+.newsletter-form input {
+
+    width: calc(100% - 120px);
+
+    padding: 10px;
+
+    margin-right: 10px;
+
+    background-color: var(--navy);
+
+    border: 1px solid var(--gold);
+
+    color: var(--light-slate);
+
+}
+
+
+/* Responsive Styles */
+
+@media (max-width: 768px) {
+
+    header {
+
+        padding: 20px;
+
+        flex-direction: column;
+
+    }
+
+
+    header nav {
+
+        flex-direction: column;
+
+    }
+
+    
+
+    .search-form {
+
+        margin-top: 20px;
+
+    }
+
+
+    header nav ul {
+
+        margin-top: 20px;
+
+        gap: 20px;
+
+    }
+
+
+    main {
+
+        padding: 200px 20px 20px;
+
+    }
+
+
+    .hero-content h1 {
+
+        font-size: 48px;
+
+    }
+
+
+    .about-layout {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .bento-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .bento-item {
+
+        grid-column: auto !important;
+
+        grid-row: auto !important;
+
+    }
+
+
+    footer .footer-content {
+
+        flex-direction: column;
+
+        gap: 20px;
+
+    }
+
+}
+
+
+.feature-item:active, .game-card:active {
+
+    transform: scale(0.98);
+
+    box-shadow: 0 0 15px var(--magenta);
+
+}
+
+
+/* Game Overlay styles */
+
+.overlay-container {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-color: rgba(0, 0, 0, 0.8);
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 2000;
+
+}
+
+
+.overlay-content {
+
+    background: rgba(23, 27, 41, 0.85);
+
+    backdrop-filter: blur(12px);
+
+    border: 1px solid var(--cyan);
+
+    padding: 40px;
+
+    border-radius: 12px;
+
+    text-align: center;
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+#overlay-message {
+
+    font-size: 2.5em;
+
+    margin-bottom: 20px;
+
+    color: var(--white);
+
+    text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+
+}
+
+
+#overlay-restart-button {
+
+    font-size: 1.2em;
+
+    padding: 12px 25px;
+
+}
+
+/* --- Neon Flicker Animation --- */
+
+
+/* Targets the main title and logo for that unstable neon look */
+
+.hero-right h1, 
+
+header .logo,
+
+.page-header h1 {
+
+    animation: neon-flicker 2s infinite alternate;
+
+}
+
+
+@keyframes neon-flicker {
+
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+
+        text-shadow:
+
+            0 0 4px #fff,
+
+            0 0 10px #fff,
+
+            0 0 20px var(--cyan),
+
+            0 0 40px var(--cyan),
+
+            0 0 80px var(--magenta);
+
+        opacity: 1;
+
+    }
+
+    /* These percentages represent the "blinks" or "glitches" */
+
+    20%, 22%, 24%, 55% {       
+
+        text-shadow: none;
+
+        opacity: 0.8;
+
+    }
+
+}
+
+
+/* --- Added CRT Scanline Overlay --- */
+
+body::after {
+
+    content: " ";
+
+    display: block;
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    bottom: 0;
+
+    right: 0;
+
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+
+    z-index: 9999;
+
+    background-size: 100% 4px, 3px 100%;
+
+    pointer-events: none; /* Allows you to still click buttons underneath */
+
+}
+
+/* Mobile Optimization (Screens smaller than 768px) */
+
+@media screen and (max-width: 768px) {
+
+    /* Stack cards vertically instead of side-by-side */
+
+    .features-grid, .hero.hero-two-column {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 20px;
+
+    }
+
+
+    /* Adjust font sizes for smaller screens */
+
+    .hero-right h1 {
+
+        font-size: 32px;
+
+        text-align: center;
+
+    }
+
+
+    /* Reduce padding to maximize screen space */
+
+    main {
+
+        padding: 100px 15px 30px;
+
+    }
+
+
+    /* Center the profile picture on mobile */
+
+    .profile-picture {
+
+        width: 200px;
+
+        height: 200px;
+
+        margin: 0 auto;
+
+    }
+
+
+    /* Make buttons full-width for easier tapping */
+
+    .cta-button {
+
+        display: block;
+
+        width: 100%;
+
+        text-align: center;
+
+    }
+
+}
+
+/* Card Container Setup */
+
+.feature-item {
+
+    background: transparent !important; /* Overrides default card background */
+
+    perspective: 1000px; /* Essential for 3D effect */
+
+    cursor: pointer;
+
+    min-height: 250px;
+
+}
+
+
+.feature-card-inner {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+    transform-style: preserve-3d;
+
+}
+
+
+/* The Flip Trigger */
+
+.feature-item.is-flipped .feature-card-inner {
+
+    transform: rotateY(180deg);
+
+}
+
+
+.feature-card-front, .feature-card-back {
+
+    position: absolute;
+
+    width: 100%;
+
+    height: 100%;
+
+    backface-visibility: hidden; /* Hides the reverse side */
+
+    -webkit-backface-visibility: hidden;
+
+    padding: 2rem;
+
+    border-radius: 12px;
+
+    border: 1px solid var(--cyan);
+
+    background: var(--bg-dark);
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+}
+
+
+/* Back Side Styling */
+
+.feature-card-back {
+
+    transform: rotateY(180deg);
+
+    border-color: var(--magenta);
+
+    background: rgba(20, 20, 20, 0.95);
+
+}
+
+
+.feature-card-back ul {
+
+    list-style: none;
+
+    padding: 0;
+
+    margin-top: 15px;
+
+    text-align: left;
+
+}
+
+
+.feature-card-back li {
+
+    color: var(--cyan);
+
+    margin-bottom: 8px;
+
+    font-size: 0.9rem;
+
+}
+
+/* Base state for all items */
+
+.feature-item {
+
+    transition: all 0.5s ease-in-out;
+
+}
+
+
+/* WEB: Slide in from the left */
+
+.feature-item[data-category="web"] {
+
+    transform: translateX(-20px);
+
+}
+
+
+/* SECURITY: Scale/Zoom effect */
+
+.feature-item[data-category="security"] {
+
+    transform: scale(0.9);
+
+}
+
+
+/* CLOUD: 3D Flip effect */
+
+.feature-item[data-category="cloud"] {
+
+    transform: rotateY(90deg);
+
+}
+
+
+/* Active state triggered by JS */
+
+.feature-item.show {
+
+    opacity: 1 !important;
+
+    transform: translate(0) scale(1) rotateY(0) !important;
+
+    display: block !important;
+
+}
+
+/* Glitch Animation */
+
+@keyframes card-glitch {
+
+    0% { clip-path: inset(20% 0 50% 0); transform: translate(-5px, 5px); }
+
+    20% { clip-path: inset(80% 0 10% 0); transform: translate(5px, -5px); }
+
+    40% { clip-path: inset(10% 0 70% 0); transform: translate(-5px, -2px); }
+
+    60% { clip-path: inset(40% 0 20% 0); transform: translate(5px, 2px); }
+
+    80% { clip-path: inset(70% 0 5% 0); transform: translate(-2px, 5px); }
+
+    100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+
+}
+
+
+/* Triggered when a card appears */
+
+.feature-item.show {
+
+    animation: card-glitch 0.3s cubic-bezier(.25, .46, .45, .94) both;
+
+    opacity: 1 !important;
+
+    display: block !important;
+
+}
+
+/* Style for when the button is actively being clicked (pressed down) */
+
+.filter-btn:active {
+
+/* Base state: Cyan outline, transparent background */
+
+.filter-btn {
+
+    background-color: transparent;
+
+    border: 1px solid var(--cyan);
+
+    color: var(--cyan);
+
+    padding: 10px 20px;
+
+    margin: 5px;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+
+    border-radius: 5px;
+
+    font-family: var(--font-mono);
+
+}
+
+
+/* HOVER: Subtle glow */
+
+.filter-btn:hover {
+
+    box-shadow: 0 0 10px var(--cyan);
+
+    background-color: rgba(0, 245, 212, 0.1);
+
+}
+
+
+/* PRESSED: Immediate Magenta flash while clicking */
+
+.filter-btn:active {
+
+    transform: scale(0.95) !important;
+
+    background-color: var(--magenta) !important;
+
+    box-shadow: 0 0 20px var(--magenta) !important;
+
+    color: var(--dark-violet) !important;
+
+}
+
+
+/* SELECTED: Stays glowing Cyan when that category is active */
+
+.filter-btn.active {
+
+    background-color: var(--cyan) !important;
+
+    color: var(--dark-violet) !important;
+
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta) !important;
+
+    border-color: var(--white) !important;
+
+    font-weight: bold;
+
+}
+
+/* Page-specific Headers */
+
+.page-header {
+
+    text-align: center;
+
+    margin-bottom: 50px;
+
+}
+
+
+.page-header h1 {
+
+    font-size: 56px;
+
+    color: var(--white);
+
+    font-weight: 800;
+
+    text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+
+    margin: 0;
+
+}
+
+
+.page-header p {
+
+    font-size: 20px;
+
+    max-width: 800px;
+
+    margin: 20px auto 0;
+
+    color: var(--light-slate);
+
+}
+
+
+.bento-item {
+
+    background: rgba(13, 2, 33, 0.7);
+
+    backdrop-filter: blur(10px);
+
+    border: 1px solid var(--cyan);
+
+    padding: 30px;
+
+    border-radius: 10px;
+
+    box-shadow: 0 0 20px rgba(0, 245, 212, 0.5);
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+}
+
+
+.bento-item:hover {
+
+    transform: translateY(-5px);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+.bento-item h3 {
+
+    font-size: 24px;
+
+    color: var(--cyan);
+
+    margin-bottom: 15px;
+
+    text-shadow: 0 0 5px var(--cyan);
+
+}
+
+
+
+.form-group input,
+
+.form-group textarea {
+
+    width: 100%;
+
+    padding: 15px;
+
+    background-color: rgba(13, 2, 33, 0.7);
+
+    border: 1px solid var(--magenta);
+
+    color: var(--light-slate);
+
+    font-size: 16px;
+
+    border-radius: 5px;
+
+    box-sizing: border-box;
+
+}
+
+
+/* Games Hub */
+
+.games-hub h1 {
+
+    font-size: 48px;
+
+    color: var(--white);
+
+    margin-bottom: 20px;
+
+}
+
+
+.games-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+    gap: 30px;
+
+}
+
+
+/* Chatbot */
+
+.chatbot-widget {
+
+    position: fixed;
+
+    bottom: 20px;
+
+    right: 20px;
+
+    z-index: 1000;
+
+}
+
+
+.chat-icon {
+
+    width: 60px;
+
+    height: 60px;
+
+    background: linear-gradient(45deg, var(--cyan), var(--magenta));
+
+    color: var(--dark-violet);
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-size: 32px;
+
+    cursor: pointer;
+
+    box-shadow: 0 0 15px var(--magenta);
+
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+}
+
+
+.chat-icon:hover {
+
+    transform: scale(1.1);
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+.chat-window {
+
+    display: none;
+
+    position: absolute;
+
+    bottom: 80px;
+
+    right: 0;
+
+    width: 300px;
+
+    height: 400px;
+
+    border: 1px solid var(--cyan);
+
+    background-color: rgba(13, 2, 33, 0.8);
+
+    backdrop-filter: blur(10px);
+
+    flex-direction: column;
+
+    box-shadow: 0 0 20px var(--magenta);
+
+    border-radius: 10px;
+
+    overflow: hidden;
+
+}
+
+
+.chat-window.show {
+
+    display: flex;
+
+}
+
+
+.chat-header {
+
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+
+    color: var(--dark-violet);
+
+    padding: 10px;
+
+    font-weight: bold;
+
+    text-align: center;
+
+}
+
+
+.chat-body {
+
+    flex-grow: 1;
+
+    padding: 10px;
+
+    overflow-y: auto;
+
+}
+
+
+.chat-message {
+
+    margin-bottom: 10px;
+
+}
+
+
+.chat-message.bot {
+
+    color: var(--cyan);
+
+}
+
+
+.chat-message.user {
+
+    color: var(--light-slate);
+
+    text-align: right;
+
+}
+
+
+.chat-footer {
+
+    display: flex;
+
+    padding: 10px;
+
+}
+
+
+#chatInput {
+
+    flex-grow: 1;
+
+    border: 1px solid var(--magenta);
+
+    background-color: transparent;
+
+    color: var(--light-slate);
+
+    padding: 5px;
+
+    border-radius: 5px 0 0 5px;
+
+}
+
+
+#chatSendBtn {
+
+    background-color: var(--magenta);
+
+    color: var(--dark-violet);
+
+    border: none;
+
+    padding: 5px 10px;
+
+    cursor: pointer;
+
+    border-radius: 0 5px 5px 0;
+
+}
+
+
+/* Animations */
+
+.reveal {
+
+    opacity: 0;
+
+    transform: translateY(50px);
+
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+
+}
+
+
+.reveal.visible {
+
+    opacity: 1;
+
+    transform: translateY(0);
+
+}
+
+
+/* Modal Styles */
+
+.modal {
+
+    display: none;
+
+    position: fixed;
+
+    z-index: 1000;
+
+    left: 0;
+
+    top: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    overflow: auto;
+
+    background-color: rgba(0,0,0,0.6);
+
+}
+
+
+.modal-content {
+
+    background-color: var(--navy);
+
+    margin: 15% auto;
+
+    padding: 40px;
+
+    border: 2px solid var(--gold);
+
+    width: 80%;
+
+    max-width: 500px;
+
+    text-align: center;
+
+    position: relative;
+
+}
+
+
+.close-button {
+
+    color: var(--light-slate);
+
+    position: absolute;
+
+    top: 10px;
+
+    right: 20px;
+
+    font-size: 30px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+.close-button:hover,
+
+.close-button:focus {
+
+    color: var(--gold);
+
+}
+
+
+.newsletter-form input {
+
+    width: calc(100% - 120px);
+
+    padding: 10px;
+
+    margin-right: 10px;
+
+    background-color: var(--navy);
+
+    border: 1px solid var(--gold);
+
+    color: var(--light-slate);
+
+}
+
+
+/* Responsive Styles */
+
+@media (max-width: 768px) {
+
+    header {
+
+        padding: 20px;
+
+        flex-direction: column;
+
+    }
+
+
+    header nav {
+
+        flex-direction: column;
+
+    }
+
+    
+
+    .search-form {
+
+        margin-top: 20px;
+
+    }
+
+
+    header nav ul {
+
+        margin-top: 20px;
+
+        gap: 20px;
+
+    }
+
+
+    main {
+
+        padding: 200px 20px 20px;
+
+    }
+
+
+    .hero-content h1 {
+
+        font-size: 48px;
+
+    }
+
+
+    .about-layout {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .bento-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .bento-item {
+
+        grid-column: auto !important;
+
+        grid-row: auto !important;
+
+    }
+
+
+    footer .footer-content {
+
+        flex-direction: column;
+
+        gap: 20px;
+
+    }
+
+}
+
+
+.feature-item:active, .game-card:active {
+
+    transform: scale(0.98);
+
+    box-shadow: 0 0 15px var(--magenta);
+
+}
+
+
+/* Game Overlay styles */
+
+.overlay-container {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 100%;
+
+    background-color: rgba(0, 0, 0, 0.8);
+
+    display: none;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 2000;
+
+}
+
+
+.overlay-content {
+
+    background: rgba(23, 27, 41, 0.85);
+
+    backdrop-filter: blur(12px);
+
+    border: 1px solid var(--cyan);
+
+    padding: 40px;
+
+    border-radius: 12px;
+
+    text-align: center;
+
+    box-shadow: 0 0 25px var(--cyan);
+
+}
+
+
+#overlay-message {
+
+    font-size: 2.5em;
+
+    margin-bottom: 20px;
+
+    color: var(--white);
+
+    text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--magenta);
+
+}
+
+
+#overlay-restart-button {
+
+    font-size: 1.2em;
+
+    padding: 12px 25px;
+
+}
+
+/* --- Neon Flicker Animation --- */
+
+
+/* Targets the main title and logo for that unstable neon look */
+
+.hero-right h1, 
+
+header .logo,
+
+.page-header h1 {
+
+    animation: neon-flicker 2s infinite alternate;
+
+}
+
+
+@keyframes neon-flicker {
+
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+
+        text-shadow:
+
+            0 0 4px #fff,
+
+            0 0 10px #fff,
+
+            0 0 20px var(--cyan),
+
+            0 0 40px var(--cyan),
+
+            0 0 80px var(--magenta);
+
+        opacity: 1;
+
+    }
+
+    /* These percentages represent the "blinks" or "glitches" */
+
+    20%, 22%, 24%, 55% {       
+
+        text-shadow: none;
+
+        opacity: 0.8;
+
+    }
+
+}
+
+
+/* --- Added CRT Scanline Overlay --- */
+
+body::after {
+
+    content: " ";
+
+    display: block;
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    bottom: 0;
+
+    right: 0;
+
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+
+    z-index: 9999;
+
+    background-size: 100% 4px, 3px 100%;
+
+    pointer-events: none; /* Allows you to still click buttons underneath */
+
+}
+
+/* Mobile Optimization (Screens smaller than 768px) */
+
+@media screen and (max-width: 768px) {
+
+    /* Stack cards vertically instead of side-by-side */
+
+    .features-grid, .hero.hero-two-column {
+
+        display: flex;
+
+        flex-direction: column;
+
+        gap: 20px;
+
+    }
+
+
+    /* Adjust font sizes for smaller screens */
+
+    .hero-right h1 {
+
+        font-size: 32px;
+
+        text-align: center;
+
+    }
+
+
+    /* Reduce padding to maximize screen space */
+
+    main {
+
+        padding: 100px 15px 30px;
+
+    }
+
+
+    /* Center the profile picture on mobile */
+
+    .profile-picture {
+
+        width: 200px;
+
+        height: 200px;
+
+        margin: 0 auto;
+
+    }
+
+
+    /* Make buttons full-width for easier tapping */
+
+    .cta-button {
+
+        display: block;
+
+        width: 100%;
+
+        text-align: center;
+
+    }
+
+}
+
+/* Card Container Setup */
+
+.feature-item {
+
+    background: transparent !important; /* Overrides default card background */
+
+    perspective: 1000px; /* Essential for 3D effect */
+
+    cursor: pointer;
+
+    min-height: 250px;
+
+}
+
+
+.feature-card-inner {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+    transform-style: preserve-3d;
+
+}
+
+
+/* The Flip Trigger */
+
+.feature-item.is-flipped .feature-card-inner {
+
+    transform: rotateY(180deg);
+
+}
+
+
+.feature-card-front, .feature-card-back {
+
+    position: absolute;
+
+    width: 100%;
+
+    height: 100%;
+
+    backface-visibility: hidden; /* Hides the reverse side */
+
+    -webkit-backface-visibility: hidden;
+
+    padding: 2rem;
+
+    border-radius: 12px;
+
+    border: 1px solid var(--cyan);
+
+    background: var(--bg-dark);
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+}
+
+
+/* Back Side Styling */
+
+.feature-card-back {
+
+    transform: rotateY(180deg);
+
+    border-color: var(--magenta);
+
+    background: rgba(20, 20, 20, 0.95);
+
+}
+
+
+.feature-card-back ul {
+
+    list-style: none;
+
+    padding: 0;
+
+    margin-top: 15px;
+
+    text-align: left;
+
+}
+
+
+.feature-card-back li {
+
+    color: var(--cyan);
+
+    margin-bottom: 8px;
+
+    font-size: 0.9rem;
+
+}
+
+/* Base state for all items */
+
+.feature-item {
+
+    transition: all 0.5s ease-in-out;
+
+}
+
+
+/* WEB: Slide in from the left */
+
+.feature-item[data-category="web"] {
+
+    transform: translateX(-20px);
+
+}
+
+
+/* SECURITY: Scale/Zoom effect */
+
+.feature-item[data-category="security"] {
+
+    transform: scale(0.9);
+
+}
+
+
+/* CLOUD: 3D Flip effect */
+
+.feature-item[data-category="cloud"] {
+
+    transform: rotateY(90deg);
+
+}
+
+
+/* Active state triggered by JS */
+
+.feature-item.show {
+
+    opacity: 1 !important;
+
+    transform: translate(0) scale(1) rotateY(0) !important;
+
+    display: block !important;
+
+}
+
+/* Glitch Animation */
+
+@keyframes card-glitch {
+
+    0% { clip-path: inset(20% 0 50% 0); transform: translate(-5px, 5px); }
+
+    20% { clip-path: inset(80% 0 10% 0); transform: translate(5px, -5px); }
+
+    40% { clip-path: inset(10% 0 70% 0); transform: translate(-5px, -2px); }
+
+    60% { clip-path: inset(40% 0 20% 0); transform: translate(5px, 2px); }
+
+    80% { clip-path: inset(70% 0 5% 0); transform: translate(-2px, 5px); }
+
+    100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+
+}
+
+
+/* Triggered when a card appears */
+
+.feature-item.show {
+
+    animation: card-glitch 0.3s cubic-bezier(.25, .46, .45, .94) both;
+
+    opacity: 1 !important;
+
+    display: block !important;
+
+}
+
+/* Style for when the button is actively being clicked (pressed down) */
+
+.filter-btn:active {
+
+    transform: scale(0.95); /* Slight "push in" effect */
+
+    background-color: var(--magenta); /* Switch to magenta when pressed */
+
+    box-shadow: 0 0 20px var(--magenta);
+
+    color: var(--dark-violet);
+
+}
+
+
+/* Style for the button that is currently selected */
+
+.filter-btn.active {
+
+    background-color: var(--cyan);
+
+    color: var(--dark-violet);
+
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta);
+
+    border-color: var(--white);
+
+}
+
+/* Color shift when the button is physically pressed down */
+
+.filter-btn:active {
+
+    transform: scale(0.95); /* Slight "push" effect */
+
+    background-color: var(--magenta); /* Change to magenta on click */
+
+    box-shadow: 0 0 20px var(--magenta);
+
+    color: var(--dark-violet);
+
+    transition: transform 0.1s ease;
+
+}
+
+
+/* Color and glow for the currently selected category */
+
+.filter-btn.active {
+
+    background-color: var(--cyan);
+
+    color: var(--dark-violet);
+
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta);
+
+    border-color: var(--white);
+
+    font-weight: bold;
+
+}
+
+/* Base state: Cyan outline, transparent background */
+
+.filter-btn {
+
+    background-color: transparent;
+
+    border: 1px solid var(--cyan);
+
+    color: var(--cyan);
+
+    padding: 10px 20px;
+
+    margin: 5px;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+
+    border-radius: 5px;
+
+    font-family: var(--font-mono);
+
+}
+
+
+/* HOVER: Subtle glow */
+
+.filter-btn:hover {
+
+    box-shadow: 0 0 10px var(--cyan);
+
+    background-color: rgba(0, 245, 212, 0.1);
+
+}
+
+
+/* PRESSED: Immediate Magenta flash while clicking */
+
+.filter-btn:active {
+
+    transform: scale(0.95) !important;
+
+    background-color: var(--magenta) !important;
+
+    box-shadow: 0 0 20px var(--magenta) !important;
+
+    color: var(--dark-violet) !important;
+
+}
+
+
+/* SELECTED: Stays glowing Cyan when that category is active */
+
+.filter-btn.active {
+
+    background-color: var(--cyan) !important;
+
+    color: var(--dark-violet) !important;
+
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta) !important;
+
+    border-color: var(--white) !important;
+
+    font-weight: bold;
+
+}
+
+.features-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+
+    gap: 30px;
+
+    padding: 20px 0;
+
+}
+
+
+.feature-item {
+
+    position: relative; /* Keep this relative so the inner absolute cards stay inside it */
+
+    min-height: 400px;  /* Set a height so the absolute inner cards don't collapse */
+
+}
+
+/* Update the grid to manage side-by-side layout */
+
+.features-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+
+    gap: 40px;
+
+    padding: 40px 0;
+
+    justify-items: center; /* Centers cards in their grid slot */
+
+}
+
+
+/* Ensure the container has height since inner cards are absolute */
+
+.feature-item {
+
+    position: relative;
+
+    width: 320px;
+
+    height: 450px; /* Adjust height to fit your content */
+
+    perspective: 1000px;
+
+    margin-bottom: 20px;
+
+}
+
+/* --- Scroll Animation Styles --- */
+
+
+/* 1. The starting state of the section (hidden) */
+
+.reveal {
+
+    opacity: 0;
+
+    transform: translateY(30px); /* Moves it down slightly */
+
+    transition: all 0.8s ease-out; /* Controls speed of the fade/slide */
+
+    will-change: opacity, transform; /* Performance hint for browser */
+
+}
+
+
+/* 2. The active state when it enters the viewport (visible) */
+
+.reveal.visible {
+
+    opacity: 1;
+
+    transform: translateY(0); /* Returns to original position */
+
+}
+
+
+
+/* --- Card Flip Styles --- */
+
+
+/* The container for the card */
+
+.feature-item {
+
+    perspective: 1000px; /* Creates the 3D depth effect */
+
+    cursor: pointer;
+
+    /* Add width/height as needed for your design */
+
+    min-height: 200px; 
+
+}
+
+
+/* The inner wrapper that actually spins */
+
+.feature-item-inner {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 100%;
+
+    text-align: center;
+
+    transition: transform 0.6s;
+
+    transform-style: preserve-3d;
+
+}
+
+
+/* The class added by your JS to trigger the flip */
+
+.feature-item.is-flipped .feature-item-inner {
+
+    transform: rotateY(180deg);
+
+}
+
+
+/* Common styles for front and back faces */
+
+.feature-front, .feature-back {
+
+    position: absolute;
+
+    width: 100%;
+
+    height: 100%;
+
+    backface-visibility: hidden; /* Hides the back when flipped away */
+
+    -webkit-backface-visibility: hidden; /* Safari support */
+
+}
+
+
+/* Style the front */
+
+.feature-front {
+
+    background-color: #fff;
+
+    color: black;
+
+}
+
+
+/* Style the back (initially hidden by rotation) */
+
+.feature-back {
+
+    background-color: #2980b9;
+
+    color: white;
+
+    transform: rotateY(180deg);
+
+}
+
+Yes, that is a great idea. It improves navigation and gives the user a clear action to take after flipping the card.
+
+Here is the updated HTML and the CSS to style the button so it matches your Neon/Cyberpunk theme.
+
+1. Updated HTML
+Replace the content inside your .feature-back div with this structure. I added the <a> tag at the bottom.
+
+HTML
+<div class="feature-back">
+    <h3>Details</h3>
+    <p>We build websites that look great on any device using the latest technologies.</p>
+    
+    <a href="services.html" class="read-more-btn">Read More</a>
+</div>
+2. CSS for the Button
+Add this to your stylesheet. I used your existing variables (--cyan, --dark-violet, --font-mono) to ensure it fits perfectly with the rest of your design.
+
+CSS
+/* Style for the Read More button inside the card */
+.read-more-btn {
+    display: inline-block;
+    margin-top: 15px; /* Spacing from the text */
+    padding: 8px 20px;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    text-decoration: none;
+    font-family: var(--font-mono); /* Uses your mono font */
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Hover Effect: Fills with Cyan and glows */
+.read-more-btn:hover {
+    background-color: var(--cyan);
+    color: var(--dark-violet);
+    box-shadow: 0 0 15px var(--cyan); /* Neon glow effect */
+    transform: translateY(-2px);
+}
+3. Important Visual Fix
+In the CSS you posted earlier, the .feature-back had a background color of #2980b9 (a flat blue). To match your cyberpunk theme, you should change that to your dark theme color.
+
+Find this section in your CSS and update the background-color:
+
+CSS
+/* Find this in your existing CSS */
+.feature-back {
+    /* change from #2980b9 to your dark variable */
+    background-color: rgba(13, 2, 33, 0.95); /* Matches your --dark-violet with slight transparency */
+    color: var(--light-slate);
+    transform: rotateY(180deg);
+    
+    /* Ensure flex is enabled to center the button */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+Next Step: Would you like to add a "glitch" effect to the text on the front of the card when you hover over it?
+
+can i just send you my css and you look it over correct it and send me the final form i csan just pase
+
+Yes, absolutely. Based on the code you pasted in the previous message, I have cleaned it up, removed the duplicate sections (you had the same blocks pasted 3-4 times), fixed the conflicting "Card Flip" vs "Grid" logic, and integrated the new "Read More" button styles.
+
+Here is the Final, Cleaned CSS. You can delete everything in your current stylesheet and replace it with this single block.
+
+CSS
+/* =========================================
+   1. VARIABLES & SETUP
+   ========================================= */
+:root {
+    --dark-violet: #0d0221;
+    --black-blue: #0c1445;
+    --cyan: #00f5d4;
+    --magenta: #ff00f5;
+    --light-slate: #ccd6f6;
+    --white: #e6f1ff;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+    --grid-size: 50px;
+    --grid-color-cyan: rgba(0, 245, 212, 0.5);
+    --grid-color-magenta: rgba(255, 0, 245, 0.5);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--dark-violet);
+    color: var(--light-slate);
+    font-family: var(--font-sans);
+    margin: 0;
+    padding: 0;
+    font-size: 18px;
+    line-height: 1.5;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+}
+
+/* --- Background Grid Animation --- */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(var(--grid-color-cyan) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color-cyan) 1px, transparent 1px),
+        linear-gradient(var(--grid-color-magenta) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color-magenta) 1px, transparent 1px);
+    background-size:
+        var(--grid-size) var(--grid-size),
+        var(--grid-size) var(--grid-size),
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2),
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2);
+    animation: grid-scroll 20s linear infinite;
+    z-index: -1;
+    transform: perspective(600px) rotateX(45deg);
+}
+
+/* --- CRT Scanline Overlay --- */
+body::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 9999;
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+}
+
+/* =========================================
+   2. KEYFRAMES & ANIMATIONS
+   ========================================= */
+@keyframes grid-scroll {
+    from { background-position: 0 0; }
+    to { background-position: var(--grid-size) var(--grid-size); }
+}
+
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow: 0 0 4px #fff, 0 0 10px #fff, 0 0 20px var(--cyan), 0 0 40px var(--cyan), 0 0 80px var(--magenta);
+        opacity: 1;
+    }
+    20%, 22%, 24%, 55% { text-shadow: none; opacity: 0.8; }
+}
+
+/* Scroll Animation Classes */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+    will-change: opacity, transform;
+}
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* =========================================
+   3. HEADER & NAV
+   ========================================= */
+header {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 20px 50px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--cyan);
+    box-shadow: 0 0 15px var(--cyan);
+}
+
+header .logo {
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: bold;
+    text-decoration: none;
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+    animation: neon-flicker 2s infinite alternate;
+}
+
+header nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+}
+
+header nav ul li a {
+    color: var(--light-slate);
+    text-decoration: none;
+    font-size: 16px;
+    font-family: var(--font-mono);
+    transition: color 0.3s ease;
+}
+
+header nav ul li a:hover {
+    color: var(--cyan);
+    text-shadow: 0 0 5px var(--cyan);
+}
+
+.search-form { display: flex; }
+.search-form input {
+    background-color: rgba(13, 2, 33, 0.7);
+    border: 1px solid var(--magenta);
+    color: var(--light-slate);
+    padding: 5px;
+}
+.search-form button {
+    background-color: var(--magenta);
+    color: var(--dark-violet);
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.search-form button:hover {
+    background-color: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+}
+
+/* =========================================
+   4. LAYOUT & HERO
+   ========================================= */
+main {
+    padding: 120px 50px 50px;
+}
+
+.hero.hero-two-column {
+    min-height: 60vh;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.profile-picture {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    border: 5px solid var(--cyan);
+    box-shadow: 0 0 20px var(--cyan), 0 0 30px var(--magenta), inset 0 0 15px rgba(0, 245, 212, 0.5);
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.profile-picture img { width: 100%; height: 100%; object-fit: cover; }
+
+.hero-right h1 {
+    font-size: 56px;
+    color: var(--white);
+    font-weight: 800;
+    margin-bottom: 20px;
+    animation: neon-flicker 2s infinite alternate;
+}
+
+.hero-right p {
+    font-size: 18px;
+    max-width: 600px;
+    margin-bottom: 40px;
+}
+
+/* =========================================
+   5. BUTTONS (Global)
+   ========================================= */
+/* CTA Button */
+.cta-button {
+    background: linear-gradient(45deg, var(--cyan), var(--magenta));
+    color: var(--dark-violet);
+    padding: 15px 30px;
+    text-decoration: none;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 15px var(--magenta);
+    display: inline-block;
+}
+.cta-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px var(--cyan);
+    color: var(--dark-violet);
+}
+
+/* Filter Buttons */
+.filter-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background-color: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    font-family: var(--font-mono);
+}
+.filter-btn:hover {
+    box-shadow: 0 0 10px var(--cyan);
+    background-color: rgba(0, 245, 212, 0.1);
+}
+.filter-btn:active {
+    transform: scale(0.95);
+    background-color: var(--magenta) !important;
+    box-shadow: 0 0 20px var(--magenta) !important;
+    color: var(--dark-violet) !important;
+}
+.filter-btn.active {
+    background-color: var(--cyan) !important;
+    color: var(--dark-violet) !important;
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta) !important;
+    border-color: var(--white) !important;
+    font-weight: bold;
+}
+
+/* Read More Button (Inside Cards) */
+.read-more-btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 8px 20px;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.read-more-btn:hover {
+    background-color: var(--cyan);
+    color: var(--dark-violet);
+    box-shadow: 0 0 15px var(--cyan);
+    transform: translateY(-2px);
+}
+
+/* =========================================
+   6. FEATURES & CARD FLIP SYSTEM
+   ========================================= */
+.features { padding: 50px 0; }
+.features h2 {
+    font-size: 48px;
+    color: var(--white);
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+/* Grid Layout for Cards */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+    padding: 40px 0;
+    justify-items: center;
+}
+
+/* 1. Card Container - Sets the 3D space */
+.feature-item {
+    position: relative;
+    width: 100%;
+    max-width: 350px;
+    min-height: 300px; /* Important: Ensures space for absolute children */
+    perspective: 1000px;
+    cursor: pointer;
+    background: transparent; /* Clean reset */
+}
+
+/* 2. Inner Wrapper - The element that rotates */
+.feature-item-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy flip */
+    transform-style: preserve-3d;
+}
+
+/* 3. The Trigger - Added by JS */
+.feature-item.is-flipped .feature-item-inner {
+    transform: rotateY(180deg);
+}
+
+/* 4. Front & Back Faces */
+.feature-front, .feature-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Hides the back side */
+    -webkit-backface-visibility: hidden;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid var(--cyan);
+    box-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Front Styling */
+.feature-front {
+    background: rgba(13, 2, 33, 0.85); /* Slightly transparent dark */
+    backdrop-filter: blur(5px);
+}
+
+/* Back Styling */
+.feature-back {
+    background: var(--dark-violet); /* Solid dark color to hide front */
+    transform: rotateY(180deg);
+    border-color: var(--magenta);
+    box-shadow: 0 0 20px rgba(255, 0, 245, 0.3);
+}
+
+.feature-item h3 {
+    font-size: 24px;
+    color: var(--cyan);
+    margin-bottom: 15px;
+    text-shadow: 0 0 5px var(--cyan);
+}
+
+/* Hover Effect for the whole card */
+.feature-item:hover .feature-front {
+    box-shadow: 0 0 25px var(--cyan);
+}
+
+/* =========================================
+   7. FOOTER
+   ========================================= */
+footer {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 20px 50px;
+    border-top: 1px solid var(--cyan);
+    box-shadow: 0 0 15px var(--cyan);
+}
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.social-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 20px;
+}
+.social-links a {
+    color: var(--light-slate);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.social-links a:hover {
+    color: var(--cyan);
+    text-shadow: 0 0 5px var(--cyan);
+}
+
+/* =========================================
+   8. RESPONSIVE / MOBILE
+   ========================================= */
+@media (max-width: 768px) {
+    header {
+        padding: 20px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    header nav ul {
+        gap: 15px;
+        font-size: 14px;
+    }
+    main {
+        padding: 160px 20px 30px;
+    }
+    .hero.hero-two-column {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+    .hero-left {
+        order: -1; /* Puts image on top */
+        margin-bottom: 20px;
+    }
+    .hero-right h1 {
+        font-size: 36px;
+    }
+    .profile-picture {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+    }
+    .features-grid {
+        grid-template-columns: 1fr; /* Stack cards */
+    }
+    .footer-content {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    .cta-button {
+        width: 100%;
+        display: block;
+        text-align: center;
+    }
+}
+document.addEventListener('DOMContentLoaded', () => {
+
+    const filterButtons = document.querySelectorAll('.filter-btn');
+
+    const featureItems = document.querySelectorAll('.feature-item');
+
+
+    // Consolidated function for staggered transitions
+
+    function filterGallery(category) {
+
+        let visibleCount = 0;
+
+
+        featureItems.forEach(item => {
+
+            // Reset state
+
+            item.classList.remove('show');
+
+            item.style.transitionDelay = '0s';
+
+            
+
+            if (item.getAttribute('data-category') === category) {
+
+                item.style.display = 'block';
+
+                
+
+                // Set staggered delay: 0s, 0.1s, 0.2s...
+
+                const delay = visibleCount * 0.1; 
+
+                visibleCount++;
+
+
+                setTimeout(() => {
+
+                    item.style.transitionDelay = `${delay}s`;
+
+                    item.classList.add('show');
+
+                }, 50);
+
+            } else {
+
+                item.style.display = 'none';
+
+            }
+
+        });
+
+    }
+
+
+    // Single event listener loop for buttons
+
+    filterButtons.forEach(button => {
+
+        button.addEventListener('click', () => {
+
+            // Manage active class for color changes
+
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+
+            button.classList.add('active');
+
+
+            const filterValue = button.getAttribute('data-filter');
+
+            filterGallery(filterValue);
+
+        });
+
+    });
+
+
+    // Initialize with "Web" category
+
+    filterGallery('web');
+
+
+    // Logic for Apps Page Search & Filtering
+
+    const searchBar = document.getElementById('search-bar');
+
+    const appsGrid = document.getElementById('apps-grid');
+
+
+    if (searchBar && appsGrid) {
+
+        const showGames = document.getElementById('show-games');
+
+        const showUtilities = document.getElementById('show-utilities');
+
+        const appItems = Array.from(appsGrid.getElementsByClassName('feature-item'));
+
+
+        function filterApps() {
+
+            const searchTerm = searchBar.value.toLowerCase();
+
+            appItems.forEach(item => {
+
+                const title = item.querySelector('h3').textContent.toLowerCase();
+
+                const category = item.getAttribute('data-category');
+
+                const searchMatch = title.includes(searchTerm);
+
+                const categoryMatch = (showGames.checked && category === 'game') || 
+
+                                    (showUtilities.checked && category === 'utility');
+
+
+                item.style.display = (searchMatch && categoryMatch) ? '' : 'none';
+
+            });
+
+        }
+
+
+        searchBar.addEventListener('input', filterApps);
+
+        showGames.addEventListener('change', filterApps);
+
+        showUtilities.addEventListener('change', filterApps);
+
+    }
+
+});        // This removes the active color from all buttons
+
+        filterButtons.forEach(btn => btn.classList.remove('active'));
+
+        // This adds the active color to the one you just clicked
+
+        button.classList.add('active');
+
+
+        const filterValue = button.getAttribute('data-filter');
+
+        filterGallery(filterValue);
+
+    });
+
+});
+
+    // Initialize with "Web" category
+
+    filterGallery('web');
+
+
+    // Logic for Apps Page Search (Keeping your existing search logic)
+
+    const searchBar = document.getElementById('search-bar');
+
+    const appsGrid = document.getElementById('apps-grid');
+
+
+    if (searchBar && appsGrid) {
+
+        const showGames = document.getElementById('show-games');
+
+        const showUtilities = document.getElementById('show-utilities');
+
+        const appItems = Array.from(appsGrid.getElementsByClassName('feature-item'));
+
+
+        function filterApps() {
+
+            const searchTerm = searchBar.value.toLowerCase();
+
+            appItems.forEach(item => {
+
+                const title = item.querySelector('h3').textContent.toLowerCase();
+
+                const category = item.getAttribute('data-category');
+
+                const searchMatch = title.includes(searchTerm);
+
+                const categoryMatch = (showGames.checked && category === 'game') || 
+
+                                    (showUtilities.checked && category === 'utility');
+
+
+                item.style.display = (searchMatch && categoryMatch) ? '' : 'none';
+
+            });
+
+        }
+
+
+        searchBar.addEventListener('input', filterApps);
+
+        showGames.addEventListener('change', filterApps);
+
+        showUtilities.addEventListener('change', filterApps);
+
+    }
+
+});
+
+function filterGallery(category) {
+
+    let visibleCount = 0;
+
+    featureItems.forEach(item => {
+
+        item.classList.remove('show');
+
+        if (item.getAttribute('data-category') === category) {
+
+            item.style.display = 'block';
+
+            const delay = visibleCount * 0.1; 
+
+            visibleCount++;
+
+            setTimeout(() => {
+
+                item.style.transitionDelay = `${delay}s`;
+
+                item.classList.add('show');
+
+            }, 50);
+
+        } else {
+
+            item.style.display = 'none';
+
+        }
+
+    });
+
+}
+
+function filterGallery(category) {
+
+    const items = document.querySelectorAll('.feature-item');
+
+    
+
+    items.forEach(item => {
+
+        const itemCategory = item.getAttribute('data-category');
+
+        if (category === 'all' || itemCategory === category) {
+
+            item.style.display = 'block'; // Keeps it in the grid flow
+
+            setTimeout(() => item.classList.add('show'), 10);
+
+        } else {
+
+            item.style.display = 'none'; // Removes it from grid flow
+
+            item.classList.remove('show');
+
+        }
+
+    });
+
+}can you look at the code correct it and send mre the final i can just paste
+
+Here is the corrected, consolidated, and optimized JavaScript code. I have removed the duplicate functions, fixed the syntax errors where code was pasted outside of the main loop, and combined the logic into a single, clean DOMContentLoaded event.
+
+You can paste this directly into your script.js file.
+
+JavaScript
+document.addEventListener('DOMContentLoaded', () => {
+
+    // =========================================
+    // 1. CARD FLIP LOGIC
+    // =========================================
+    const cards = document.querySelectorAll('.feature-item');
+    cards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Prevent flip if clicking the "Read More" button
+            if (e.target.classList.contains('read-more-btn')) return;
+            
+            this.classList.toggle('is-flipped');
+        });
+    });
+
+    // =========================================
+    // 2. HOMEPAGE FILTER GALLERY LOGIC
+    // =========================================
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const featureItems = document.querySelectorAll('.feature-item');
+
+    // Only run this if filter buttons actually exist on the page
+    if (filterButtons.length > 0) {
+        
+        // The main filtering function with staggered animation
+        function filterGallery(category) {
+            let visibleCount = 0;
+
+            featureItems.forEach(item => {
+                // Reset state
+                item.classList.remove('show');
+                item.style.transitionDelay = '0s'; // Reset delay so hiding is instant
+                
+                const itemCategory = item.getAttribute('data-category');
+
+                if (category === 'all' || itemCategory === category) {
+                    item.style.display = 'block'; // Put it back in the layout
+                    
+                    // Stagger the animation: 0s, 0.1s, 0.2s...
+                    const delay = visibleCount * 0.1; 
+                    visibleCount++;
+
+                    // Small timeout ensures the display:block is applied before opacity transition starts
+                    setTimeout(() => {
+                        item.style.transitionDelay = `${delay}s`;
+                        item.classList.add('show');
+                    }, 20);
+                } else {
+                    item.style.display = 'none'; // Remove from layout
+                }
+            });
+        }
+
+        // Add Click Listeners to Buttons
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // 1. Remove 'active' class from all buttons
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // 2. Add 'active' class to clicked button
+                button.classList.add('active');
+
+                // 3. Run the filter
+                const filterValue = button.getAttribute('data-filter');
+                filterGallery(filterValue);
+            });
+        });
+
+        // Initialize with "Web" category (or 'all' if you prefer)
+        filterGallery('web');
+    }
+
+    // =========================================
+    // 3. APPS PAGE SEARCH & FILTER LOGIC
+    // =========================================
+    const searchBar = document.getElementById('search-bar');
+    const appsGrid = document.getElementById('apps-grid');
+
+    // Only run this if we are on the Apps page
+    if (searchBar && appsGrid) {
+        const showGames = document.getElementById('show-games');
+        const showUtilities = document.getElementById('show-utilities');
+        // Get items specifically inside the apps grid to avoid conflicting with homepage items
+        const appItems = Array.from(appsGrid.getElementsByClassName('feature-item'));
+
+        function filterApps() {
+            const searchTerm = searchBar.value.toLowerCase();
+            
+            appItems.forEach(item => {
+                const title = item.querySelector('h3').textContent.toLowerCase();
+                const category = item.getAttribute('data-category');
+                
+                // Check if text matches
+                const searchMatch = title.includes(searchTerm);
+                
+                // Check if checkbox matches
+                let categoryMatch = false;
+                if (category === 'game' && showGames.checked) categoryMatch = true;
+                if (category === 'utility' && showUtilities.checked) categoryMatch = true;
+                // If you want items to show when NO boxes are checked, uncomment the line below:
+                // if (!showGames.checked && !showUtilities.checked) categoryMatch = true;
+
+                // Show or Hide
+                item.style.display = (searchMatch && categoryMatch) ? 'block' : 'none';
+                
+                // Simple fade in for search results (no stagger needed here usually)
+                if (searchMatch && categoryMatch) {
+                    setTimeout(() => item.classList.add('show'), 10);
+                } else {
+                    item.classList.remove('show');
+                }
+            });
+        }
+
+        // Add Listeners
+        searchBar.addEventListener('input', filterApps);
+        if (showGames) showGames.addEventListener('change', filterApps);
+        if (showUtilities) showUtilities.addEventListener('change', filterApps);
+    }
+
+});
+What I Fixed:
+Duplicate Logic: You had three different definitions of filterGallery. I combined them into the best version (the one with the staggered animation delay).
+
+Syntax Errors: Removed the orphaned }); and code blocks that were floating outside the main function.
+
+Conflict Safety: I added if (filterButtons.length > 0) and if (searchBar && appsGrid). This prevents the console from throwing "Element not found" errors when you are on the Homepage (which doesn't have the search bar) or the Apps page (which might not have the filter buttons).
+
+Card Flip Integration: I included the basic card flip logic at the top so the cards work immediately.
+
+my home screen is messed up
+
+I cannot see your screen, but "messed up" usually happens for one of three reasons after pasting new code:
+
+Class Name Mismatch: The CSS uses .feature-front but your HTML uses .feature-card-front (or vice versa).
+
+Container Collapse: The 3D cards use absolute positioning, which can make the container height collapse to 0, causing sections to overlap.
+
+Animation Lock: The .reveal class is hiding everything because the JavaScript isn't triggering the visible class.
+
+Here is the HTML Structure that perfectly matches the CSS and JS I just sent you. Replace your existing <section class="features"> block with this code.
+
+1. Correct HTML Structure
+HTML
+<section class="features" id="features">
+    <h2>Our Services</h2>
+    
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="web">Web</button>
+        <button class="filter-btn" data-filter="security">Security</button>
+        <button class="filter-btn" data-filter="cloud">Cloud</button>
+    </div>
+
+    <div class="features-grid">
+        
+        <div class="feature-item reveal" data-category="web">
+            <div class="feature-item-inner">
+                <div class="feature-front">
+                    <h3>Web Design</h3>
+                    <p>Futuristic & Responsive</p>
+                    <small>(Click to Flip)</small>
+                </div>
+                <div class="feature-back">
+                    <h3>Details</h3>
+                    <p>We build high-performance sites using the latest frameworks.</p>
+                    <a href="#" class="read-more-btn">Read More</a>
+                </div>
+            </div>
         </div>
 
-        <div class="features-grid">
-            <article class="feature-item" data-category="web">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <h3>Mobile App Development</h3>
-                        <p>High-performance iOS and Android applications built for speed and security.</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <h3>Key Capabilities</h3>
-                        <ul>
-                            <li>Cross-Platform (React Native)</li>
-                            <li>Secure Biometric Auth</li>
-                            <li>Offline Data Sync</li>
-                        </ul>
-                    </div>
+        <div class="feature-item reveal" data-category="security">
+            <div class="feature-item-inner">
+                <div class="feature-front">
+                    <h3>Cyber Security</h3>
+                    <p>Zero Trust Architecture</p>
+                    <small>(Click to Flip)</small>
                 </div>
-            </article>
-
-            <article class="feature-item" data-category="web">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <h3>AI & Automation</h3>
-                        <p>Streamline workflows and unlock insights with custom artificial intelligence solutions.</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <h3>Key Capabilities</h3>
-                        <ul>
-                            <li>Machine Learning Models</li>
-                            <li>Process Automation (RPA)</li>
-                            <li>Predictive Analytics</li>
-                        </ul>
-                    </div>
+                <div class="feature-back">
+                    <h3>Details</h3>
+                    <p>Protect your data with military-grade encryption protocols.</p>
+                    <a href="#" class="read-more-btn">Read More</a>
                 </div>
-            </article>
-
-            <article class="feature-item" data-category="security" style="display: none;">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <h3>Full-Stack Cybersecurity</h3>
-                        <p>Protecting your digital footprint with advanced threat detection and prevention.</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <h3>Security Features</h3>
-                        <ul>
-                            <li>Penetration Testing</li>
-                            <li>End-to-End Encryption</li>
-                            <li>Zero-Trust Architecture</li>
-                        </ul>
-                    </div>
-                </div>
-            </article>
-
-            <article class="feature-item" data-category="cloud" style="display: none;">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <h3>DevOps & CI/CD</h3>
-                        <p>Accelerate your release cycles with automated pipelines and infrastructure as code.</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <h3>Key Capabilities</h3>
-                        <ul>
-                            <li>GitHub Actions & Jenkins</li>
-                            <li>Kubernetes Orchestration</li>
-                            <li>Infrastructure as Code (Terraform)</li>
-                        </ul>
-                    </div>
-                </div>
-            </article>
-
-            <article class="feature-item" data-category="cloud" style="display: none;">
-                <div class="feature-card-inner">
-                    <div class="feature-card-front">
-                        <h3>Cloud Infrastructure</h3>
-                        <p>Optimized cloud migration and management for seamless enterprise scaling.</p>
-                    </div>
-                    <div class="feature-card-back">
-                        <h3>Solutions</h3>
-                        <ul>
-                            <li>AWS/Azure Migration</li>
-                            <li>DevOps Automation</li>
-                            <li>Serverless Architecture</li>
-                        </ul>
-                    </div>
-                </div>
-            </article>
+            </div>
         </div>
-    </main>
+
+        <div class="feature-item reveal" data-category="cloud">
+            <div class="feature-item-inner">
+                <div class="feature-front">
+                    <h3>Cloud Systems</h3>
+                    <p>Scalable Infrastructure</p>
+                    <small>(Click to Flip)</small>
+                </div>
+                <div class="feature-back">
+                    <h3>Details</h3>
+                    <p>Global deployment and 99.99% uptime guarantees.</p>
+                    <a href="#" class="read-more-btn">Read More</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+2. Emergency Fixes
+If the screen is still messed up after updating the HTML, check these specific issues:
+
+Issue A: The screen is blank/empty.
+
+Cause: The scroll animation isn't triggering.
+
+Fix: In the HTML above, remove the word reveal from class="feature-item reveal". Just make it class="feature-item". This will force them to be visible immediately.
+
+Issue B: The cards are flat text overlapping each other.
+
+Cause: Your CSS file isn't linked, or the class names don't match.
+
+Fix: Ensure you pasted the Final CSS I gave you in the previous message (specifically looking for .feature-item-inner and .feature-front).
+
+Issue C: I can't click anything.
+
+Cause: The "Scanline" overlay body::after is covering the content.
+
+Fix: In your CSS, find body::after and make sure it has pointer-events: none;. (The code I sent you has this, but check if you pasted it correctly).
+
+Try replacing the HTML first. Does that fix the layout?
+
+what line number can i find thsat code
+
+I cannot see your file, so I can't give you an exact line number (it depends on how much code you have above it).
+
+However, here is how to find the exact spot quickly:
+
+1. To Find the HTML (The Grid)
+Press Ctrl + F (Windows) or Cmd + F (Mac) and search for this text: id="features"
+
+This will take you to the start of the section you need to replace. It should look something like: <section class="features" id="features">
+
+2. To Find the CSS (The Overlay/Pointer Issue)
+If you are looking for the code that might be blocking your clicks ("Issue C" from my previous message), search your CSS file for: body::after
+
+Look for this specific line: pointer-events: none;
+
+If that line is missing inside body::after, add it immediately.
+
+<section class="features" id="features">
+
+    <h2>Our Services</h2>
+
+    
+
+    <div class="filter-buttons">
+
+        <button class="filter-btn active" data-filter="all">All</button>
+
+        <button class="filter-btn" data-filter="web">Web</button>
+
+        <button class="filter-btn" data-filter="security">Security</button>
+
+        <button class="filter-btn" data-filter="cloud">Cloud</button>
+
+    </div>
+
+
+    <div class="features-grid">
+
+        
+
+        <div class="feature-item reveal" data-category="web">
+
+            <div class="feature-item-inner">
+
+                <div class="feature-front">
+
+                    <h3>Web Design</h3>
+
+                    <p>Futuristic & Responsive</p>
+
+                    <small>(Click to Flip)</small>
+
+                </div>
+
+                <div class="feature-back">
+
+                    <h3>Details</h3>
+
+                    <p>We build high-performance sites using the latest frameworks.</p>
+
+                    <a href="#" class="read-more-btn">Read More</a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="feature-item reveal" data-category="security">
+
+            <div class="feature-item-inner">
+
+                <div class="feature-front">
+
+                    <h3>Cyber Security</h3>
+
+                    <p>Zero Trust Architecture</p>
+
+                    <small>(Click to Flip)</small>
+
+                </div>
+
+                <div class="feature-back">
+
+                    <h3>Details</h3>
+
+                    <p>Protect your data with military-grade encryption protocols.</p>
+
+                    <a href="#" class="read-more-btn">Read More</a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="feature-item reveal" data-category="cloud">
+
+            <div class="feature-item-inner">
+
+                <div class="feature-front">
+
+                    <h3>Cloud Systems</h3>
+
+                    <p>Scalable Infrastructure</p>
+
+                    <small>(Click to Flip)</small>
+
+                </div>
+
+                <div class="feature-back">
+
+                    <h3>Details</h3>
+
+                    <p>Global deployment and 99.99% uptime guarantees.</p>
+
+                    <a href="#" class="read-more-btn">Read More</a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</section> fix the code
+
+To fix your home screen, we need to address the two most likely causes of the "messed up" layout: collapsed container heights (because the card faces are absolute) and hidden elements (the reveal class starting at 0 opacity).
+
+Here is the "Golden Version" of the code. If you use these three pieces exactly as written, your grid will align, and the cards will flip.
+
+1. The HTML (Structure)
+Ensure your section looks exactly like this. Note that I added the visible class to the first three cards so they aren't invisible when the page loads.
+
+HTML
+<section class="features" id="features">
+    <h2>Our Services</h2>
+    
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="web">Web</button>
+        <button class="filter-btn" data-filter="security">Security</button>
+        <button class="filter-btn" data-filter="cloud">Cloud</button>
+    </div>
+
+    <div class="features-grid">
+        <div class="feature-item reveal visible" data-category="web">
+            <div class="feature-item-inner">
+                <div class="feature-front">
+                    <h3>Web Design</h3>
+                    <p>Futuristic & Responsive</p>
+                    <small>(Click to Flip)</small>
+                </div>
+                <div class="feature-back">
+                    <h3>Details</h3>
+                    <p>High-performance sites using the latest frameworks.</p>
+                    <a href="#" class="read-more-btn">Read More</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-item reveal visible" data-category="security">
+            <div class="feature-item-inner">
+                <div class="feature-front">
+                    <h3>Cyber Security</h3>
+                    <p>Zero Trust Architecture</p>
+                    <small>(Click to Flip)</small>
+                </div>
+                <div class="feature-back">
+                    <h3>Details</h3>
+                    <p>Protect data with military-grade encryption.</p>
+                    <a href="#" class="read-more-btn">Read More</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-item reveal visible" data-category="cloud">
+            <div class="feature-item-inner">
+                <div class="feature-front">
+                    <h3>Cloud Systems</h3>
+                    <p>Scalable Infrastructure</p>
+                    <small>(Click to Flip)</small>
+                </div>
+                <div class="feature-back">
+                    <h3>Details</h3>
+                    <p>Global deployment and 99.99% uptime.</p>
+                    <a href="#" class="read-more-btn">Read More</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
     <footer>
         <div class="footer-content">
