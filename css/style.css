@@ -2045,3 +2045,14 @@ body::after {
     border-color: var(--white) !important;
     font-weight: bold;
 }
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+}
+
+.feature-item {
+    position: relative; /* Keep this relative so the inner absolute cards stay inside it */
+    min-height: 400px;  /* Set a height so the absolute inner cards don't collapse */
+}
