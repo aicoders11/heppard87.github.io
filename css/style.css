@@ -1274,27 +1274,30 @@ footer {
 }
 /* --- Bottom Section Cleanup --- */
 
+/* --- 11. TRUST BAR & FOOTER LOGOS --- */
 .trust-logos {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px; /* Reduced gap for smaller logos */
+    gap: 20px;
     flex-wrap: wrap;
     padding: 20px;
 }
 
+/* This rule forces the CIA and FBI logos to stay small */
 .logo-img {
-    height: 20px; /* Forces all logos to be very small */
+    height: 25px; /* Adjust this number to make them even smaller */
     width: auto;
     object-fit: contain;
     display: inline-block;
-    margin: 5px 10px;
+    margin: 5px 15px;
     opacity: 0.7;
     transition: all 0.3s ease;
 }
 
+/* The glow effect you wanted */
 .logo-img:hover {
     opacity: 1;
     transform: scale(1.1);
-    filter: drop-shadow(0 0 5px rgba(0, 245, 212, 0.6)); /* Subtle cyan glow */
+    filter: drop-shadow(0 0 8px var(--cyan));
 }
