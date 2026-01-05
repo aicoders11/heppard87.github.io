@@ -1,92 +1,276 @@
+/* =========================================
+   1. VARIABLES & SETUP
+   ========================================= */
 :root {
     --dark-violet: #0d0221;
+    --black-blue: #0c1445;
     --cyan: #00f5d4;
     --magenta: #ff00f5;
     --light-slate: #ccd6f6;
     --white: #e6f1ff;
-    --font-mono: 'SF Mono', 'Fira Code', monospace;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
+    --grid-size: 50px;
+    --grid-color-cyan: rgba(0, 245, 212, 0.5);
+    --grid-color-magenta: rgba(255, 0, 245, 0.5);
+}
+
+* {
+    box-sizing: border-box;
 }
 
 body {
     background-color: var(--dark-violet);
     color: var(--light-slate);
-    font-family: sans-serif;
+    font-family: var(--font-sans);
     margin: 0;
+    padding: 0;
+    font-size: 18px;
+    line-height: 1.5;
     overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
 }
 
-/* CRT Overlay - pointer-events:none allows clicking through it */
+/* --- Background Grid Animation --- */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(var(--grid-color-cyan) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color-cyan) 1px, transparent 1px),
+        linear-gradient(var(--grid-color-magenta) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color-magenta) 1px, transparent 1px);
+    background-size:
+        var(--grid-size) var(--grid-size),
+        var(--grid-size) var(--grid-size),
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2),
+        calc(var(--grid-size) * 2) calc(var(--grid-size) * 2);
+    animation: grid-scroll 20s linear infinite;
+    z-index: -1;
+    transform: perspective(600px) rotateX(45deg);
+}
+
+/* --- CRT Scanline Overlay --- */
+/* Kept z-index high for visual effect, but pointer-events: none ensures you can still click */
 body::after {
     content: " ";
+    display: block;
     position: fixed;
-    top: 0; left: 0; bottom: 0; right: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
     z-index: 9999;
     background-size: 100% 4px, 3px 100%;
     pointer-events: none;
 }
 
+/* =========================================
+   2. KEYFRAMES & ANIMATIONS
+   ========================================= */
+@keyframes grid-scroll {
+    from { background-position: 0 0; }
+    to { background-position: var(--grid-size) var(--grid-size); }
+}
+
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow: 0 0 4px #fff, 0 0 10px #fff, 0 0 20px var(--cyan), 0 0 40px var(--cyan), 0 0 80px var(--magenta);
+        opacity: 1;
+    }
+    20%, 22%, 24%, 55% { text-shadow: none; opacity: 0.8; }
+}
+
+/* Scroll Animation Classes */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+    will-change: opacity, transform;
+}
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* =========================================
+   3. HEADER & NAV (FIXED)
+   ========================================= */
 header {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
     padding: 20px 50px;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+    border-bottom: 1px solid var(--cyan);
+    box-shadow: 0 0 15px var(--cyan);
+}
+
+/* THIS SECTION WAS MISSING - FIXES THE LAYOUT */
+header nav {
+    width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--cyan);
 }
 
-.logo {
+header .logo {
     color: var(--cyan);
     font-family: var(--font-mono);
     font-size: 24px;
-    text-shadow: 0 0 10px var(--cyan);
+    font-weight: bold;
+    text-decoration: none;
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+    animation: neon-flicker 2s infinite alternate;
+    margin-right: 20px;
+    white-space: nowrap;
 }
 
-/* Features Grid */
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    padding: 50px;
-}
-
-/* THE FIX: Fixed min-height prevents layout collapse */
-.feature-item {
-    position: relative;
-    min-height: 400px; 
-    perspective: 1000px;
-}
-
-.feature-item-inner {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-}
-
-.feature-item.is-flipped .feature-item-inner {
-    transform: rotateY(180deg);
-}
-
-.feature-front, .feature-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border: 1px solid var(--cyan);
-    border-radius: 10px;
-    background: rgba(13, 2, 33, 0.9);
+header nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
-    flex-direction: column;
+    gap: 30px;
+}
+
+header nav ul li a {
+    color: var(--light-slate);
+    text-decoration: none;
+    font-size: 16px;
+    font-family: var(--font-mono);
+    transition: color 0.3s ease;
+}
+
+header nav ul li a:hover {
+    color: var(--cyan);
+    text-shadow: 0 0 5px var(--cyan);
+}
+
+.search-form { 
+    display: flex; 
+    margin-right: auto; /* Pushes the nav links to the right */
+    margin-left: 20px;
+}
+
+.search-form input {
+    background-color: rgba(13, 2, 33, 0.7);
+    border: 1px solid var(--magenta);
+    color: var(--light-slate);
+    padding: 5px;
+}
+
+.search-form button {
+    background-color: var(--magenta);
+    color: var(--dark-violet);
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-form button:hover {
+    background-color: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan);
+}
+
+/* =========================================
+   4. LAYOUT & HERO
+   ========================================= */
+main {
+    padding: 120px 50px 50px;
+}
+
+.hero.hero-two-column {
+    min-height: 60vh;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 50px;
+    align-items: center;
+}
+
+.profile-picture {
+    width: 300px;
+    height: 300px;
+    border-radius: 50%;
+    border: 5px solid var(--cyan);
+    box-shadow: 0 0 20px var(--cyan), 0 0 30px var(--magenta), inset 0 0 15px rgba(0, 245, 212, 0.5);
+    overflow: hidden;
+    display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
-    text-align: center;
+}
+.profile-picture img { width: 100%; height: 100%; object-fit: cover; }
+
+.hero-right h1 {
+    font-size: 56px;
+    color: var(--white);
+    font-weight: 800;
+    margin-bottom: 20px;
+    animation: neon-flicker 2s infinite alternate;
 }
 
-.feature-back {
-    transform: rotateY(180deg);
+.hero-right p {
+    font-size: 18px;
+    max-width: 600px;
+    margin-bottom: 40px;
+}
+
+/* =========================================
+   5. BUTTONS (Global)
+   ========================================= */
+/* CTA Button */
+.cta-button {
+    background: linear-gradient(45deg, var(--cyan), var(--magenta));
+    color: var(--dark-violet);
+    padding: 15px 30px;
+    text-decoration: none;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 15px var(--magenta);
+    display: inline-block;
+}
+.cta-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px var(--cyan);
+    color: var(--dark-violet);
+}
+
+/* Filter Buttons */
+.filter-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background-color: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 5px;
+    font-family: var(--font-mono);
+}
+.filter-btn:hover {
+    box-shadow: 0 0 10px var(--cyan);
+    background-color: rgba(0, 245, 212, 0.1);
+}    transform: rotateY(180deg);
     border-color: var(--magenta);
 }
 
