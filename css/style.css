@@ -955,3 +955,18 @@ body::after {
     opacity: 1 !important;
     display: block !important;
 }
+/* Style for when the button is actively being clicked (pressed down) */
+.filter-btn:active {
+    transform: scale(0.95); /* Slight "push in" effect */
+    background-color: var(--magenta); /* Switch to magenta when pressed */
+    box-shadow: 0 0 20px var(--magenta);
+    color: var(--dark-violet);
+}
+
+/* Style for the button that is currently selected */
+.filter-btn.active {
+    background-color: var(--cyan);
+    color: var(--dark-violet);
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta);
+    border-color: var(--white);
+}
