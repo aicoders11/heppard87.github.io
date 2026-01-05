@@ -662,10 +662,10 @@ footer {
     backdrop-filter: blur(10px);
     padding: 20px 50px;
     border-top: 1px solid var(--cyan);
-    box-shadow: 0 0 15px var(--cyan); /* Fixed shadow line */
+    box-shadow: 0 0 15px var(--cyan);
     
-    /* Padding to prevent button overlap */
-    padding-bottom: 100px; 
+    /* This is the important part: */
+    padding-bottom: 120px; 
 }
 .footer-content {
     display: flex;
