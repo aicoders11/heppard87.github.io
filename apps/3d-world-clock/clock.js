@@ -5,7 +5,29 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-scene.background = new THREE.Color(0x050505); // Almost black
+scene.background = // =========================================
+// 1.5 ADD THE STARFIELD
+// =========================================
+const starGeometry = new THREE.BufferGeometry();
+const starMaterial = new THREE.PointsMaterial({ color: 0xffffff });
+
+const starVertices = [];
+// Create 10,000 random stars
+for (let i = 0; i < 10000; i++) {
+    const x = (Math.random() - 0.5) * 2000; // Spread them wide
+    const y = (Math.random() - 0.5) * 2000;
+    const z = - (Math.random() * 2000); // Only behind the globe? No, let's spread everywhere
+    // Actually, let's use full 3D space:
+    starVertices.push(
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000,
+        (Math.random() - 0.5) * 2000
+    );
+}
+
+starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+const stars = new THREE.Points(starGeometry, starMaterial);
+scene.add(stars);new THREE.Color(0x050505); // Almost black
 
 // 2. CREATE THE GLOBE
 const geometry = new THREE.SphereGeometry(2, 32, 32);
