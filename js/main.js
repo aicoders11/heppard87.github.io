@@ -11,10 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // 2. Card Flip Logic
+ // 2. Card Flip Logic
     const featureItems = document.querySelectorAll('.feature-item');
+    console.log("Found " + featureItems.length + " cards."); // DEBUG SIGNAL 1
+
     featureItems.forEach(item => {
         item.addEventListener('click', function(e) {
+            console.log("Card Clicked!"); // DEBUG SIGNAL 2
+            
             // Prevent flip if clicking the "Read More" button
             if (e.target.classList.contains('read-more-btn')) return;
             
