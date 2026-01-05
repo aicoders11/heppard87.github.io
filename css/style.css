@@ -1137,3 +1137,22 @@ footer {
         margin-bottom: 30px;
     }
 }
+/* Sidebar Inputs Styling */
+.sidebar-input {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--cyan);
+    color: var(--white); /* Ensures text is visible */
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.sidebar-label {
+    color: var(--cyan);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
