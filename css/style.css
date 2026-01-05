@@ -979,3 +979,42 @@ footer {
     filter: drop-shadow(0 0 15px var(--magenta));
     color: var(--white);
 }
+/* =========================================
+   FLOATING THEME BUTTON STYLES
+   ========================================= */
+#theme-toggle-button {
+    position: fixed !important;
+    bottom: 30px !important;
+    left: 30px !important;
+    z-index: 9999 !important;
+    
+    /* Cyberpunk Colors */
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    color: var(--dark-violet);
+    
+    /* Text Style */
+    font-family: var(--font-mono); /* Make sure this font variable exists, or use 'Courier New' */
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    
+    /* Button Shape */
+    border: none;
+    padding: 15px 30px;
+    cursor: pointer;
+    clip-path: polygon(
+        20px 0, 100% 0, 
+        100% calc(100% - 20px), calc(100% - 20px) 100%, 
+        0 100%, 0 20px
+    );
+
+    /* Animation */
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 5px var(--cyan));
+}
+
+#theme-toggle-button:hover {
+    transform: scale(1.1) translate(5px, -5px);
+    filter: drop-shadow(0 0 15px var(--magenta));
+    color: var(--white);
+}
