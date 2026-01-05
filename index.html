@@ -23,8 +23,7 @@
                 <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
-            <button id="theme-toggle-button" class="cta-button">Change Theme</button>
-        </nav>
+           
     </header>
 
     <main>
@@ -196,7 +195,45 @@
                 <input type="email" placeholder="Enter your email" required>
                 <button type="submit" class="cta-button">Subscribe</button>
             </form>
-        </div>
+        </div>/* =========================================
+   12. FLOATING THEME BUTTON (FORCE FIX)
+   ========================================= */
+#theme-toggle-button {
+    /* FORCE the position to the bottom-left */
+    position: fixed !important;
+    bottom: 30px !important;
+    left: 30px !important;
+    top: auto !important;   /* Resets any "top" settings */
+    right: auto !important; /* Resets any "right" settings */
+    z-index: 9999 !important;
+
+    /* Styling */
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+    color: var(--dark-violet);
+    font-family: var(--font-mono);
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    padding: 15px 30px;
+    cursor: pointer;
+
+    /* Shape */
+    clip-path: polygon(
+        20px 0, 100% 0, 
+        100% calc(100% - 20px), calc(100% - 20px) 100%, 
+        0 100%, 0 20px
+    );
+
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 0 5px var(--cyan));
+}
+
+#theme-toggle-button:hover {
+    transform: scale(1.1) translate(5px, -5px);
+    filter: drop-shadow(0 0 15px var(--magenta));
+    color: var(--white);
+}
     </div>
     <script src="js/main.js"></script>
     <script src="js/theme.js"></script>
