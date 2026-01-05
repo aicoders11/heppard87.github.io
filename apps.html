@@ -34,68 +34,63 @@
 .dashboard-main {
     display: grid !important;
     grid-template-columns: 260px 1fr !important; /* Sidebar width vs. Rest of page */
-    gap: 40px;
-    align-items: start;
-    padding: 120px 5% 50px;
-    max-width: 1400px;
-    margin: 0 auto;
-    min-height: 80vh;
-}
+   <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apps | CyberSolutionsOhio</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">CyberSolutionsOhio</a>
+            <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
+                <input type="text" name="q" placeholder="Search the web...">
+                <button type="submit">Search</button>
+            </form>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="games.html">Games</a></li>
+                <li><a href="apps.html">Apps</a></li>
+                <li><a href="converter.html">Converter</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
 
-/* 2. STYLE THE SIDEBAR BOX */
-.sidebar {
-    background: rgba(10, 10, 15, 0.8);
-    border: 1px solid var(--cyan);
-    padding: 25px;
-    border-radius: 8px;
-    backdrop-filter: blur(5px);
-    position: sticky;
-    top: 120px;
-    z-index: 10;
-}
+    <main class="dashboard-main">
+        <aside class="sidebar">
+            <h3>Security Controls</h3>
+            <div class="sidebar-control">
+                <input type="search" placeholder="Filter tools..." class="sidebar-input">
+            </div>
+            <div class="sidebar-control">
+                <label class="sidebar-label">
+                    <input type="checkbox" checked> Show Utilities
+                </label>
+            </div>
+        </aside>
 
-.sidebar h3 {
-    color: var(--magenta);
-    border-bottom: 1px solid var(--magenta);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-}
-
-/* 3. FIX THE UGLY WHITE INPUT BOX */
-.sidebar input[type="search"], 
-.sidebar-input {
-    width: 100%;
-    background: #000;
-    border: 1px solid var(--cyan);
-    color: var(--cyan);
-    padding: 12px;
-    margin-bottom: 15px;
-    font-family: 'Courier New', monospace;
-    outline: none;
-}
-
-.sidebar label {
-    color: var(--white);
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* MOBILE FIX: Stack them on small screens */
-@media (max-width: 768px) {
-    .dashboard-main {
-        grid-template-columns: 1fr !important;
-    }
-    .sidebar {
-        position: relative;
-        top: 0;
-        margin-bottom: 30px;
-    }
-}
+        <section class="app-collection">
+            <div class="content-card terminal-card">
+                <h2>Security Terminal: Password Analyzer</h2>
+                <p>Test your credential strength against our decryption algorithms.</p>
+                <div class="input-group">
+                    <input type="password" id="pwdInput" placeholder="Enter password to test..." oninput="checkStrength()">
+                </div>
+                <div id="strength-bar-container">
+                    <div id="strength-bar"></div>
+                </div>
+                <p id="strength-text">Clearance Level: Unknown</p>
+            </div>
+            <div class="features-grid" id="apps-grid">
+                </div>
+        </section>
+    </main>
 
     <footer>
         <div class="footer-content">
@@ -111,15 +106,12 @@
             const bar = document.getElementById('strength-bar');
             const text = document.getElementById('strength-text');
             let score = 0;
-            
             if (pwd.length > 8) score++;
             if (/[A-Z]/.test(pwd)) score++;
             if (/[0-9]/.test(pwd)) score++;
             if (/[^A-Za-z0-9]/.test(pwd)) score++;
-            
             const colors = ['#ff0055', '#ffaa00', '#00f5d4', '#00ff00'];
             const levels = ['UNSAFE', 'WEAK', 'SECURE', 'OVERKILL'];
-            
             if (pwd.length === 0) {
                 bar.style.width = '0%';
                 text.innerHTML = 'Clearance Level: <span style="color: grey">Unknown</span>';
