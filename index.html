@@ -219,21 +219,7 @@
     cursor: pointer;
 
     /* Shape */
-    clip-path: polygon(
-        20px 0, 100% 0, 
-        100% calc(100% - 20px), calc(100% - 20px) 100%, 
-        0 100%, 0 20px
-    );
-
-    transition: all 0.3s ease;
-    filter: drop-shadow(0 0 5px var(--cyan));
-}
-
-#theme-toggle-button:hover {
-    transform: scale(1.1) translate(5px, -5px);
-    filter: drop-shadow(0 0 15px var(--magenta));
-    color: var(--white);
-}
+ <button id="theme-toggle-button">Change Theme</button>
     </div>
     <script src="js/main.js"></script>
     <script src="js/theme.js"></script>
