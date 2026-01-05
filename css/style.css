@@ -261,23 +261,17 @@ footer .social-links a:hover {
     margin-bottom: 50px;
 }
 
-..features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
+.features-grid {
+    display: grid !important; /* Forces the grid layout */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Side-by-side */
+    gap: 20px;
+    width: 100%;
 }
 
-.feature-item, .game-card {
-    position: relative; /* Change this from absolute if it was set elsewhere */
-    height: 450px; /* Forces the grid to give each card its own space */
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid var(--cyan);
-    padding: 30px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
-    text-decoration: none;
-    color: var(--light-slate);
+.feature-item {
+    position: relative !important; /* DO NOT use 'absolute' here */
+    display: block;
+    width: auto;
 }
 
 .feature-item:hover, .game-card:hover {
