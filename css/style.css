@@ -14,7 +14,6 @@
     --grid-color-cyan: rgba(0, 245, 212, 0.5);
     --grid-color-magenta: rgba(255, 0, 245, 0.5);
 }
-
 * {
     box-sizing: border-box;
 }
@@ -1157,10 +1156,10 @@ footer {
     gap: 10px;
 }
 /* =========================================
-   DASHBOARD LAYOUT & SIDEBAR FIX
+   APPS DASHBOARD LAYOUT (FINAL)
    ========================================= */
 
-/* 1. FORCE THE GRID LAYOUT (Side-by-Side) */
+/* 1. FORCE GRID LAYOUT (Side-by-Side) */
 .dashboard-main {
     display: grid !important;
     grid-template-columns: 260px 1fr !important; /* Sidebar width vs. Rest of page */
@@ -1172,7 +1171,7 @@ footer {
     min-height: 80vh;
 }
 
-/* 2. STYLE THE SIDEBAR BOX */
+/* 2. STYLE THE SIDEBAR */
 .sidebar {
     background: rgba(10, 10, 15, 0.8);
     border: 1px solid var(--cyan);
@@ -1193,80 +1192,11 @@ footer {
     text-transform: uppercase;
 }
 
-/* 3. FIX THE UGLY WHITE INPUT BOX */
-.sidebar input[type="search"], 
-.sidebar-input {
+/* 3. FIX THE INPUTS (Make them Black/Cyan) */
+.sidebar-input,
+.sidebar input[type="search"] {
     width: 100%;
-    background: #000;
-    border: 1px solid var(--cyan);
-    color: var(--cyan);
-    padding: 12px;
-    margin-bottom: 15px;
-    font-family: 'Courier New', monospace;
-    outline: none;
-}
-
-.sidebar label {
-    color: var(--white);
-    cursor: pointer;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* MOBILE FIX: Stack them on small screens */
-@media (max-width: 768px) {
-    .dashboard-main {
-        grid-template-columns: 1fr !important;
-    }
-    .sidebar {
-        position: relative;
-        top: 0;
-        margin-bottom: 30px;
-    }
-}
-/* =========================================
-   DASHBOARD LAYOUT FIX
-   ========================================= */
-
-/* 1. FORCE GRID LAYOUT (Side-by-Side) */
-.dashboard-main {
-    display: grid !important;
-    grid-template-columns: 260px 1fr !important; /* Sidebar gets 260px, Terminal gets the rest */
-    gap: 40px;
-    align-items: start;
-    padding: 120px 5% 50px;
-    max-width: 1400px;
-    margin: 0 auto;
-    min-height: 80vh;
-}
-
-/* 2. STYLE THE SIDEBAR */
-.sidebar {
-    background: rgba(10, 10, 15, 0.8); /* Dark background */
-    border: 1px solid var(--cyan);
-    padding: 25px;
-    border-radius: 8px;
-    backdrop-filter: blur(5px);
-    position: sticky; /* Keeps it visible while scrolling */
-    top: 120px;
-    z-index: 10;
-}
-
-.sidebar h3 {
-    color: var(--magenta);
-    border-bottom: 1px solid var(--magenta);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-}
-
-/* 3. FIX THE WHITE INPUT BOX */
-.sidebar-input {
-    width: 100%;
-    background: #000 !important; /* Forces black background */
+    background: #000 !important;
     border: 1px solid var(--cyan) !important;
     color: var(--cyan) !important;
     padding: 12px;
@@ -1284,7 +1214,7 @@ footer {
     gap: 10px;
 }
 
-/* Mobile Fix: Stack on small screens */
+/* 4. MOBILE LAYOUT (Stack them on phones) */
 @media (max-width: 768px) {
     .dashboard-main {
         grid-template-columns: 1fr !important;
@@ -1293,5 +1223,5 @@ footer {
         position: relative;
         top: 0;
         margin-bottom: 30px;
-    
+    }
 }
