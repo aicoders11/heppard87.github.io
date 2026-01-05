@@ -824,3 +824,37 @@ body::after {
     background-size: 100% 4px, 3px 100%;
     pointer-events: none; /* Allows you to still click buttons underneath */
 }
+/* Mobile Optimization (Screens smaller than 768px) */
+@media screen and (max-width: 768px) {
+    /* Stack cards vertically instead of side-by-side */
+    .features-grid, .hero.hero-two-column {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Adjust font sizes for smaller screens */
+    .hero-right h1 {
+        font-size: 32px;
+        text-align: center;
+    }
+
+    /* Reduce padding to maximize screen space */
+    main {
+        padding: 100px 15px 30px;
+    }
+
+    /* Center the profile picture on mobile */
+    .profile-picture {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+    }
+
+    /* Make buttons full-width for easier tapping */
+    .cta-button {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+}
