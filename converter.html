@@ -54,21 +54,43 @@
             </div>
             <div class="input-group">
                 <label>From</label>
-                <select id="fromUnit">
-                    <option value="meters">Meters (m)</option>
-                    <option value="feet">Feet (ft)</option>
-                    <option value="kg">Kilograms (kg)</option>
-                    <option value="lbs">Pounds (lbs)</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>To</label>
-                <select id="toUnit">
-                    <option value="feet">Feet (ft)</option>
-                    <option value="meters">Meters (m)</option>
-                    <option value="lbs">Pounds (lbs)</option>
-                    <option value="kg">Kilograms (kg)</option>
-                </select>
+               <select id="convertFrom">
+    <optgroup label="Length">
+        <option value="m">Meters (m)</option>
+        <option value="ft">Feet (ft)</option>
+        <option value="km">Kilometers (km)</option>
+        <option value="mi">Miles (mi)</option>
+    </optgroup>
+    <optgroup label="Weight">
+        <option value="kg">Kilograms (kg)</option>
+        <option value="lbs">Pounds (lbs)</option>
+        <option value="g">Grams (g)</option>
+    </optgroup>
+    <optgroup label="Data (Cyber)">
+        <option value="MB">Megabytes (MB)</option>
+        <option value="GB">Gigabytes (GB)</option>
+        <option value="TB">Terabytes (TB)</option>
+    </optgroup>
+</select>
+
+<select id="convertTo">
+    <optgroup label="Length">
+        <option value="m">Meters (m)</option>
+        <option value="ft">Feet (ft)</option>
+        <option value="km">Kilometers (km)</option>
+        <option value="mi">Miles (mi)</option>
+    </optgroup>
+    <optgroup label="Weight">
+        <option value="kg">Kilograms (kg)</option>
+        <option value="lbs">Pounds (lbs)</option>
+        <option value="g">Grams (g)</option>
+    </optgroup>
+    <optgroup label="Data (Cyber)">
+        <option value="MB">Megabytes (MB)</option>
+        <option value="GB">Gigabytes (GB)</option>
+        <option value="TB">Terabytes (TB)</option>
+    </optgroup>
+</select>
             </div>
             <button class="cta-button" onclick="convert()">Calculate</button>
             <div id="result-display">Result: --</div>
