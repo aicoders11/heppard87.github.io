@@ -261,13 +261,15 @@ footer .social-links a:hover {
     margin-bottom: 50px;
 }
 
-.features-grid {
+..features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 30px;
 }
 
 .feature-item, .game-card {
+    position: relative; /* Change this from absolute if it was set elsewhere */
+    height: 450px; /* Forces the grid to give each card its own space */
     background: rgba(0, 0, 0, 0.6);
     border: 1px solid var(--cyan);
     padding: 30px;
