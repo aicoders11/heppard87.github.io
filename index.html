@@ -3,65 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home | CyberSolutionsOhio</title>
-    <meta name="description" content="CyberSolutionsOhio provides enterprise cybersecurity, managed IT services, and custom web development in Cincinnati, OH. Secure your digital assets today.">
-    <link rel="stylesheet" href="css/style.css">
+    <title>Cyberpunk Services</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body><section id="features" class="features-row">
-    <div class="feature-item">
-        <div class="feature-item-inner">
-            <div class="feature-front">
-                <h3>Web Design</h3>
-                <p>Modern & Responsive</p>
-                <small>(Click to flip)</small>
-            </div>
-            <div class="feature-back">
-    <h3>Details</h3>
-    <p>We build websites that look great on any device using the latest technologies.</p>
-    
-    <a href="services.html" class="read-more-btn">Read More</a>
-</div>
+<body>
 
-    <div class="feature-item">
-        <div class="feature-item-inner">
-            <div class="feature-front">
-                <h3>SEO Optimization</h3>
-                <p>Rank Higher</p>
-                <small>(Click to flip)</small>
+<header>
+    <div class="logo">NEON_LABS</div>
+    <nav>
+        <ul>
+            <li><a href="#features">Services</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    <section class="features" id="features">
+        <h2>Our Services</h2>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="web">Web</button>
+            <button class="filter-btn" data-filter="security">Security</button>
+            <button class="filter-btn" data-filter="cloud">Cloud</button>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-item reveal" data-category="web">
+                <div class="feature-item-inner">
+                    <div class="feature-front">
+                        <h3>Web Design</h3>
+                        <p>Futuristic & Responsive</p>
+                        <small>(Click to Flip)</small>
+                    </div>
+                    <div class="feature-back">
+                        <h3>Details</h3>
+                        <p>High-performance sites using the latest frameworks.</p>
+                        <a href="#" class="read-more-btn">Read More</a>
+                    </div>
+                </div>
             </div>
-            <div class="feature-back">
-                <h3>Details</h3>
-                <p>Improve your visibility on Google and drive more organic traffic to your business.</p>
+
+            <div class="feature-item reveal" data-category="security">
+                <div class="feature-item-inner">
+                    <div class="feature-front">
+                        <h3>Cyber Security</h3>
+                        <p>Zero Trust Architecture</p>
+                        <small>(Click to Flip)</small>
+                    </div>
+                    <div class="feature-back">
+                        <h3>Details</h3>
+                        <p>Protect data with military-grade encryption.</p>
+                        <a href="#" class="read-more-btn">Read More</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-item reveal" data-category="cloud">
+                <div class="feature-item-inner">
+                    <div class="feature-front">
+                        <h3>Cloud Systems</h3>
+                        <p>Scalable Infrastructure</p>
+                        <small>(Click to Flip)</small>
+                    </div>
+                    <div class="feature-back">
+                        <h3>Details</h3>
+                        <p>Global deployment and 99.99% uptime guarantees.</p>
+                        <a href="#" class="read-more-btn">Read More</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+    </section>
+</main>
 
-    <div class="feature-item">
-        <div class="feature-item-inner">
-            <div class="feature-front">
-                <h3>Marketing</h3>
-                <p>Grow Your Audience</p>
-                <small>(Click to flip)</small>
-            </div>
-            <div class="feature-back">
-                <h3>Details</h3>
-                <p>Comprehensive strategies to help you reach your target customers effectively.</p>
-            </div>
-        </div>
-    </div>
-</section>
-    <header>
-        <nav>
-            <a href="index.html" class="logo">CyberSolutionsOhio</a>
-            <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
-                <input type="text" name="q" placeholder="Search the web...">
-                <button type="submit">Search</button>
-            </form>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="services.html">Services</a></li>
-                <li><a href="converter.html">Converter</a></li>
+<script src="script.js"></script>
+</body>
+</html>                <li><a href="converter.html">Converter</a></li>
                 <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
