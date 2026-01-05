@@ -19,7 +19,37 @@
     color: var(--dark-violet);
     transition: transform 0.1s ease;
 }
+/* Container for the row of cards */
+.features-row {
+    display: flex;
+    justify-content: center; /* Centers the cards */
+    gap: 2rem; /* Space between cards */
+    padding: 4rem 2rem;
+    flex-wrap: wrap; /* Allows cards to stack on mobile */
+}
 
+/* Update your existing .feature-item to be flexible */
+.feature-item {
+    flex: 1; /* Each card takes equal width */
+    min-width: 250px; /* Prevents them from getting too squished */
+    max-width: 350px; /* Prevents them from getting too wide */
+    
+    /* Keep the height consistent */
+    min-height: 250px; 
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+/* Optional: Add some padding to the inner content for better spacing */
+.feature-front, .feature-back {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Subtle shadow */
+}
 /* Persistent glow for the currently selected category */
 .filter-btn.active {
     background-color: var(--cyan) !important;
