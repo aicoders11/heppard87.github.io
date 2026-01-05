@@ -26,3 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.observe(section);
     });
 });
+document.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.feature-item');
+    
+    cards.forEach(card => {
+        card.addEventListener('click', function() {
+            // This matches the '.feature-item.is-flipped' selector in your CSS
+            this.classList.toggle('is-flipped');
+        });
+    });
+});
