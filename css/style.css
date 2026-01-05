@@ -277,36 +277,51 @@ footer .social-links a:hover {
 }
 
 /* --- FEATURES GRID SYSTEM --- */
-.features {
-    padding: 50px 0;
-}
-
-.features h2 {
-    font-size: 48px;
-    color: var(--white);
-    text-align: center;
-    margin-bottom: 50px;
-}
-
-/* Container for the filter buttons */
-.filter-buttons {
-    position: relative;
-    z-index: 10;
-    text-align: center;
-    margin-bottom: 30px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-}
-
-/* The Grid Layout */
 .features-grid {
     display: grid !important;
-    /* This creates as many columns as will fit, each at least 320px wide */
+    /* Forces items side-by-side; each at least 320px wide */
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 30px;
     width: 100%;
     padding: 20px 0;
+    position: relative;
+}
+
+/* Individual Card Wrapper */
+.feature-item {
+    position: relative !important; 
+    width: 100%;
+    min-height: 450px; /* Essential to show the absolute-positioned faces */
+    perspective: 1000px; /* Needed for the 3D flip effect */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* The actual flipping faces */
+.feature-card-front, 
+.feature-card-back {
+    position: absolute; /* Keep this for the flip animation */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden; /* Stops the back from bleeding through */
+    border: 1px solid var(--cyan);
+    background: rgba(13, 2, 33, 0.8);
+    padding: 30px;
+    border-radius: 10px;
+}
+
+.feature-item h3 {
+    font-size: 24px;
+    color: var(--cyan);
+    margin-bottom: 15px;
+    font-weight: 600;
+    text-shadow: 0 0 5px var(--cyan), 0 0 10px var(--magenta);
+}
+
+.feature-item:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 0 25px var(--cyan);
 }
 
 /* Individual Card Wrapper */
