@@ -35,8 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show/Hide items
             featureItems.forEach(item => {
                 const category = item.getAttribute('data-category');
+                
                 if (filterValue === 'all' || category === filterValue) {
                     item.style.display = 'block';
+                    // Small timeout ensures the fade-in transition plays correctly
                     setTimeout(() => item.classList.add('visible'), 10);
                 } else {
                     item.style.display = 'none';
