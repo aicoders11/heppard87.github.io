@@ -11,7 +11,22 @@
     --grid-color-cyan: rgba(0, 245, 212, 0.5);
     --grid-color-magenta: rgba(255, 0, 245, 0.5);
 }
+/* Immediate color shift when the button is physically pressed */
+.filter-btn:active {
+    transform: scale(0.95); /* Tactile push-in effect */
+    background-color: var(--magenta); /* Flash magenta on click */
+    box-shadow: 0 0 20px var(--magenta);
+    color: var(--dark-violet);
+    transition: transform 0.1s ease;
+}
 
+/* Persistent glow for the currently selected category */
+.filter-btn.active {
+    background-color: var(--cyan) !important;
+    color: var(--dark-violet) !important;
+    box-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta);
+    border-color: var(--white);
+}
 body {
     background-color: var(--dark-violet);
     color: var(--light-slate);
