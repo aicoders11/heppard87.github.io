@@ -2056,3 +2056,20 @@ body::after {
     position: relative; /* Keep this relative so the inner absolute cards stay inside it */
     min-height: 400px;  /* Set a height so the absolute inner cards don't collapse */
 }
+/* Update the grid to manage side-by-side layout */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 40px;
+    padding: 40px 0;
+    justify-items: center; /* Centers cards in their grid slot */
+}
+
+/* Ensure the container has height since inner cards are absolute */
+.feature-item {
+    position: relative;
+    width: 320px;
+    height: 450px; /* Adjust height to fit your content */
+    perspective: 1000px;
+    margin-bottom: 20px;
+}
