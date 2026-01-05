@@ -83,3 +83,27 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize the page with "Web" as the default view
     filterGallery('web');
 });
+function filterGallery(category) {
+    let visibleCount = 0; // Track index for staggered delay
+
+    featureItems.forEach(item => {
+        item.classList.remove('show');
+        // Reset delay to prevent interference during transitions
+        item.style.transitionDelay = '0s';
+        
+        if (item.getAttribute('data-category') === category) {
+            item.style.display = 'block';
+            
+            // Increment count for staggered timing (e.g., 0.1s, 0.2s, 0.3s...)
+            const delay = visibleCount * 0.1; 
+            visibleCount++;
+
+            setTimeout(() => {
+                item.style.transitionDelay = `${delay}s`;
+                item.classList.add('show');
+            }, 50);
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
