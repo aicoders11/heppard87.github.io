@@ -276,39 +276,36 @@ footer .social-links a:hover {
     gap: 10px;
 }
 
-/* --- FEATURES GRID SYSTEM --- */
+/* Update the grid to manage side-by-side layout (Line 1667) */
 .features-grid {
-    display: grid !important;
-    /* Forces items side-by-side; each at least 320px wide */
+    display: grid !important; /* Force grid layout */
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
+    gap: 40px;
+    padding: 40px 0;
+    justify-items: center; /* Centers cards in their grid slot */
     width: 100%;
-    padding: 20px 0;
-    position: relative;
 }
 
-/* Individual Card Wrapper */
+/* Ensure the container has height since inner cards are absolute (Line 1675) */
 .feature-item {
-    position: relative !important; 
+    position: relative !important; /* Anchor for absolute children */
     width: 100%;
-    min-height: 450px; /* Essential to show the absolute-positioned faces */
-    perspective: 1000px; /* Needed for the 3D flip effect */
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 320px;
+    min-height: 450px; /* Forces space for the absolute card faces */
+    perspective: 1000px;
+    margin-bottom: 20px;
+    display: block;
 }
 
-/* The actual flipping faces */
+/* Fix for the card faces to ensure they occupy the reserved space */
 .feature-card-front, 
 .feature-card-back {
-    position: absolute; /* Keep this for the flip animation */
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    backface-visibility: hidden; /* Stops the back from bleeding through */
-    border: 1px solid var(--cyan);
-    background: rgba(13, 2, 33, 0.8);
-    padding: 30px;
-    border-radius: 10px;
+    backface-visibility: hidden;
 }
 
 .feature-item h3 {
