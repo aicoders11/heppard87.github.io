@@ -25,15 +25,19 @@
             <button id="theme-toggle-button" class="cta-button">Change Theme</button>
         </nav>
     </header>
-    <main>
+   <main>
+    <div class="game-container">
         <h1>Memory Game</h1>
-        <div class="game-info">
-            <p>Moves: <span id="moves">0</span></p>
-            <p>Time: <span id="timer">0</span></p>
+        <div class="stats">
+            <span id="moves">Moves: 0</span>
+            <span id="timer">Time: 0</span>
         </div>
-        <div id="memory-game-board" class="game-grid"></div>
-        <button id="restart-memory-game">Restart Game</button>
-    </main>
+        
+        <div class="memory-grid"></div>
+
+        <button id="restart-btn" class="cta-button" onclick="initGame()">Restart System</button>
+    </div>
+</main>
     <script src="script.js"></script>
     <script src="../../js/theme.js"></script>
 </body>
