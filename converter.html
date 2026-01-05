@@ -3,60 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Converter | CyberSolutionsOhio</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <title>CyberSolutionsOhio | Unit Converter</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .converter-container {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .input-group {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        select, input {
+            padding: 12px;
+            background: rgba(13, 2, 33, 0.8);
+            border: 1px solid var(--cyan);
+            color: var(--white);
+            border-radius: 5px;
+            font-family: var(--font-mono);
+        }
+        #result-display {
+            font-size: 24px;
+            color: var(--magenta);
+            text-shadow: 0 0 10px var(--magenta);
+            margin-top: 20px;
+        }
+    </style>
 </head>
-<body class="neon-dark">
+<body>
     <header>
         <nav>
-            <div class="search-container">
-                <form action="https://www.google.com/search" method="GET" target="_blank">
-                    <input type="text" name="q" id="site-search" placeholder="Search the web...">
-                    <button type="submit" class="cta-button">Search</button>
-                </form>
-            </div>
+            <a href="index.html" class="logo">CyberSolutionsOhio</a>
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Us</a></li>
-                <li><a href="services.html">Services</a></li>
-                <li><a href="converter.html">Converter</a></li>
-                <li><a href="games.html">Games</a></li>
+                <li><a href="converter.html" class="active">Converter</a></li>
                 <li><a href="apps.html">Apps</a></li>
-                <li><a href="contact.html">Contact</a></li>
             </ul>
-            <button id="theme-toggle-button" class="cta-button">Change Theme</button>
         </nav>
     </header>
 
     <main>
-        <section class="content-section">
-            <h1 class="page-title" style="text-align: center;">Data Stream Converter</h1>
-            <div class="content-card">
-                <h2 style="color: var(--neon-teal);">Metric & Imperial Shift</h2>
-                <p>Convert your physical data into the digital standard.</p>
-                
-                <div class="converter-box" style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-                    <input type="number" id="feetInput" placeholder="Enter Feet" class="cta-button" style="background: rgba(0,0,0,0.5); width: 100%;">
-                    <button onclick="convertFeetToMeters()" class="cta-button" style="width: 100%;">Convert to Meters</button>
-                    <div id="output" style="font-size: 1.5rem; color: var(--neon-pink); text-align: center; min-height: 40px;"></div>
-                </div>
+        <div class="content-card converter-container">
+            <h1>Unit Converter</h1>
+            <div class="input-group">
+                <label>Input Value</label>
+                <input type="number" id="inputValue" placeholder="Enter number...">
             </div>
-        </section>
+            <div class="input-group">
+                <label>From</label>
+                <select id="fromUnit">
+                    <option value="meters">Meters (m)</option>
+                    <option value="feet">Feet (ft)</option>
+                    <option value="kg">Kilograms (kg)</option>
+                    <option value="lbs">Pounds (lbs)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>To</label>
+                <select id="toUnit">
+                    <option value="feet">Feet (ft)</option>
+                    <option value="meters">Meters (m)</option>
+                    <option value="lbs">Pounds (lbs)</option>
+                    <option value="kg">Kilograms (kg)</option>
+                </select>
+            </div>
+            <button class="cta-button" onclick="convert()">Calculate</button>
+            <div id="result-display">Result: --</div>
+        </div>
     </main>
 
     <script>
-        function convertFeetToMeters() {
-            const feet = document.getElementById('feetInput').value;
-            const meters = (feet * 0.3048).toFixed(2);
-            const outputDiv = document.getElementById('output');
-            if (feet) {
-                outputDiv.innerHTML = `${feet} FT = ${meters} M`;
-            } else {
-                outputDiv.innerHTML = "Please enter a value";
+        function convert() {
+            const val = parseFloat(document.getElementById('inputValue').value);
+            const from = document.getElementById('fromUnit').value;
+            const to = document.getElementById('toUnit').value;
+            const display = document.getElementById('result-display');
+
+            if (isNaN(val)) {
+                display.innerText = "Please enter a number";
+                return;
             }
+
+            // Logic for common cybersecurity/hardware units
+            let result;
+            if (from === "meters" && to === "feet") result = val * 3.28084;
+            else if (from === "feet" && to === "meters") result = val * 0.3048;
+            else if (from === "kg" && to === "lbs") result = val * 2.20462;
+            else if (from === "lbs" && to === "kg") result = val * 0.453592;
+            else result = val; // Same units
+
+            display.innerText = `Result: ${result.toFixed(2)} ${to}`;
         }
     </script>
-    <script src="js/theme.js"></script>
 </body>
 </html>
