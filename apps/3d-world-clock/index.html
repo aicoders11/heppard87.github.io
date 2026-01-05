@@ -3,18 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mr. Heppard's World Clock | CyberSolutionsOhio</title>
+    <title>Mr. Heppard's World Clock</title>
     <link rel="stylesheet" href="../../css/style.css">
-    <link rel="stylesheet" href="../common/overlay.css">
     <style>
-        body { margin: 0; overflow: hidden; }
+        body { margin: 0; overflow: hidden; background: #000; }
         canvas { display: block; }
+        
+        /* The "Time Display" Box */
+        #time-display {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 255, 212, 0.1);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 15px 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            text-align: center;
+            pointer-events: none; /* Let clicks pass through */
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        /* Floating Back Button */
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            text-decoration: none;
+            color: var(--cyan);
+            border: 1px solid var(--cyan);
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.8);
+            font-family: sans-serif;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
     </style>
 </head>
-<body data-path-prefix="../../">
+<body>
+
+    <a href="../../apps.html" class="back-btn">← Back to Dashboard</a>
+
+    <div id="time-display">HOVER OVER A CITY</div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="../common/overlay.js"></script>
-    <script src="../../js/theme.js"></script>
+    
     <script src="clock.js"></script>
+
 </body>
 </html>
