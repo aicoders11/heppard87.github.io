@@ -119,8 +119,9 @@ header {
 header nav {
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Centers the links now that the button is gone */
     align-items: center;
+    position: relative;
 }
 
 header .logo {
