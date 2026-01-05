@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apps | CyberSolutionsOhio</title>
-    <meta name="description" content="Security tools and utilities from CyberSolutionsOhio.">
     <link rel="stylesheet" href="css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-   <header>
+    <header>
         <nav>
             <a href="index.html" class="logo">CyberSolutionsOhio</a>
             <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
@@ -25,21 +23,50 @@
                 <li><a href="converter.html">Converter</a></li>
                 <li><a href="contact.html">Contact</a></li>
             </ul>
-           
         </nav>
     </header>
-   <main class="dashboard-main">
-    
-    <aside class="sidebar">
+
+    <main class="dashboard-main">
+        
+        <aside class="sidebar">
+            <h3>Security Controls</h3>
+            <div class="sidebar-control">
+                <input type="search" placeholder="Filter tools..." class="sidebar-input">
+            </div>
+            <div class="sidebar-control">
+                <label class="sidebar-label">
+                    <input type="checkbox" checked> Show Utilities
+                </label>
+            </div>
         </aside>
 
-    <section class="app-collection">
-        </section>
+        <section class="app-collection">
+            
+            <div class="content-card terminal-card">
+                <h2>Security Terminal: Password Analyzer</h2>
+                <p>Test your credential strength against our decryption algorithms.</p>
+                
+                <div class="input-group">
+                    <input type="password" id="pwdInput" placeholder="Enter password to test..." oninput="checkStrength()">
+                </div>
 
-</main>
+                <div id="strength-bar-container">
+                    <div id="strength-bar"></div>
+                </div>
+                
+                <p id="strength-text">Clearance Level: Unknown</p>
+            </div>
+
+            <div class="features-grid" id="apps-grid">
+                </div>
+        </section>
+    </main>
 
     <footer>
-        </footer>
+        <div class="footer-content">
+            <p>&copy; 2026 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
+        </div>
+    </footer>
 
     <button id="theme-toggle-button">Change Theme</button>
 
