@@ -1,95 +1,82 @@
-// Solitaire 3D - Functional Version
+// Solitaire 3D - Integrated Logic Version
 document.addEventListener('DOMContentLoaded', () => {
-    // --- CORE VARIABLES ---
-    let scene, camera, renderer;
-    let deck, tableau, foundations, stock, waste, moveHistory;
-    let selectedObject = null;
-    let currentScore = 0;
+    let scene, camera, renderer, deck, tableau, foundations, stock, waste;
 
-    // --- GAME INITIALIZATION ---
-    function initGame() {
-        // 1. Setup the 3D World
-        setupScene();
-        
-        // 2. Initialize Game State
-        tableau = [[], [], [], [], [], [], []];
-        foundations = [[], [], [], []];
-        stock = [];
-        waste = [];
-        moveHistory = [];
-        
-        // 3. Create and Shuffle Deck
-        const freshDeck = createDeck();
-        deck = shuffleDeck(freshDeck);
-        
-        // 4. Deal the Cards
-        dealCards();
-        
-        // 5. Start Animation Loop
-        animate();
-    }
+    // --- 1. THE DATA GENERATOR ---
+    function createDeck() {
+        const suits = ['hearts', 'diamonds', 'clubs', 'spades'];
+        const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        let newDeck = [];
 
-    // --- INTERACTION: DRAWING CARDS ---
-    function handleStockClick() {
-        if (stock.length === 0) {
-            // Recycle waste back to stock
-            stock = waste.reverse().map(card => {
-                card.isFaceUp = false;
-                return card;
+        suits.forEach(suit => {
+            const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+            values.forEach((value, index) => {
+                newDeck.push({
+                    suit: suit,
+                    value: value,
+                    rankValue: index + 1,
+                    color: color,
+                    isFaceUp: false,
+                    mesh: null // To be linked to Three.js Mesh
+                });
             });
-            waste = [];
-        } else {
-            // Draw a new card
-            let card = stock.pop();
-            card.isFaceUp = true;
-            waste.push(card);
-        }
-        updateUI();
+        });
+        return newDeck;
     }
 
-    // --- INTERACTION: MOVING CARDS ---
-    function handleCardClick(card) {
-        if (!selectedObject) {
-            // Pick up a card
-            if (card.isFaceUp) {
-                selectedObject = card;
-                highlightCard(card, true);
-            }
-        } else {
-            // Try to place the held card
-            if (isValidMove(selectedObject, card)) {
-                handleMove(selectedObject, card);
-                selectedObject = null;
-            } else {
-                // Drop old card and pick up new one
-                highlightCard(selectedObject, false);
-                selectedObject = card.isFaceUp ? card : null;
-                if (selectedObject) highlightCard(selectedObject, true);
-            }
+    // --- 2. THE SHUFFLE ENGINE ---
+    function shuffleDeck(cards) {
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
         }
+        return cards;
     }
 
-    // --- THE RULES (REFEREE) ---
-    function isValidMove(dragged, target) {
-        // If placing on an empty tableau spot, it must be a King
-        if (!target) return dragged.rankValue === 13;
+    // --- 3. THE 3D PLACEMENT ---
+    function addCardToScene(card, col, row) {
+        // This links the data object to the visible card on your screen
+        const xPos = -6 + (col * 2);
+        const yPos = 2 - (row * 0.2);
+        const zPos = row * 0.01; // Tiny lift so they stack in 3D
+
+        // Create the card geometry (Matches your screen dimensions)
+        const geometry = new THREE.BoxGeometry(1.5, 2.2, 0.05);
+        const material = new THREE.MeshStandardMaterial({ color: 0xffffff });
+        const mesh = new THREE.Mesh(geometry, material);
+
+        mesh.position.set(xPos, yPos, zPos);
+        if (card.isFaceUp) mesh.rotation.y = Math.PI; // Flip it face up
         
-        // Standard Solitaire Rule: Opposite color and one rank lower
-        const isOppositeColor = (dragged.color !== target.color);
-        const isNextRank = (target.rankValue === dragged.rankValue + 1);
-        
-        return isOppositeColor && isNextRank;
+        card.mesh = mesh;
+        scene.add(mesh);
     }
 
-    // --- WIN CONDITION ---
-    function checkVictory() {
-        const totalInFoundations = foundations.reduce((sum, pile) => sum + pile.length, 0);
-        if (totalInFoundations === 52) {
-            alert("Congratulations! Mission Accomplished.");
+    // --- 4. THE DEALER ---
+    function dealCards() {
+        tableau = [[], [], [], [], [], [], []];
+        for (let i = 0; i < 7; i++) {
+            for (let j = i; j < 7; j++) {
+                let card = deck.pop();
+                if (i === j) card.isFaceUp = true;
+                tableau[j].push(card);
+                addCardToScene(card, j, i);
+            }
         }
+        stock = deck; // Remaining cards go to the pile
     }
 
-    // --- START THE ENGINE ---
+    // --- START ENGINE ---
+    function initGame() {
+        // Clear old scene
+        while(scene.children.length > 0){ scene.remove(scene.children[0]); }
+        
+        const rawDeck = createDeck();
+        deck = shuffleDeck(rawDeck);
+        dealCards();
+        console.log("Game Dealt Successfully");
+    }
+
+    // Standard Three.js init calls here...
     initGame();
-    window.addEventListener('click', onMouseClick);
 });
