@@ -1351,3 +1351,43 @@ footer {
     height: 30px;
     line-height: 30px;
 }
+.site-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 60px;       /* Keeps the footer slim */
+    background: #000;   /* Matches your dark theme */
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid var(--cyan, #00ffff); /* Optional accent line */
+}
+
+/* Create three equal columns so the middle button is perfectly centered */
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* Uniform button sizing for the footer */
+.footer-btn {
+    padding: 8px 15px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Adjust the chatbot icon to fit the slim height */
+.chat-icon {
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    margin: 0;
+}
