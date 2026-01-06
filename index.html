@@ -74,37 +74,21 @@
             </div>
         </section>
     </main>
-
-  <footer class="site-footer">
-    <div class="footer-left">
-        <button id="theme-toggle-button" class="footer-btn">CHANGE THEME</button>
-    </div>
-
-    <div class="footer-center">
-        <button id="subscribeBtn" class="footer-btn newsletter-btn">SUBSCRIBE TO NEWSLETTER</button>
-    </div>
-
-    <div class="footer-right">
-        <div class="chatbot-widget">
-            <div class="chat-icon" id="chatIcon">?</div>
-            </div>
-    </div>
-</footer>
-
-    <div id="newsletterModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Subscribe to Our Newsletter</h2>
-            <p>Stay up to date with the latest industry news and insights.</p>
-            <form class="newsletter-form">
-                <input type="email" placeholder="Enter your email" required>
-                <button type="submit" class="cta-button">Subscribe</button>
-            </form>
-        </div>
-    </div> 
+function processChat(input) {
+    const text = input.toLowerCase();
     
-    <button id="theme-toggle-button">Change Theme</button>
-
+    if (text.includes("service") || text.includes("help")) {
+        return "We offer full-stack dev and security audits. Check the Services page!";
+    }
+    if (text.includes("who") || text.includes("chris")) {
+        return "Chris Heppard is a specialist based in Cincinnati focused on secure tech.";
+    }
+    if (text.includes("theme")) {
+        return "You can change the site's look using the THEMES button in the bottom left!";
+    }
+    
+    return "That's interesting! I'm still learning, but you can email us for more details.";
+}
     <script src="js/main.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/chatbot.js"></script>
