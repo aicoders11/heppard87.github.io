@@ -1319,33 +1319,35 @@ footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 20px; /* Reduced vertical padding for a smaller footer */
-    height: 60px;       /* Explicit height to keep it slim */
-    background: rgba(0, 0, 0, 0.8); /* Matches your dark theme */
+    padding: 5px 20px; /* Slim vertical padding */
+    height: 50px;       /* Fixed height for a small footer */
+    background: #000;   /* Or your preferred dark color */
     position: fixed;
     bottom: 0;
     width: 100%;
     z-index: 1000;
 }
 
-/* Ensures each section takes up equal space so the center stays centered */
+/* Equal width containers to ensure the center button is perfectly centered */
 .footer-left, .footer-center, .footer-right {
     flex: 1;
     display: flex;
     align-items: center;
 }
 
-.footer-center {
-    justify-content: center;
-}
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
 
-.footer-right {
-    justify-content: flex-end;
-}
-
-/* Adjusting button sizes to fit the smaller footer */
-#theme-toggle, .newsletter-btn, .chatbot-btn {
+/* Consistent button styling for a clean look */
+.site-footer button {
+    padding: 4px 12px;
+    font-size: 0.85rem;
     margin: 0;
-    padding: 5px 15px;
-    font-size: 0.9rem;
+}
+
+/* Keep the chatbot icon small to fit the slim footer */
+.chat-icon {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
 }
