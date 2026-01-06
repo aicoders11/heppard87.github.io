@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Solitaire - Single File Edition</title>
+    <style>
+        :root {
+            --card-width: 90px;
+            --card-height: 130px;
+            --neon-cyan: #00f2ff;
+            --neon-pink: #ff00ff;
+            --bg-color: #0a0a0c;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            width: 95%;
+            max-width: 1000px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Layout Rows */
+        .row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .slot {
+            width: var(--card-width);
+            height: var(--card-height);
+            border: 2px dashed rgba(0, 242, 255, 0.2);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        /* Card Styling */
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            background: white;
+            color: black;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            box-sizing: border-box;
+            cursor: grab;
+            position: absolute;
+            user-select: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .card.red { color: #d32f2f; }
+        .card.black { color: #1a1a1a; }
+        
+        /* Card Back (Neon Design) */
+        .card.back {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+            border: 2px solid var(--neon-cyan);
+            color: transparent !important;
+        }
+
+        .card.back * { display: none; }
+
+        .card.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        /* Stacking Logic */
+        .tableau-column {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        /* Header UI */
+        header {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid var(--neon-cyan);
+        }
+
+        button {
+            background: var(--neon-cyan);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover { background: var(--neon-pink); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>SCORE: <span id="score">0</span></div>
+    <button onclick="initGame()">NEW GAME</button>
+    <div>MOVES: <span id="moves">0</span></div>
+</header>
+
+<div id="game-container">
+    <div class="row">
+        <div style="display: flex; gap: 10px;">
+            <div class="slot" id="deck-slot" onclick="drawFromDeck()"></div>
+            <div class="slot" id="waste-slot"></div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <div class="slot foundation" id="f-hearts" data-suit="hearts"></div>
+            <div class="slot foundation" id="f-diamonds" data-suit="diamonds"></div>
+            <div class="slot foundation" id="f-clubs" data-suit="clubs"></div>
+            <div class="slot foundation" id="f-spades" data-suit="spades"></div>
+        </div>
+    </div>
+
+    <div class="row" id="tableau-row">
+        <div class="slot tableau-column" id="col-0"></div>
+        <div class="slot tableau-column" id="col-1"></div>
+        <div class="slot tableau-column" id="col-2"></div>
+        <div class="slot tableau-column" id="col-3"></div>
+        <div class="slot tableau-column" id="col-4"></div>
+        <div class="slot tableau-column" id="col-5"></div>
+        <div class="slot tableau-column" id="col-6"></div>
+    </div>
+</div>
+
+<script>
+    const suits = [
+        { name: 'hearts', symbol: '♥', color: 'red' },
+        { name: 'diamonds', symbol: '♦', color: 'red' },
+        { name: 'clubs', symbol: '♣', color: 'black' },
+        { name: 'spades', symbol: '♠', color: 'black' }
+    ];
+    const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+    const rankMap = { 'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13 };
+
+    let deck = [];
+    let moves = 0;
+    let score = 0;
+
+    function initGame() {
+        // Reset Logic
+        moves = 0;
+        score = 0;
+        document.getElementById('moves').innerText = '0';
+        document.getElementById('score').innerText = '0';
+        document.querySelectorAll('.slot').forEach(s => s.innerHTML = '');
+
+        // Create Deck
+        deck = [];
+        suits.forEach(suit => {
+            values.forEach(val => {
+                deck.push({ suit, val });
+            });
+        });
+
+        // Shuffle
+        for (let i = deck.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+
+        // Deal Tableau
+        for (let i = 0; i < 7; i++) {
+            const col = document.getElementById(`col-${i}`);
+            for (let j = 0; j <= i; j++) {
+                const cardData = deck.pop();
+                const cardEl = createCardElement(cardData, j === i);
+                cardEl.style.top = (j * 30) + "px";
+                col.appendChild(cardEl);
+            }
+        }
+        
+        setupDropZones();
+        renderDeck();
+    }
+
+    function createCardElement(data, isFaceUp) {
+        const card = document.createElement('div');
+        card.className = `card ${data.suit.color} ${isFaceUp ? '' : 'back'}`;
+        card.dataset.val = data.val;
+        card.dataset.suit = data.suit.name;
+        card.dataset.color = data.suit.color;
+        
+        if (isFaceUp) {
+            card.draggable = true;
+            card.innerHTML = `<span>${data.val} ${data.suit.symbol}</span>`;
+            card.id = 'card-' + Math.random().toString(36).substr(2, 9);
+            
+            card.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', e.target.id);
+                setTimeout(() => e.target.classList.add('dragging'), 0);
+            });
+            card.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
+        }
+        return card;
+    }
+
+    function setupDropZones() {
+        document.querySelectorAll('.slot').forEach(slot => {
+            slot.addEventListener('dragover', (e) => e.preventDefault());
+            slot.addEventListener('drop', handleDrop);
+        });
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const cardId = e.dataTransfer.getData('text/plain');
+        const draggedCard = document.getElementById(cardId);
+        const targetSlot = e.target.closest('.slot');
+
+        if (!draggedCard || !targetSlot) return;
+
+        if (validateMove(draggedCard, targetSlot)) {
+            const originalParent = draggedCard.parentElement;
+            targetSlot.appendChild(draggedCard);
+            
+            // Adjust stacking height
+            if (targetSlot.classList.contains('tableau-column')) {
+                const index = targetSlot.querySelectorAll('.card').length - 1;
+                draggedCard.style.top = (index * 30) + "px";
+            } else {
+                draggedCard.style.top = "0px";
+            }
+
+            // Flip the next card in the old column
+            if (originalParent.lastElementChild && originalParent.lastElementChild.classList.contains('back')) {
+                const topCard = originalParent.lastElementChild;
+                // Simple flip logic: Re-render card as face up
+                const suitData = suits.find(s => s.name === topCard.dataset.suit);
+                const val = topCard.dataset.val;
+                const newCard = createCardElement({ suit: suitData, val }, true);
+                newCard.style.top = topCard.style.top;
+                originalParent.replaceChild(newCard, topCard);
+            }
+
+            moves++;
+            document.getElementById('moves').innerText = moves;
+        }
+    }
+
+    function validateMove(card, slot) {
+        const targetCard = slot.lastElementChild;
+        
+        // Foundation logic (Ace to King of same suit)
+        if (slot.classList.contains('foundation')) {
+            if (!targetCard) return card.dataset.val === 'A' && card.dataset.suit === slot.dataset.suit;
+            return card.dataset.suit === slot.dataset.suit && rankMap[card.dataset.val] === rankMap[targetCard.dataset.val] + 1;
+        }
+
+        // Tableau logic (Opposite color, descending rank)
+        if (slot.classList.contains('tableau-column')) {
+            if (!targetCard) return card.dataset.val === 'K';
+            return card.dataset.color !== targetCard.dataset.color && rankMap[card.dataset.val] === rankMap[targetCard.dataset.val] - 1;
+        }
+        return false;
+    }
+
+    function renderDeck() {
+        const deckSlot = document.getElementById('deck-slot');
+        if (deck.length > 0) {
+            deckSlot.innerHTML = '<div class="card back" style="top:0; left:0"></div>';
+        } else {
+            deckSlot.innerHTML = '';
+        }
+    }
+
+    function drawFromDeck() {
+        if (deck.length === 0) return;
+        const waste = document.getElementById('waste-slot');
+        const cardData = deck.pop();
+        const cardEl = createCardElement(cardData, true);
+        cardEl.style.top = "0px";
+        waste.innerHTML = '';
+        waste.appendChild(cardEl);
+        renderDeck();
+    }
+
+    window.onload = initGame;
+</script>
+
+</body>
+</html>
