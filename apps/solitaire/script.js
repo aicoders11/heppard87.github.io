@@ -1,11 +1,9 @@
 import * as THREE from 'three';
 
-// --- 1. GLOBAL VARIABLES ---
-let scene, camera, renderer, raycaster, mouse;
-let moves = 0, score = 0;
+// All your game code must follow BELOW this import
 const manager = new THREE.LoadingManager();
 const textureLoader = new THREE.TextureLoader(manager);
-
+// ... the rest of your variables and functions
 // --- 2. ASSET LOADING ---
 const boardBase = textureLoader.load('textures/brushed_aluminum.jpg');
 const boardNormal = textureLoader.load('textures/brushed_aluminum_norm.jpg');
