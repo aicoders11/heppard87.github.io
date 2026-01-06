@@ -54,3 +54,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     animate();
 });
+const toggleBtn = document.getElementById('toggle-menu');
+const menuContent = document.getElementById('menu-content');
+const gameUI = document.getElementById('game-ui');
+
+toggleBtn.addEventListener('click', () => {
+    const isHidden = menuContent.classList.toggle('hidden');
+    gameUI.classList.toggle('collapsed');
+    
+    // Change button text based on state
+    toggleBtn.textContent = isHidden ? 'Show Menu' : 'Collapse Menu';
+});
