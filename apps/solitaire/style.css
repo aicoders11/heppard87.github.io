@@ -11,6 +11,9 @@ body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* THE WRAPPER FIX: 
+   Set to 100% but pointer-events: none so you can click the 3D game behind it.
+*/
 #game-ui {
     position: absolute;
     top: 0;
@@ -18,28 +21,35 @@ body {
     width: 100%;
     height: 100%;
     z-index: 100;
-    
-    /* CRITICAL FIX: Mouse clicks pass through this container */
     pointer-events: none; 
-    
-    background: transparent; /* Ensure the container itself is see-through */
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
-/* Re-enable clicks for the actual menu content */
-#menu-content, #toggle-menu, button {
+/* THE MENU FIX: 
+   Re-enable pointer-events so buttons work, and set a fixed width 
+   so the menu doesn't block the whole screen.
+*/
+#menu-content, 
+#toggle-menu {
     pointer-events: auto; 
-    
-    /* Give the actual menu a fixed size so it doesn't cover the whole screen */
     width: 260px;
-    background: rgba(10, 10, 20, 0.9);
+    background: var(--glass-bg);
     backdrop-filter: blur(10px);
-    border: 1px solid #00f2ff;
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--neon-cyan);
     padding: 20px;
     border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    transition: width 0.3s ease;
 }
-#game-ui.collapsed {
+
+/* Handle the collapsed state width on the content, not the wrapper */
+#game-ui.collapsed #menu-content {
     width: 160px;
-    padding: 10px;
 }
 
 .hidden {
@@ -64,6 +74,7 @@ button {
     color: #000;
     cursor: pointer;
     transition: 0.2s ease;
+    pointer-events: auto; /* Ensure buttons remain clickable */
 }
 
 button:hover {
@@ -76,6 +87,7 @@ button:hover {
     margin-top: 15px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     padding-top: 10px;
+    color: #fff;
 }
 
 .stat-item {
@@ -91,4 +103,5 @@ button:hover {
     color: rgba(255, 255, 255, 0.4);
     font-size: 0.75rem;
     z-index: 50;
+    pointer-events: none; /* Keeps it from blocking card clicks in the corner */
 }
