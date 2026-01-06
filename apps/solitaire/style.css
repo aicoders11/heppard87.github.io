@@ -15,34 +15,38 @@
     z-index: 1;
 }
 
+/* Fix the left-hand menu */
 #game-ui {
     position: absolute;
-    top: 80px; 
+    top: 80px;
     left: 20px;
+    width: 250px; /* Constrains the width */
     z-index: 10;
-    width: 280px; /* Prevents the menu from stretching across the screen */
-    
-    /* Stronger glass-morphism for readability */
-    background: rgba(10, 10, 20, 0.9); 
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    
-    padding: 25px;
-    border: 1px solid rgba(0, 242, 255, 0.4);
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
-    color: #fff;
-    pointer-events: auto;
+    background: rgba(10, 10, 20, 0.85); /* Darker glass effect */
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border: 1px solid #00f2ff;
+    border-radius: 12px;
 }
 
-/* Ensure the copyright stays at the bottom and doesn't overlap */
-footer, .copyright {
+/* Fix the copyright box */
+.copyright-box {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    font-size: 0.8em;
-    color: rgba(255, 255, 255, 0.6);
-    z-index: 5;
+    width: auto; /* Prevents it from being a large box */
+    padding: 10px 20px;
+    background: rgba(10, 10, 20, 0.7);
+    border: 1px solid rgba(0, 242, 255, 0.3);
+    font-size: 0.8rem;
+}
+
+/* Clean up the top navigation */
+nav ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    gap: 20px;
 }
 #game-ui h1 {
     margin-top: 0;
