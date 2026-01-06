@@ -1,14 +1,13 @@
 :root {
     --neon-cyan: #00f2ff;
     --glass-bg: rgba(10, 10, 20, 0.9);
-    --cta-hover: #ff00ff;
 }
 
 body {
     margin: 0;
     overflow: hidden;
     background: #000;
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'Segoe UI', sans-serif;
 }
 
 #game-ui {
@@ -35,25 +34,19 @@ body {
     display: none !important;
 }
 
-#game-ui button {
+button {
     width: 100%;
     padding: 10px;
     margin: 5px 0;
     background: var(--neon-cyan);
     border: none;
-    cursor: pointer;
     font-weight: bold;
-    transition: 0.3s;
-}
-
-#game-ui button:hover {
-    background: var(--cta-hover);
-    box-shadow: 0 0 15px var(--cta-hover);
+    cursor: pointer;
 }
 
 .copyright-box {
     position: absolute;
-    bottom: 10px;
+    bottom: 20px;
     right: 20px;
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.8rem;
