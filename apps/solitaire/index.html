@@ -3,45 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Solitaire | CyberSolutionsOhio</title>
+    <title>3D Solitaire</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
 </head>
 <body>
-    <header>
-        <button id="theme-btn">CHANGE THEME</button>
-        <nav>
-            <ul>
-                <li><a href="../../index.html">Home</a></li>
-                <li><a href="../../about.html">About Us</a></li>
-                <li><a href="../../services.html">Services</a></li>
-                <li><a href="../../apps.html">Apps</a></li>
-                <li><a href="../../contact.html">Contact</a></li>
-            </ul>
-        </nav>
-    </header>
-
     <div id="game-container"></div>
 
     <div id="game-ui">
-        <button id="collapse-btn">COLLAPSE MENU</button>
+        <button id="toggle-menu">Collapse Menu</button>
         <div id="menu-content">
-            <h2>3D Solitaire</h2>
+            <h1>3D Solitaire</h1>
             <div class="controls">
-                <button id="new-game">NEW GAME</button>
-                <button id="undo-move">UNDO MOVE</button>
+                <button id="new-game">New Game</button>
+                <button id="undo-move">Undo Move</button>
             </div>
             <div class="stats">
-                <p>Moves: <span id="move-count">0</span></p>
+                <p>Moves: <span id="moves">0</span></p>
                 <p>Score: <span id="score">0</span></p>
-                <p>High Score: <span id="high-score">0</span></p>
             </div>
         </div>
     </div>
 
     <footer class="copyright-box">
-        <p>© 2024 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
+        <p>© 2024 Chris Heppard. All rights reserved.</p>
     </footer>
 
-    <script src="game.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
