@@ -1735,3 +1735,62 @@ footer {
 .theme-options.active {
     display: flex; /* Shows menu when toggled */
 }
+/* This forces the row layout */
+.site-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0 40px !important;
+    height: 60px !important;
+    background: rgba(0, 0, 0, 0.95);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #00ffff;
+}
+
+/* These sections act as anchors for the left, center, and right */
+.footer-left, .footer-center, .footer-right {
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.footer-left { justify-content: flex-start; }
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* The angular shape you wanted */
+.cyber-btn {
+    background: transparent;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 6px 15px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cyber-btn:hover {
+    background: #00ffff;
+    color: black;
+}
+
+/* Hide the dropdown theme buttons until active */
+#theme-options {
+    display: none;
+    position: absolute;
+    bottom: 70px;
+    background: #111;
+    border: 1px solid #00ffff;
+    padding: 10px;
+}
+
+#theme-options.active {
+    display: flex;
+    flex-direction: column;
+}
