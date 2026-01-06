@@ -26,22 +26,23 @@ function shuffleDeck() {
 function renderCard(card, isFaceUp = true) {
     const div = document.createElement('div');
     div.className = `card ${card.suit.color} ${isFaceUp ? '' : 'back'}`;
+    
     if (isFaceUp) {
+        div.draggable = true; // Make the card draggable
+        div.id = `card-${Math.random().toString(36).substr(2, 9)}`; // Unique ID for tracking
         div.innerHTML = `<div>${card.val}${card.suit.symbol}</div><div style="align-self: flex-end">${card.val}${card.suit.symbol}</div>`;
+        
+        // Handle start of drag
+        div.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', e.target.id);
+            e.target.classList.add('dragging');
+        });
+
+        div.addEventListener('dragend', (e) => {
+            e.target.classList.remove('dragging');
+        });
     }
     return div;
-}
-
-function initGame() {
-    createDeck();
-    shuffleDeck();
-    
-    // Deal 1 card to each column as a demo
-    for (let i = 1; i <= 7; i++) {
-        const col = document.getElementById(`c${i}`);
-        const cardData = deck.pop();
-        col.appendChild(renderCard(cardData, true));
-    }
 }
 
 window.onload = initGame;
