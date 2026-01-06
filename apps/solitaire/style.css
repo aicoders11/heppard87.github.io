@@ -17,18 +17,23 @@
 
 #game-ui {
     position: absolute;
-    top: 80px; /* Moves it below the main header */
+    top: 100px; /* Positions it below the header */
     left: 20px;
     z-index: 10;
-    width: 260px; /* Fixes the width so it doesn't stretch across the screen */
     
-    /* Adds the dark glass box effect */
-    background: rgba(10, 10, 20, 0.85); 
-    backdrop-filter: blur(8px);
+    /* FIX: Added width to prevent stretching */
+    width: 250px; 
+    
+    /* FIX: Added background to make text readable */
+    background: rgba(10, 10, 20, 0.8); 
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border-color);
     padding: 20px;
-    border: 1px solid #00f2ff;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+    border-radius: 15px;
+    box-shadow: 0 0 20px var(--glow-color);
+    
+    /* Keeps clicks focused on the menu */
+    pointer-events: auto; 
 }
 #game-ui h1 {
     margin-top: 0;
