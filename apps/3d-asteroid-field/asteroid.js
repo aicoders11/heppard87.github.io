@@ -1,14 +1,23 @@
 (function() {
-    // --- 1. HELPER FUNCTIONS (Must be defined first) ---
+    // --- 1. HELPER FUNCTIONS ---
+    // These handle the high score saving/loading
     function getHighScore(gameKey) {
-        const savedScore = localStorage.getItem(gameKey);
-        return savedScore ? parseInt(savedScore) : 0;
+        try {
+            const savedScore = localStorage.getItem(gameKey);
+            return savedScore ? parseInt(savedScore) : 0;
+        } catch (e) {
+            return 0; 
+        }
     }
 
     function saveHighScore(gameKey, score) {
-        const currentHigh = getHighScore(gameKey);
-        if (score > currentHigh) {
-            localStorage.setItem(gameKey, score);
+        try {
+            const currentHigh = getHighScore(gameKey);
+            if (score > currentHigh) {
+                localStorage.setItem(gameKey, score);
+            }
+        } catch (e) {
+            console.error("Storage error:", e);
         }
     }
 
@@ -73,13 +82,15 @@
     // --- 3. GAME STATE ---
     let score = 0;
     let gameIsOver = false;
+    
+    // Get HTML elements safely
     const scoreElement = document.getElementById('score');
     const highScoreElement = document.getElementById('high-score');
     const gameOverScreen = document.getElementById('game-over-screen');
     const finalScoreElement = document.getElementById('final-score');
     const restartButton = document.getElementById('restart-button');
 
-    // ERROR FIX: This line previously crashed because getHighScore wasn't seen yet.
+    // Display initial high score
     if (highScoreElement) {
         highScoreElement.textContent = getHighScore('asteroid-field');
     }
@@ -96,35 +107,29 @@
         gameIsOver = false;
         if (gameOverScreen) gameOverScreen.style.display = 'none';
 
-        // Clear asteroids
-        for (let i = asteroids.length - 1; i >= 0; i--) {
-            scene.remove(asteroids[i]);
-        }
+        // Clear existing objects
+        asteroids.forEach(a => scene.remove(a));
         asteroids.length = 0;
-
-        // Clear lasers
-        for (let i = lasers.length - 1; i >= 0; i--) {
-            scene.remove(lasers[i]);
-        }
+        lasers.forEach(l => scene.remove(l));
         lasers.length = 0;
 
-        // Reset spaceship position
         spaceship.position.set(0, 0, 0);
         
-        animate();
+        // Restart the loop
+        animate(); 
     }
 
-    // Game loop
+    // --- 4. THE ANIMATION LOOP (This was likely missing) ---
     function animate() {
-        if(gameIsOver) return;
+        if (gameIsOver) return;
 
         requestAnimationFrame(animate);
 
-        // Spaceship movement
+        // Move spaceship
         spaceship.position.x += (mouse.x * 10 - spaceship.position.x) * 0.1;
         spaceship.position.y += (mouse.y * 10 - spaceship.position.y) * 0.1;
 
-        // Laser movement
+        // Move/Cleanup Lasers
         for (let i = lasers.length - 1; i >= 0; i--) {
             const laser = lasers[i];
             laser.position.z -= 1;
@@ -134,16 +139,17 @@
             }
         }
 
-        // Asteroid management
+        // Spawn Asteroids
         if (Math.random() < 0.1) {
             createAsteroid();
         }
 
+        // Move/Collision Asteroids
         for (let i = asteroids.length - 1; i >= 0; i--) {
             const asteroid = asteroids[i];
             asteroid.position.z += 0.5;
 
-            // Laser-asteroid collision
+            // Laser Collision
             for (let j = lasers.length - 1; j >= 0; j--) {
                 const laser = lasers[j];
                 if (laser.position.distanceTo(asteroid.position) < 2) {
@@ -157,15 +163,16 @@
                 }
             }
 
-            // Player-asteroid collision
+            // Player Collision
             if (asteroid && asteroid.position.distanceTo(spaceship.position) < 1) {
-                saveHighScore('asteroid-field', score);
                 gameIsOver = true;
+                saveHighScore('asteroid-field', score);
                 if (finalScoreElement) finalScoreElement.textContent = score;
                 if (highScoreElement) highScoreElement.textContent = getHighScore('asteroid-field');
                 if (gameOverScreen) gameOverScreen.style.display = 'flex';
             }
 
+            // Cleanup old asteroids
             if (asteroid && asteroid.position.z > 20) {
                 scene.remove(asteroid);
                 asteroids.splice(i, 1);
@@ -175,20 +182,22 @@
         renderer.render(scene, camera);
     }
 
+    // --- 5. START THE GAME ---
     animate();
 
-    // Handle window resize
+    // Handle resize
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // --- 4. TESTING HOOK ---
+    // Testing hook
     window.triggerGameOverForTesting = () => {
         gameIsOver = true;
         if (finalScoreElement) finalScoreElement.textContent = score;
         if (highScoreElement) highScoreElement.textContent = getHighScore('asteroid-field');
         if (gameOverScreen) gameOverScreen.style.display = 'flex';
     };
+
 })();
