@@ -1,14 +1,68 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-      }
-    }
-    </script>
-    
-    <script type="module" src="script.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero-Resource Solitaire</title>
+    <style>
+        :root {
+            --card-width: 80px;
+            --card-height: 120px;
+            --green-felt: #2e7d32;
+        }
+        body { background-color: var(--green-felt); font-family: sans-serif; margin: 0; overflow: hidden; }
+        #game-board { display: grid; grid-template-rows: 140px 1fr; gap: 20px; padding: 20px; max-width: 800px; margin: auto; }
+        .row { display: flex; gap: 15px; justify-content: center; }
+        
+        /* CSS Card Design - No images needed */
+        .card {
+            width: var(--card-width);
+            height: var(--card-height);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 5px;
+            box-sizing: border-box;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+        .card.red { color: #d32f2f; }
+        .card.black { color: #000; }
+        .card.back { background: #1565c0; color: transparent; border: 2px solid white; }
+        
+        .slot { 
+            width: var(--card-width); 
+            height: var(--card-height); 
+            border: 2px dashed rgba(255,255,255,0.2); 
+            border-radius: 8px; 
+        }
+    </style>
 </head>
+<body>
+    <div id="game-board">
+        <div class="row" id="top-row">
+            <div class="slot" id="deck" onclick="dealFromDeck()"></div>
+            <div class="slot" id="waste"></div>
+            <div style="flex-grow: 1;"></div>
+            <div class="slot foundation" id="f1"></div>
+            <div class="slot foundation" id="f2"></div>
+            <div class="slot foundation" id="f3"></div>
+            <div class="slot foundation" id="f4"></div>
+        </div>
+        <div class="row" id="tableau">
+            <div class="slot col" id="c1"></div>
+            <div class="slot col" id="c2"></div>
+            <div class="slot col" id="c3"></div>
+            <div class="slot col" id="c4"></div>
+            <div class="slot col" id="c5"></div>
+            <div class="slot col" id="c6"></div>
+            <div class="slot col" id="c7"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
 </html>
