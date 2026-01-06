@@ -1,5 +1,6 @@
 :root {
     --neon-cyan: #00f2ff;
+    --neon-pink: #ff00ff;
     --glass-bg: rgba(10, 10, 20, 0.9);
 }
 
@@ -7,26 +8,28 @@ body {
     margin: 0;
     overflow: hidden;
     background: #000;
-    font-family: 'Segoe UI', sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 #game-ui {
     position: absolute;
     top: 20px;
     left: 20px;
-    z-index: 10;
-    width: 250px;
+    z-index: 100;
+    width: 260px;
     background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--neon-cyan);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 242, 255, 0.3);
     border-radius: 15px;
     padding: 20px;
     color: white;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
 }
 
 #game-ui.collapsed {
-    width: 150px;
+    width: 160px;
     padding: 10px;
 }
 
@@ -34,21 +37,49 @@ body {
     display: none !important;
 }
 
+h1 {
+    font-size: 1.2rem;
+    margin-top: 0;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
 button {
     width: 100%;
-    padding: 10px;
-    margin: 5px 0;
+    padding: 12px;
+    margin: 8px 0;
     background: var(--neon-cyan);
     border: none;
+    border-radius: 6px;
     font-weight: bold;
+    color: #000;
     cursor: pointer;
-    text-transform: uppercase;
+    transition: 0.2s ease;
+}
+
+button:hover {
+    background: var(--neon-pink);
+    box-shadow: 0 0 15px var(--neon-pink);
+    transform: translateY(-2px);
+}
+
+.stats {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+}
+
+.stat-item {
+    font-size: 0.9rem;
+    margin: 5px 0;
+    letter-spacing: 1px;
 }
 
 .copyright-box {
     position: absolute;
-    bottom: 20px;
+    bottom: 15px;
     right: 20px;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    z-index: 50;
 }
