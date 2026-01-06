@@ -185,5 +185,16 @@ function saveHighScore(gameKey, score) {
     if (score > currentHigh) {
         localStorage.setItem(gameKey, score);
     }
+}// Add these two functions inside your (function() { ... })();
+function getHighScore(gameKey) {
+    const savedScore = localStorage.getItem(gameKey);
+    return savedScore ? parseInt(savedScore) : 0;
+}
+
+function saveHighScore(gameKey, score) {
+    const currentHigh = getHighScore(gameKey);
+    if (score > currentHigh) {
+        localStorage.setItem(gameKey, score);
+    }
 }
 })();
