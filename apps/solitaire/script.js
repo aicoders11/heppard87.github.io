@@ -1,37 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Solitaire Pro</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
-</head>
-<body>
-    <div id="game-container"></div>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- 1. ENGINE VARIABLES ---
+    let scene, camera, renderer, raycaster, mouse;
+    let moves = 0, score = 0;
+    const textureLoader = new THREE.TextureLoader();
 
-    <div id="game-ui">
-        <button id="toggle-menu">COLLAPSE MENU</button>
-        <div id="menu-content">
-            <h1>3D SOLITAIRE</h1>
-            <div class="controls">
-                <button id="new-game">NEW GAME</button>
-                <button id="undo-move">UNDO MOVE</button>
-            </div>
-            <div class="stats">
-                <div class="stat-item">MOVES: <span id="moves">0</span></div>
-                <div class="stat-item">SCORE: <span id="score">0</span></div>
-            </div>
-        </div>
-    </div>
+    // --- 2. ASSET LOADING ---
+    const boardBase = textureLoader.load('textures/brushed_aluminum.jpg');
+    const boardNormal = textureLoader.load('textures/brushed_aluminum_norm.jpg');
+    const cardFaces = textureLoader.load('textures/card_spritesheet.png');
+    
+    cardFaces.wrapS = cardFaces.wrapT = THREE.RepeatWrapping;
+    cardFaces.repeat.set(1/13, 1/4);
 
-    <footer class="copyright-box">
-        <p>© 2024 Chris Heppard. All rights reserved.</p>
-    </footer>
+    // --- 3. UI INITIALIZATION ---
+    const toggleBtn = document.getElementById('toggle-menu');
+    const menuContent = document.getElementById('menu-content');
+    const gameUI = document.getElementById('game-ui');
 
-    <script src="script.js"></script>
-</body>
-</html>        scene.add(board);
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = menuContent.classList.toggle('hidden');
+            gameUI.classList.toggle('collapsed');
+            toggleBtn.textContent = isHidden ? 'EXPAND MENU' : 'COLLAPSE MENU';
+        });
+    }
+
+    // --- 4. 3D SCENE SETUP ---
+    function initScene() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0a);
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 12, 10);
+        camera.lookAt(0, 0, -1);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('game-container').appendChild(renderer.domElement);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const spot = new THREE.SpotLight(0xffffff, 1);
+        spot.position.set(0, 20, 10);
+        spot.castShadow = true;
+        scene.add(spot);
+
+        const boardGeo = new THREE.PlaneGeometry(18, 12);
+        const boardMat = new THREE.MeshStandardMaterial({
+            map: boardBase,
+            normalMap: boardNormal,
+            metalness: 0.9,
+            roughness: 0.1
+        });
+        const board = new THREE.Mesh(boardGeo, boardMat);
+        board.rotation.x = -Math.PI / 2;
+        board.receiveShadow = true;
+        scene.add(board);
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -43,8 +67,6 @@
     // --- 5. CORE GAME LOGIC ---
     function createCardMesh(suit, rank, isFaceUp = false) {
         const geometry = new THREE.BoxGeometry(1, 0.02, 1.4);
-        
-        // Face Texture Logic
         const faceTex = cardFaces.clone();
         faceTex.needsUpdate = true;
         faceTex.offset.x = rank / 13;
@@ -61,8 +83,7 @@
 
         const mesh = new THREE.Mesh(geometry, materials);
         mesh.castShadow = true;
-        if (!isFaceUp) mesh.rotation.z = Math.PI; // Facedown
-        
+        if (!isFaceUp) mesh.rotation.z = Math.PI;
         mesh.userData = { suit, rank, isFaceUp };
         return mesh;
     }
@@ -75,16 +96,12 @@
     }
 
     function startNewGame() {
-        // Clear scene cards
-        scene.children = scene.children.filter(obj => !obj.userData.rank && obj.userData.rank !== 0);
-        
-        // Create and shuffle deck
+        scene.children = scene.children.filter(obj => !obj.userData || (obj.userData.rank === undefined));
         let newDeck = [];
         for(let s=0; s<4; s++) for(let r=0; r<13; r++) newDeck.push({s, r});
         shuffle(newDeck);
 
         let ptr = 0;
-        // Deal Tableau
         for(let i=0; i<7; i++) {
             for(let j=0; j<=i; j++) {
                 const data = newDeck[ptr++];
@@ -94,12 +111,10 @@
                 scene.add(mesh);
             }
         }
-        moves = 0; score = 0;
         document.getElementById('moves').innerText = '0';
         document.getElementById('score').innerText = '0';
     }
 
-    // --- 6. START ---
     initScene();
     startNewGame();
     
@@ -110,26 +125,4 @@
     animate();
 
     document.getElementById('new-game').addEventListener('click', startNewGame);
-});
-document.addEventListener('DOMContentLoaded', () => {
-    // --- UI ELEMENTS ---
-    const toggleBtn = document.getElementById('toggle-menu');
-    const menuContent = document.getElementById('menu-content');
-    const gameUI = document.getElementById('game-ui');
-
-    if (toggleBtn && menuContent && gameUI) {
-        toggleBtn.addEventListener('click', () => {
-            // Toggle the visibility of the menu content
-            const isHidden = menuContent.classList.toggle('hidden');
-            
-            // Toggle the 'collapsed' class on the outer wrapper for width changes
-            gameUI.classList.toggle('collapsed');
-            
-            // Update button text for better UX
-            toggleBtn.textContent = isHidden ? 'EXPAND MENU' : 'COLLAPSE MENU';
-            
-            // Helpful Debug: Log the state to the console
-            console.log(`Menu state: ${isHidden ? 'Collapsed' : 'Expanded'}`);
-        });
-    }
 });
