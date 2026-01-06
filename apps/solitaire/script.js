@@ -22,7 +22,6 @@ function shuffleDeck() {
         [deck[i], deck[j]] = [deck[j], deck[i]];
     }
 }
-
 function renderCard(card, isFaceUp = true) {
     const div = document.createElement('div');
     div.className = `card ${card.suit.color} ${isFaceUp ? '' : 'back'}`;
