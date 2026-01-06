@@ -111,3 +111,25 @@
 
     document.getElementById('new-game').addEventListener('click', startNewGame);
 });
+document.addEventListener('DOMContentLoaded', () => {
+    // --- UI ELEMENTS ---
+    const toggleBtn = document.getElementById('toggle-menu');
+    const menuContent = document.getElementById('menu-content');
+    const gameUI = document.getElementById('game-ui');
+
+    if (toggleBtn && menuContent && gameUI) {
+        toggleBtn.addEventListener('click', () => {
+            // Toggle the visibility of the menu content
+            const isHidden = menuContent.classList.toggle('hidden');
+            
+            // Toggle the 'collapsed' class on the outer wrapper for width changes
+            gameUI.classList.toggle('collapsed');
+            
+            // Update button text for better UX
+            toggleBtn.textContent = isHidden ? 'EXPAND MENU' : 'COLLAPSE MENU';
+            
+            // Helpful Debug: Log the state to the console
+            console.log(`Menu state: ${isHidden ? 'Collapsed' : 'Expanded'}`);
+        });
+    }
+});
