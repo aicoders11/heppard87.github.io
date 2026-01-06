@@ -1302,3 +1302,16 @@ footer {
     filter: drop-shadow(0 0 8px var(--cyan));
 }
 /* Container for the game */
+footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    width: 100%;
+}
+
+/* This ensures the middle item stays perfectly centered */
+.footer-center {
+    flex: 1;
+    text-align: center;
+}
