@@ -105,7 +105,7 @@
         asteroids.forEach(a => scene.remove(a)); asteroids.length = 0;
         lasers.forEach(l => scene.remove(l)); lasers.length = 0;
         spaceship.position.set(0,0,0);
-      function animate();
+        animate();
     }
 
     function animate() {
