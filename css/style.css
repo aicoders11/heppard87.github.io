@@ -1385,3 +1385,62 @@ footer {
     line-height: 35px;
     margin: 0;
 }
+/* Slim Footer Layout */
+.site-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.95);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid var(--cyan);
+}
+
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* Angular Cyber Button Shapes */
+.cyber-btn {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 6px 20px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    text-transform: uppercase;
+    cursor: pointer;
+    /* This creates the sharp angled corners */
+    clip-path: polygon(12% 0, 100% 0, 88% 100%, 0 100%);
+    transition: all 0.3s ease;
+}
+
+.cyber-btn:hover {
+    background: var(--cyan);
+    color: #000;
+    box-shadow: 0 0 15px var(--cyan);
+}
+
+/* Theme Menu Styling */
+.theme-menu-container { position: relative; }
+.theme-popup {
+    display: none;
+    position: absolute;
+    bottom: 70px;
+    left: 0;
+    background: #0a0a0a;
+    border: 1px solid var(--cyan);
+    padding: 10px;
+    flex-direction: column;
+    min-width: 150px;
+    gap: 8px;
+}
+.theme-popup.active { display: flex; }
