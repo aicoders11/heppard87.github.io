@@ -86,30 +86,13 @@
         asteroids.push(a);
         scene.add(a);
     }
+// ✅ Correct (Safe)
+setTimeout(() => {
+    scene.remove(p);
+}, 1000);
 
-    function createExplosion(pos) {
-    for(let i=0; i<10; i++) {
-        const p = new THREE.Mesh(
-            new THREE.BoxGeometry(0.2, 0.2, 0.2), 
-            new THREE.MeshBasicMaterial({color: 0xffaa00})
-        );
-        p.position.copy(pos);
-        p.userData = { 
-            vel: new THREE.Vector3((Math.random()-0.5)*0.3, (Math.random()-0.5)*0.3, (Math.random()-0.5)*0.3) 
-        };
-        particles.push(p);
-        scene.add(p);
-
-        // CLEANUP: Using an arrow function safely
-        setTimeout(() => {
-            const index = particles.indexOf(p);
-            if (index > -1) {
-                scene.remove(p);
-                particles.splice(index, 1);
-            }
-        }, 1000);
-    }
-}
+// ❌ Incorrect (Triggers CSP Error)
+setTimeout("scene.remove(p)", 1000);
     function resetGame() {
         score = 0; gameSpeed = 0.5; spawnRate = 0.05; gameIsOver = false;
         if(elScore) elScore.textContent = '0';
