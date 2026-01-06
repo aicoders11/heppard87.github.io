@@ -173,5 +173,17 @@
         finalScoreElement.textContent = score;
         highScoreElement.textContent = getHighScore('asteroid-field');
         gameOverScreen.style.display = 'flex';
-    };
+    };// Function to retrieve the high score from local storage
+function getHighScore(gameKey) {
+    const savedScore = localStorage.getItem(gameKey);
+    return savedScore ? parseInt(savedScore) : 0;
+}
+
+// Function to save a new high score if the current score is higher
+function saveHighScore(gameKey, score) {
+    const currentHigh = getHighScore(gameKey);
+    if (score > currentHigh) {
+        localStorage.setItem(gameKey, score);
+    }
+}
 })();
