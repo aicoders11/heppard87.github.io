@@ -26,20 +26,20 @@ function renderCard(card, isFaceUp = true) {
     const div = document.createElement('div');
     div.className = `card ${card.suit.color} ${isFaceUp ? '' : 'back'}`;
     
+    // Store data for the rules engine
+    div.dataset.val = card.val;
+    div.dataset.color = card.suit.color;
+    
     if (isFaceUp) {
-        div.draggable = true; // Make the card draggable
-        div.id = `card-${Math.random().toString(36).substr(2, 9)}`; // Unique ID for tracking
+        div.draggable = true;
+        div.id = `card-${Math.random().toString(36).substr(2, 9)}`;
         div.innerHTML = `<div>${card.val}${card.suit.symbol}</div><div style="align-self: flex-end">${card.val}${card.suit.symbol}</div>`;
         
-        // Handle start of drag
         div.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', e.target.id);
             e.target.classList.add('dragging');
         });
-
-        div.addEventListener('dragend', (e) => {
-            e.target.classList.remove('dragging');
-        });
+        div.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
     }
     return div;
 }
