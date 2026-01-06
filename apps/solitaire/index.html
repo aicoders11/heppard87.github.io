@@ -24,19 +24,14 @@
 
     <main>
         <div id="game-container"></div>
-        <div id="game-ui">
-            <h1>3D Solitaire</h1>
-            <div class="controls">
-                <button id="new-game-btn">New Game</button>
-                <button id="undo-btn">Undo Move</button>
-                <label>
-                    Draw:
-                    <select id="draw-style-select">
-                        <option value="1">One</option>
-                        <option value="3">Three</option>
-                    </select>
-                </label>
-            </div>
+<div id="game-ui">
+    <button id="toggle-menu" style="margin-bottom: 15px; width: 100%;">Collapse Menu</button>
+    <div id="menu-content">
+        <h1>3D Solitaire</h1>
+        <button id="new-game">New Game</button>
+        <button id="undo-move">Undo Move</button>
+        </div>
+</div>
             <div class="stats">
                 <p>Moves: <span id="move-counter">0</span></p>
                 <p>Score: <span id="score">0</span></p>
