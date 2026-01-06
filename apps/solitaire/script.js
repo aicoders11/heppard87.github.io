@@ -68,34 +68,4 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer.render(scene, camera);
     }
     animate();
-});                        document.getElementById('score').innerText = currentScore;
-                    }
-                    selectedObject.mesh.material.emissive.setHex(0x000000);
-                    selectedObject = null;
-                }
-            }
-        }
-    }
-
-    // --- 6. START ---
-    initScene();
-    dealGame();
-    window.addEventListener('click', onPointerClick);
-    
-    function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-    }
-    animate();
-});
-const toggleBtn = document.getElementById('toggle-menu');
-const menuContent = document.getElementById('menu-content');
-const gameUI = document.getElementById('game-ui');
-
-toggleBtn.addEventListener('click', () => {
-    const isHidden = menuContent.classList.toggle('hidden');
-    gameUI.classList.toggle('collapsed');
-    
-    // Change button text based on state
-    toggleBtn.textContent = isHidden ? 'Show Menu' : 'Collapse Menu';
 });
