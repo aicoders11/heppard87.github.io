@@ -126,3 +126,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('new-game').addEventListener('click', startNewGame);
 });
+// Use a LoadingManager to track all assets
+const manager = new THREE.LoadingManager();
+const textureLoader = new THREE.TextureLoader(manager);
+
+// Define textures
+const cardFaces = textureLoader.load('textures/card_spritesheet.png');
+const boardBase = textureLoader.load('textures/brushed_aluminum.jpg');
+
+// Only start the game and deal once everything is loaded
+manager.onLoad = function () {
+    console.log('All textures loaded!');
+    initScene();
+    startNewGame();
+    animate();
+};
