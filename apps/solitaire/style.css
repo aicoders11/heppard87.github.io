@@ -76,3 +76,14 @@ footer, .copyright {
     box-shadow: 0 0 15px var(--cta-hover-bg-color);
     transform: translateY(-2px);
 }
+/* This class will hide the actual menu items */
+.hidden {
+    display: none !important;
+}
+
+/* Adjust the UI container when collapsed */
+#game-ui.collapsed {
+    padding: 10px;
+    width: auto;
+    max-width: 150px;
+}
