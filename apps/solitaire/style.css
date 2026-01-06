@@ -42,6 +42,7 @@ button {
     border: none;
     font-weight: bold;
     cursor: pointer;
+    text-transform: uppercase;
 }
 
 .copyright-box {
