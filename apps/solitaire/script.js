@@ -69,3 +69,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     animate();
 });
+const textureLoader = new THREE.TextureLoader();
+
+// Load the metallic board textures
+const boardBase = textureLoader.load('textures/brushed_aluminum.jpg');
+const boardNormal = textureLoader.load('textures/brushed_aluminum_norm.jpg');
+const boardSpec = textureLoader.load('textures/brushed_aluminum_spec.jpg');
+const boardAO = textureLoader.load('textures/brushed_aluminum_ao.jpg');
+
+// Load the essential card faces
+const cardFaces = textureLoader.load('textures/card_spritesheet.png');const boardGeometry = new THREE.PlaneGeometry(10, 10);
+const boardMaterial = new THREE.MeshStandardMaterial({
+    map: boardBase,
+    normalMap: boardNormal,
+    specularMap: boardSpec,
+    aoMap: boardAO,
+    metalness: 0.8,
+    roughness: 0.2
+});
+
+const gameBoard = new THREE.Mesh(boardGeometry, boardMaterial);
+gameBoard.rotation.x = -Math.PI / 2; // Lay flat
+scene.add(gameBoard);// Example: If your sheet has 4 suits (rows) and 13 ranks (columns)
+cardFaces.repeat.set(1/13, 1/4);
+
+function setCardFace(cardMesh, suitIndex, rankIndex) {
+    // Offset the texture to show the correct card face
+    cardMesh.material.map.offset.x = rankIndex / 13;
+    cardMesh.material.map.offset.y = suitIndex / 4;
+}
