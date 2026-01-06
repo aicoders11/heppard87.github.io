@@ -1502,3 +1502,236 @@ footer {
 }
 
 .theme-popup.active { display: flex; }
+/* 1. Main Footer Container - Forces a single slim line */
+.site-footer {
+    display: flex !important; /* Forces side-by-side layout */
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    height: 65px;
+    background: rgba(0, 0, 0, 0.9);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #00ffff;
+}
+
+/* 2. Positioning Zones - Left, Center, Right */
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* 3. Angular Button Shapes */
+.cyber-btn {
+    background: transparent;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); /* Angular cut */
+    transition: 0.3s ease;
+}
+
+.cyber-btn:hover {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 15px #00ffff;
+}
+
+/* 4. Hide Theme Menu by default */
+.theme-options {
+    display: none; /* Keeps it hidden until clicked */
+    position: absolute;
+    bottom: 75px;
+    background: #111;
+    border: 1px solid #00ffff;
+    padding: 10px;
+    flex-direction: row; /* Options side-by-side */
+    gap: 10px;
+}
+
+.theme-options.active {
+    display: flex; /* Shows menu when toggled */
+/* 1. Main Footer Container - Forces a single slim line */
+.site-footer {
+    display: flex !important; /* Forces side-by-side layout */
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    height: 65px;
+    background: rgba(0, 0, 0, 0.9);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #00ffff;
+}
+
+/* 2. Positioning Zones - Left, Center, Right */
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* 3. Angular Button Shapes */
+.cyber-btn {
+    background: transparent;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); /* Angular cut */
+    transition: 0.3s ease;
+}
+
+.cyber-btn:hover {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 15px #00ffff;
+}
+
+/* 4. Hide Theme Menu by default */
+.theme-options {
+    display: none; /* Keeps it hidden until clicked */
+    position: absolute;
+    bottom: 75px;
+    background: #111;
+    border: 1px solid #00ffff;
+    padding: 10px;
+    flex-direction: row; /* Options side-by-side */
+    gap: 10px;
+}
+
+.theme-options.active {
+    display: flex; /* Shows menu when toggled */
+}/* 1. Main Footer Container - Forces a single slim line */
+.site-footer {
+    display: flex !important; /* Forces side-by-side layout */
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    height: 65px;
+    background: rgba(0, 0, 0, 0.9);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #00ffff;
+}
+
+/* 2. Positioning Zones - Left, Center, Right */
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* 3. Angular Button Shapes */
+.cyber-btn {
+    background: transparent;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); /* Angular cut */
+    transition: 0.3s ease;
+}
+
+.cyber-btn:hover {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 15px #00ffff;
+}
+
+/* 4. Hide Theme Menu by default */
+.theme-options {
+    display: none; /* Keeps it hidden until clicked */
+    position: absolute;
+    bottom: 75px;
+    background: #111;
+    border: 1px solid #00ffff;
+    padding: 10px;
+    flex-direction: row; /* Options side-by-side */
+    gap: 10px;
+}
+
+.theme-options.active {
+    display: flex; /* Shows menu when toggled */
+}/* 1. Main Footer Container - Forces a single slim line */
+.site-footer {
+    display: flex !important; /* Forces side-by-side layout */
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    height: 65px;
+    background: rgba(0, 0, 0, 0.9);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    border-top: 1px solid #00ffff;
+}
+
+/* 2. Positioning Zones - Left, Center, Right */
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* 3. Angular Button Shapes */
+.cyber-btn {
+    background: transparent;
+    border: 1px solid #00ffff;
+    color: #00ffff;
+    padding: 8px 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); /* Angular cut */
+    transition: 0.3s ease;
+}
+
+.cyber-btn:hover {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 15px #00ffff;
+}
+
+/* 4. Hide Theme Menu by default */
+.theme-options {
+    display: none; /* Keeps it hidden until clicked */
+    position: absolute;
+    bottom: 75px;
+    background: #111;
+    border: 1px solid #00ffff;
+    padding: 10px;
+    flex-direction: row; /* Options side-by-side */
+    gap: 10px;
+}
+
+.theme-options.active {
+    display: flex; /* Shows menu when toggled */
+}
