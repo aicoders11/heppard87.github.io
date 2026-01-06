@@ -1315,3 +1315,37 @@ footer {
     flex: 1;
     text-align: center;
 }
+.site-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 20px; /* Reduced vertical padding for a smaller footer */
+    height: 60px;       /* Explicit height to keep it slim */
+    background: rgba(0, 0, 0, 0.8); /* Matches your dark theme */
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* Ensures each section takes up equal space so the center stays centered */
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.footer-center {
+    justify-content: center;
+}
+
+.footer-right {
+    justify-content: flex-end;
+}
+
+/* Adjusting button sizes to fit the smaller footer */
+#theme-toggle, .newsletter-btn, .chatbot-btn {
+    margin: 0;
+    padding: 5px 15px;
+    font-size: 0.9rem;
+}
