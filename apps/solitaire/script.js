@@ -1,22 +1,37 @@
+/**
+ * 3D Solitaire - Core Game Logic
+ * Includes: Three.js Engine, Texture Mapping, Deck Shuffling, and Tableau Dealing
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- 1. GLOBAL VARIABLES ---
-    let scene, camera, renderer, raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
-    let moves = 0, currentScore = 0;
+    // --- 1. VARIABLES & CONSTANTS ---
+    let scene, camera, renderer, raycaster, mouse;
+    let moves = 0, score = 0;
+    let deck = [];
     const textureLoader = new THREE.TextureLoader();
+
+    // Game Layout Constants
+    const CARD_WIDTH = 1;
+    const CARD_HEIGHT = 1.4;
+    const CARD_THICKNESS = 0.02;
+    const TABLEAU_START_X = -4.5;
+    const TABLEAU_Z_OFFSET = 0.25; // Vertical spacing in columns
+    const STACK_Y_OFFSET = 0.015;  // To prevent Z-fighting
 
     // --- 2. ASSET LOADING ---
     const boardBase = textureLoader.load('textures/brushed_aluminum.jpg');
     const boardNormal = textureLoader.load('textures/brushed_aluminum_norm.jpg');
+    const cardSpritesheet = textureLoader.load('textures/card_spritesheet.png');
     
-    // Load card spritesheet correctly
-    const cardFaces = textureLoader.load('textures/card_spritesheet.png');
-    cardFaces.wrapS = cardFaces.wrapT = THREE.RepeatWrapping;
-    cardFaces.repeat.set(1/13, 1/4); // 13 columns (ranks), 4 rows (suits)
+    // Configure spritesheet (13 ranks x 4 suits)
+    cardSpritesheet.wrapS = cardSpritesheet.wrapT = THREE.RepeatWrapping;
+    cardSpritesheet.repeat.set(1 / 13, 1 / 4);
 
-    // --- 3. UI CONTROLS ---
+    // --- 3. UI INITIALIZATION ---
     const toggleBtn = document.getElementById('toggle-menu');
     const menuContent = document.getElementById('menu-content');
     const gameUI = document.getElementById('game-ui');
+    const newGameBtn = document.getElementById('new-game');
 
     if (toggleBtn) {
         toggleBtn.addEventListener('click', () => {
@@ -26,157 +41,155 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- 4. ENGINE INITIALIZATION ---
+    // --- 4. 3D SCENE SETUP ---
     function initScene() {
         scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        scene.background = new THREE.Color(0x050505);
+
+        camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 10, 8);
+        camera.lookAt(0, 0, -1);
+
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
         document.getElementById('game-container').appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-        const pointLight = new THREE.PointLight(0xffffff, 1);
-        pointLight.position.set(5, 5, 5);
-        scene.add(pointLight);
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
 
-        const boardMaterial = new THREE.MeshStandardMaterial({
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const spotLight = new THREE.SpotLight(0xffffff, 1);
+        spotLight.position.set(5, 15, 10);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        // Metallic Board
+        const boardGeo = new THREE.PlaneGeometry(16, 12);
+        const boardMat = new THREE.MeshStandardMaterial({
             map: boardBase,
-            normalMap: boardNormal,
-            metalness: 0.7,
-            roughness: 0.3
-        });
-        const board = new THREE.Mesh(new THREE.PlaneGeometry(15, 10), boardMaterial);
-        board.rotation.x = -Math.PI / 2;
-        scene.add(board);
-
-        camera.position.set(0, 8, 8);
-        camera.lookAt(0, 0, 0);
-    }
-
-    // --- 5. CARD GENERATION LOGIC ---
-    function setCardFace(mesh, suitIndex, rankIndex) {
-        // Suit 0-3, Rank 0-12
-        const faceMaterial = mesh.material[4]; // The top face
-        faceMaterial.map = cardFaces.clone();
-        faceMaterial.map.needsUpdate = true;
-        faceMaterial.map.offset.x = rankIndex / 13;
-        faceMaterial.map.offset.y = (3 - suitIndex) / 4; // Invert Y if needed based on sheet
-    }
-
-    function createCardMesh(suit, rank) {
-        const cardGeo = new THREE.BoxGeometry(1, 0.02, 1.4);
-        const materials = [
-            new THREE.MeshStandardMaterial({ color: 0xcccccc }), // sides
-            new THREE.MeshStandardMaterial({ color: 0xcccccc }),
-            new THREE.MeshStandardMaterial({ color: 0xcccccc }),
-            new THREE.MeshStandardMaterial({ color: 0xcccccc }),
-            new THREE.MeshStandardMaterial({ transparent: true }), // Face (Material index 4)
-            new THREE.MeshStandardMaterial({ color: 0x1a1a2e })  // Back
-        ];
-        
-        const mesh = new THREE.Mesh(cardGeo, materials);
-        setCardFace(mesh, suit, rank);
-        return mesh;
-    }
-
-    function dealGame() {
-        // Example deal: Place one card in the center
-        const card = createCardMesh(0, 0); // Ace of Hearts/Spades
-        card.position.set(0, 0.1, 0);
-        scene.add(card);
-    }
-
-    // --- 6. START ---
-    initScene();
-    dealGame();
-
-    function animate() {
-        requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-    }
-    animate();
-
-    // Listen for New Game clicks
-    document.getElementById('new-game').addEventListener('click', () => {
-        location.reload(); 
-    });
-});            map: boardBase,
             normalMap: boardNormal,
             metalness: 0.8,
             roughness: 0.2
         });
-        const board = new THREE.Mesh(new THREE.PlaneGeometry(15, 15), boardMaterial);
+        const board = new THREE.Mesh(boardGeo, boardMat);
         board.rotation.x = -Math.PI / 2;
+        board.receiveShadow = true;
         scene.add(board);
 
-        camera.position.set(0, 10, 10);
-        camera.lookAt(0, 0, 0);
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('click', onCardClick);
     }
 
-    initScene();
+    // --- 5. CARD LOGIC ---
+    function createCardMesh(suitIndex, rankIndex, isFaceUp = false) {
+        const geometry = new THREE.BoxGeometry(CARD_WIDTH, CARD_THICKNESS, CARD_HEIGHT);
+        
+        // Clone the spritesheet for this specific card
+        const cardFaceTex = cardSpritesheet.clone();
+        cardFaceTex.needsUpdate = true;
+        cardFaceTex.offset.x = rankIndex / 13;
+        cardFaceTex.offset.y = (3 - suitIndex) / 4; // Adjust based on sheet orientation
+
+        const materials = [
+            new THREE.MeshStandardMaterial({ color: 0xffffff }), // Right
+            new THREE.MeshStandardMaterial({ color: 0xffffff }), // Left
+            new THREE.MeshStandardMaterial({ color: 0xffffff }), // Top (edge)
+            new THREE.MeshStandardMaterial({ color: 0xffffff }), // Bottom (edge)
+            new THREE.MeshStandardMaterial({ map: cardFaceTex }), // Face
+            new THREE.MeshStandardMaterial({ color: 0x1a1a2e })   // Back (Blue/Dark)
+        ];
+
+        const mesh = new THREE.Mesh(geometry, materials);
+        mesh.castShadow = true;
+        
+        // Face down rotation by default
+        if (!isFaceUp) mesh.rotation.z = Math.PI;
+
+        mesh.userData = { suit: suitIndex, rank: rankIndex, isFaceUp: isFaceUp };
+        return mesh;
+    }
+
+    function createDeck() {
+        const newDeck = [];
+        for (let s = 0; s < 4; s++) {
+            for (let r = 0; r < 13; r++) {
+                newDeck.push({ suit: s, rank: r });
+            }
+        }
+        return shuffle(newDeck);
+    }
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function dealGame() {
+        // Clear existing cards
+        scene.children = scene.children.filter(obj => !obj.userData.rank && obj.userData.rank !== 0);
+        
+        const playingDeck = createDeck();
+        let cardPtr = 0;
+
+        // Deal 7 Tableau Columns
+        for (let i = 0; i < 7; i++) {
+            for (let j = 0; j <= i; j++) {
+                const cardData = playingDeck[cardPtr++];
+                const isFaceUp = (j === i);
+                const cardMesh = createCardMesh(cardData.suit, cardData.rank, isFaceUp);
+                
+                cardMesh.position.set(
+                    TABLEAU_START_X + (i * 1.5),
+                    0.05 + (j * STACK_Y_OFFSET),
+                    -2 + (j * TABLEAU_Z_OFFSET)
+                );
+                
+                scene.add(cardMesh);
+            }
+        }
+    }
+
+    // --- 6. INTERACTION & UTILS ---
+    function onCardClick(event) {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(scene.children);
+
+        if (intersects.length > 0) {
+            const clickedObj = intersects[0].object;
+            if (clickedObj.userData.rank !== undefined) {
+                console.log(`Clicked: Rank ${clickedObj.userData.rank} of Suit ${clickedObj.userData.suit}`);
+                // Add move logic here
+            }
+        }
+    }
+
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
     function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
     }
+
+    // --- 7. START ---
+    initScene();
+    dealGame();
     animate();
-});
-// --- 1. CARD DEALING LOGIC ---
-const DECK_POS = { x: -5, y: 0.5, z: -4 }; // Starting point for animation
 
-function createCardMesh(suit, rank) {
-    const cardGeo = new THREE.BoxGeometry(1, 0.02, 1.4);
-    // Material 0-3: sides, 4: top (face), 5: bottom (back)
-    const materials = [
-        new THREE.MeshStandardMaterial({ color: 0xffffff }), // sides
-        new THREE.MeshStandardMaterial({ color: 0xffffff }),
-        new THREE.MeshStandardMaterial({ color: 0xffffff }),
-        new THREE.MeshStandardMaterial({ color: 0xffffff }),
-        new THREE.MeshStandardMaterial({ map: cardFaces.clone() }), // face
-        new THREE.MeshStandardMaterial({ color: 0x222222 }) // back
-    ];
-    
-    const mesh = new THREE.Mesh(cardGeo, materials);
-    setCardFace(mesh, suit, rank); // Use your existing spritesheet function
-    return mesh;
-}
-
-function animateMove(mesh, targetPos, duration = 500) {
-    const startPos = { ...mesh.position };
-    const startTime = performance.now();
-
-    function update() {
-        const now = performance.now();
-        const progress = Math.min((now - startTime) / duration, 1);
-        
-        // Linear interpolation for movement
-        mesh.position.x = startPos.x + (targetPos.x - startPos.x) * progress;
-        mesh.position.y = startPos.y + (targetPos.y - startPos.y) * progress;
-        mesh.position.z = startPos.z + (targetPos.z - startPos.z) * progress;
-
-        if (progress < 1) requestAnimationFrame(update);
+    if (newGameBtn) {
+        newGameBtn.addEventListener('click', dealGame);
     }
-    update();
-}
-
-// --- 2. THE DEAL FUNCTION ---
-function dealCards() {
-    let delay = 0;
-    // Example: Deal a simple row of 7 cards
-    for (let i = 0; i < 7; i++) {
-        setTimeout(() => {
-            const card = createCardMesh(0, i + 1); // Suit 0, Ranks 1-7
-            card.position.set(DECK_POS.x, DECK_POS.y, DECK_POS.z);
-            scene.add(card);
-            
-            const target = { x: -4.5 + (i * 1.5), y: 0.1, z: 0 };
-            animateMove(card, target);
-        }, delay);
-        delay += 150; // Delay between each card being dealt
-    }
-}
-
-// Call this inside your initScene or via the "New Game" button
-document.getElementById('new-game').addEventListener('click', () => {
-    // Clear existing cards and redeal
-    dealCards();
 });
