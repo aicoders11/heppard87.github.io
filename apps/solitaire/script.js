@@ -1,3 +1,4 @@
+// --- 1. GAME DATA ---
 const suits = [
     { name: 'spades', symbol: '♠', color: 'black' },
     { name: 'hearts', symbol: '♥', color: 'red' },
@@ -5,8 +6,10 @@ const suits = [
     { name: 'diamonds', symbol: '♦', color: 'red' }
 ];
 const values = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+const rankMap = { 'A': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10, 'J': 11, 'Q': 12, 'K': 13 };
 let deck = [];
 
+// --- 2. CORE LOGIC ---
 function createDeck() {
     deck = [];
     suits.forEach(suit => {
@@ -22,17 +25,17 @@ function shuffleDeck() {
         [deck[i], deck[j]] = [deck[j], deck[i]];
     }
 }
+
+// --- 3. RENDERING ---
 function renderCard(card, isFaceUp = true) {
     const div = document.createElement('div');
     div.className = `card ${card.suit.color} ${isFaceUp ? '' : 'back'}`;
-    
-    // Store data for the rules engine
     div.dataset.val = card.val;
     div.dataset.color = card.suit.color;
-    
+
     if (isFaceUp) {
         div.draggable = true;
-        div.id = `card-${Math.random().toString(36).substr(2, 9)}`;
+        div.id = 'card-' + Math.random().toString(36).substr(2, 9);
         div.innerHTML = `<div>${card.val}${card.suit.symbol}</div><div style="align-self: flex-end">${card.val}${card.suit.symbol}</div>`;
         
         div.addEventListener('dragstart', (e) => {
@@ -42,6 +45,45 @@ function renderCard(card, isFaceUp = true) {
         div.addEventListener('dragend', (e) => e.target.classList.remove('dragging'));
     }
     return div;
+}
+
+// --- 4. INTERACTION ---
+function isMoveValid(draggedCard, targetSlot) {
+    const lastCard = targetSlot.lastElementChild;
+    if (!lastCard) return draggedCard.dataset.val === 'K'; // Only King on empty slot
+
+    const dVal = rankMap[draggedCard.dataset.val];
+    const tVal = rankMap[lastCard.dataset.val];
+    return (draggedCard.dataset.color !== lastCard.dataset.color) && (dVal === tVal - 1);
+}
+
+function initGame() {
+    createDeck();
+    shuffleDeck();
+
+    // Setup drop zones
+    document.querySelectorAll('.slot').forEach(slot => {
+        slot.addEventListener('dragover', (e) => e.preventDefault());
+        slot.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain');
+            const dragged = document.getElementById(id);
+            const targetSlot = e.target.closest('.slot');
+
+            if (isMoveValid(dragged, targetSlot)) {
+                targetSlot.appendChild(dragged);
+            }
+        });
+    });
+
+    // Deal to tableau
+    for (let i = 1; i <= 7; i++) {
+        const col = document.getElementById('c' + i);
+        for (let j = 0; j < i; j++) {
+            const isLast = (j === i - 1);
+            col.appendChild(renderCard(deck.pop(), isLast));
+        }
+    }
 }
 
 window.onload = initGame;
