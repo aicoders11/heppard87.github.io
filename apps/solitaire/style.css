@@ -11,9 +11,7 @@ body {
     font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* THE WRAPPER FIX: 
-   Set to 100% but pointer-events: none so you can click the 3D game behind it.
-*/
+/* UI Wrapper: Covers screen but allows clicks to pass through to the game */
 #game-ui {
     position: absolute;
     top: 0;
@@ -29,10 +27,7 @@ body {
     box-sizing: border-box;
 }
 
-/* THE MENU FIX: 
-   Re-enable pointer-events so buttons work, and set a fixed width 
-   so the menu doesn't block the whole screen.
-*/
+/* Menu Content: Re-enables clicks for buttons and adds the glass effect */
 #menu-content, 
 #toggle-menu {
     pointer-events: auto; 
@@ -43,11 +38,11 @@ body {
     border: 1px solid var(--neon-cyan);
     padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    transition: width 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    transition: width 0.3s ease, opacity 0.3s ease;
 }
 
-/* Handle the collapsed state width on the content, not the wrapper */
+/* State management */
 #game-ui.collapsed #menu-content {
     width: 160px;
 }
@@ -61,6 +56,8 @@ h1 {
     margin-top: 0;
     color: var(--neon-cyan);
     text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 button {
@@ -73,8 +70,7 @@ button {
     font-weight: bold;
     color: #000;
     cursor: pointer;
-    transition: 0.2s ease;
-    pointer-events: auto; /* Ensure buttons remain clickable */
+    transition: all 0.2s ease;
 }
 
 button:hover {
@@ -103,5 +99,5 @@ button:hover {
     color: rgba(255, 255, 255, 0.4);
     font-size: 0.75rem;
     z-index: 50;
-    pointer-events: none; /* Keeps it from blocking card clicks in the corner */
+    pointer-events: none;
 }
