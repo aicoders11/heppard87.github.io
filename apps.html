@@ -50,9 +50,6 @@
                 <label class="sidebar-label">
                     <input type="checkbox"> Games
                 </label>
-                <label class="sidebar-label">
-                    <input type="checkbox"> Simulations
-                </label>
             </div>
             
             <br>
@@ -60,7 +57,6 @@
             <div style="font-family: monospace; color: var(--cyan); font-size: 0.9rem;">
                 <p>CPU: <span style="color: var(--magenta);">OPTIMAL</span></p>
                 <p>NET: <span style="color: var(--magenta);">SECURE</span></p>
-                <p>USER: <span style="color: var(--magenta);">ADMIN</span></p>
             </div>
         </aside>
 
@@ -82,7 +78,7 @@
 
             <div class="features-grid">
                 
-                <a href="solar-system.html" class="feature-item">
+                <a href="apps/solar-system.html" class="feature-item">
                     <div class="feature-front">
                         <h3>Solar System</h3>
                         <p>Interactive 3D tour.</p>
@@ -90,7 +86,7 @@
                     </div>
                 </a>
 
-                <a href="3d-pong/index.html" class="feature-item">
+                <a href="apps/3d-pong/index.html" class="feature-item">
                     <div class="feature-front">
                         <h3>3D Pong</h3>
                         <p>Arcade action.</p>
@@ -98,7 +94,7 @@
                     </div>
                 </a>
 
-                <a href="city-builder/index.html" class="feature-item">
+                <a href="apps/city-builder/index.html" class="feature-item">
                     <div class="feature-front">
                         <h3>City Builder</h3>
                         <p>Manage a metropolis.</p>
@@ -106,7 +102,7 @@
                     </div>
                 </a>
 
-                <a href="3d-asteroid-field/index.html" class="feature-item">
+                <a href="apps/3d-asteroid-field/index.html" class="feature-item">
                     <div class="feature-front">
                         <h3>Asteroid Field</h3>
                         <p>Avoid debris.</p>
@@ -114,7 +110,7 @@
                     </div>
                 </a>
 
-                <a href="3d-world-clock/index.html" class="feature-item">
+                <a href="apps/3d-world-clock/index.html" class="feature-item">
                     <div class="feature-front">
                         <h3>World Clock</h3>
                         <p>Global time zones.</p>
@@ -122,7 +118,31 @@
                     </div>
                 </a>
 
-                <a href="solitaire/solitaire.html" class="feature-item">
+                <a href="apps/simon/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Simon</h3>
+                        <p>Memory Pattern Game.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+
+                <a href="apps/tic-tac-toe/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Tic Tac Toe</h3>
+                        <p>Classic Strategy.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+
+                <a href="apps/memory-game/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Memory Matrix</h3>
+                        <p>Match the cards.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+
+                <a href="apps/solitaire/solitaire.html" class="feature-item">
                     <div class="feature-front">
                         <h3>Solitaire</h3>
                         <p>Classic cards.</p>
@@ -138,6 +158,7 @@
     <script src="js/theme.js"></script>
     
     <script>
+        // Password Analyzer
         const passInput = document.getElementById('passwordInput');
         const strengthBar = document.getElementById('strength-bar');
         const strengthText = document.getElementById('strength-text');
@@ -163,15 +184,14 @@
                     strengthText.innerText = 'Status: MODERATE';
                     strengthText.style.color = 'yellow';
                 } else {
-                    strengthBar.style.backgroundColor = '#00f5d4'; // Cyan
+                    strengthBar.style.backgroundColor = '#00f5d4';
                     strengthText.innerText = 'Status: SECURE';
                     strengthText.style.color = '#00f5d4';
                 }
             });
         }
-    </script>
 
-    <script>
+        // Theme Switcher
         document.addEventListener('DOMContentLoaded', () => {
             const themeBtn = document.getElementById('theme-menu-trigger');
             const themePopup = document.getElementById('theme-options');
