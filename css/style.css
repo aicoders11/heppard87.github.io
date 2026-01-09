@@ -1550,3 +1550,19 @@ footer {
 .theme-popup button:hover {
     background: rgba(255, 0, 245, 0.1);
 }
+/* Add to css/style.css */
+.centered-content {
+    text-align: center;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.intro-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 20px;
+}
+
+.highlight-cyan {
+    color: var(--cyan);
+}
