@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System Explorer</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&amp;family=Exo+2:wght@300;400;600&amp;display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        .font-orbitron { font-family: 'Orbitron', monospace; }
+        .font-exo { font-family: 'Exo 2', sans-serif; }
+        
+        .glass-panel {
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(100, 180, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        
+        .glow-text { text-shadow: 0 0 20px rgba(100, 200, 255, 0.8); }
+        
+        .planet-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .planet-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(100, 200, 255, 0.3);
+        }
+        
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .ui-layer { position: relative; z-index: 10; pointer-events: none; }
+        .interactive { pointer-events: auto; }
+    </style>
+</head>
+<body class="h-full bg-black text-white font-exo">
+
+    <div id="canvas-container"></div>
+
+    <div class="ui-layer h-full w-full">
+        
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 text-center w-full">
+            <h1 class="font-orbitron text-2xl md:text-3xl font-bold glow-text text-cyan-300">Solar System Explorer</h1>
+            <p class="text-cyan-100/60 text-sm mt-1">Drag to orbit • Scroll to zoom • Click buttons to travel</p>
+        </div>
+
+        <div class="absolute top-20 left-4 glass-panel rounded-xl p-4 w-64 interactive">
+            <h2 class="font-orbitron text-sm text-cyan-400 mb-3 flex items-center gap-2">
+                CELESTIAL BODIES
+            </h2>
+            
+            <div class="space-y-2">
+                <button onclick="focusPlanet('sun')" class="planet-card w-full glass-panel rounded-lg p-3 flex items-center gap-3 text-left">
+                    <div class="w-10 h-10 rounded-full bg-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]"></div>
+                    <div>
+                        <div class="font-orbitron text-sm text-yellow-300">Sun</div>
+                        <div class="text-xs text-gray-400">Star • Center</div>
+                    </div>
+                </button>
+
+                <button onclick="focusPlanet('earth')" class="planet-card w-full glass-panel rounded-lg p-3 flex items-center gap-3 text-left">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.6)]"></div>
+                    <div>
+                        <div class="font-orbitron text-sm text-blue-300">Earth</div>
+                        <div class="text-xs text-gray-400">Planet • 1 AU</div>
+                    </div>
+                </button>
+
+                <button onclick="focusPlanet('mars')" class="planet-card w-full glass-panel rounded-lg p-3 flex items-center gap-3 text-left">
+                    <div class="w-10 h-10 rounded-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)]"></div>
+                    <div>
+                        <div class="font-orbitron text-sm text-red-300">Mars</div>
+                        <div class="text-xs text-gray-400">Planet • 1.5 AU</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Setup Scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // 2. Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 5;
+        controls.maxDistance = 100;
+
+        // 3. Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040, 2); // Soft white light
+        scene.add(ambientLight);
+        
+        const sunLight = new THREE.PointLight(0xffffff, 2, 300);
+        scene.add(sunLight);
+
+        // 4. Create Planets (Helper Function)
+        function createPlanet(size, color, positionX) {
+            const geometry = new THREE.SphereGeometry(size, 32, 32);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: color,
+                roughness: 0.7,
+                metalness: 0.2
+            });
+            const planet = new THREE.Mesh(geometry, material);
+            
+            // Create Orbit Ring
+            const orbitGeo = new THREE.RingGeometry(positionX - 0.1, positionX + 0.1, 64);
+            const orbitMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide, opacity: 0.1, transparent: true });
+            const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+            orbit.rotation.x = Math.PI / 2;
+            scene.add(orbit);
+
+            // Group for rotation
+            const group = new THREE.Group();
+            group.add(planet);
+            scene.add(group);
+            
+            planet.position.x = positionX;
+            return { mesh: planet, group: group, distance: positionX };
+        }
+
+        // --- THE SUN ---
+        const sunGeo = new THREE.SphereGeometry(4, 32, 32);
+        const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd00 }); // Emissive yellow
+        const sun = new THREE.Mesh(sunGeo, sunMat);
+        scene.add(sun);
+        
+        // Sun Glow
+        const sunGlowGeo = new THREE.SphereGeometry(4.2, 32, 32);
+        const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.3 });
+        const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
+        scene.add(sunGlow);
+
+        // --- PLANETS ---
+        const earthSystem = createPlanet(1, 0x3b82f6, 14); // Blue
+        const marsSystem = createPlanet(0.8, 0xef4444, 22); // Red
+
+        // Starfield Background
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 2000;
+        const posArray = new Float32Array(starCount * 3);
+        for(let i = 0; i < starCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 400;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const starMat = new THREE.PointsMaterial({ size: 0.2, color: 0xffffff });
+        const stars = new THREE.Points(starGeo, starMat);
+        scene.add(stars);
+
+        // Initial Camera Position
+        camera.position.z = 30;
+        camera.position.y = 10;
+
+        // 5. Animation Loop
+        const animate = function () {
+            requestAnimationFrame(animate);
+
+            // Rotate Planets around Sun
+            earthSystem.group.rotation.y += 0.005;
+            marsSystem.group.rotation.y += 0.003;
+
+            // Rotate Planets on axis
+            earthSystem.mesh.rotation.y += 0.02;
+            marsSystem.mesh.rotation.y += 0.015;
+            sun.rotation.y += 0.002;
+
+            controls.update();
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        // 6. Focus Logic
+        window.focusPlanet = function(target) {
+            let targetPos = new THREE.Vector3();
+            let offset = 5;
+
+            if (target === 'sun') {
+                targetPos.set(0, 0, 0);
+                offset = 12;
+            } else if (target === 'earth') {
+                // Get current world position of Earth
+                earthSystem.mesh.getWorldPosition(targetPos);
+                offset = 4;
+            } else if (target === 'mars') {
+                marsSystem.mesh.getWorldPosition(targetPos);
+                offset = 4;
+            }
+
+            // Smoothly move camera (simple implementation)
+            controls.target.copy(targetPos);
+            camera.position.set(targetPos.x + offset, targetPos.y + offset/2, targetPos.z + offset);
+        };
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+</html>
