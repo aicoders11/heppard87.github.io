@@ -1580,3 +1580,86 @@ nav {
 .theme-popup {
     z-index: 1001; /* Ensures the actual dropdown is the top-most layer */
 }
+/* --- Flashlight Overlay --- */
+#flashlight-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0, 245, 212, 0.15) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 1; /* Above background, below content */
+}
+
+/* --- Glitch Effect --- */
+.glitch-text {
+    position: relative;
+    display: inline-block;
+}
+.glitch-text::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 2px;
+    text-shadow: -1px 0 var(--magenta);
+    top: 0;
+    color: var(--white);
+    background: var(--dark-violet);
+    overflow: hidden;
+    clip: rect(0, 900px, 0, 0);
+    animation: noise-anim 2s infinite linear alternate-reverse;
+}
+
+@keyframes noise-anim {
+    0% { clip: rect(10px, 9999px, 40px, 0); }
+    20% { clip: rect(30px, 9999px, 60px, 0); }
+    100% { clip: rect(50px, 9999px, 20px, 0); }
+}
+
+/* --- Status Ticker --- */
+.system-status {
+    margin: 20px 0;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--cyan);
+    border-radius: 50%;
+    animation: blink 1s infinite;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* --- Hub Link Style --- */
+.hub-link {
+    color: var(--magenta) !important;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.hub-link:hover {
+    text-shadow: 0 0 10px var(--magenta);
+}
+
+.hero-btns {
+    display: flex;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.secondary-btn {
+    padding: 15px 30px;
+    border: 1px solid var(--magenta);
+    color: var(--magenta);
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 4px;
+    transition: 0.3s;
+}
+.secondary-btn:hover {
+    background: rgba(255, 0, 245, 0.1);
+    box-shadow: 0 0 15px var(--magenta);
+}
