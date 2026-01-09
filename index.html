@@ -103,6 +103,100 @@
     <script src="js/theme.js"></script>
     <script src="js/chatbot.js"></script>
     <script src="js/filter.js"></script>
-    <script src="js/modal.js"></script>
+    <script src="js/modadocument.addEventListener('DOMContentLoaded', () => {
+    console.log("CyberSolutions System: Online");
+
+    /* =========================================
+       1. SUBSCRIBE BUTTON & MODAL LOGIC
+       ========================================= */
+    const subscribeBtn = document.getElementById('subscribeBtn');
+    const modal = document.querySelector('.modal'); // Targets your existing CSS modal
+    const closeBtn = document.querySelector('.close-button');
+
+    // Open the modal when SUBSCRIBE is clicked
+    if (subscribeBtn && modal) {
+        subscribeBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevents page jump
+            modal.style.display = 'block';
+        });
+    }
+
+    // Close the modal when 'X' is clicked
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+    }
+
+    // Close the modal if clicking outside the box
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+
+    /* =========================================
+       2. THEME SWITCHER LOGIC
+       ========================================= */
+    // Select the "THEMES" button and the popup menu
+    const themeBtn = document.querySelector('.footer-left .cyber-btn');
+    
+    // Create the Popup HTML dynamically if it doesn't exist
+    let themePopup = document.createElement('div');
+    themePopup.className = 'theme-popup';
+    themePopup.innerHTML = `
+        <button onclick="setTheme('default')">CYBERPUNK (Default)</button>
+        <button onclick="setTheme('matrix')">MATRIX</button>
+        <button onclick="setTheme('vaporwave')">VAPORWAVE</button>
+    `;
+    
+    // Append the popup to the footer's theme container
+    if (themeBtn) {
+        // Wrap the button in a relative container so the popup sits correctly
+        const container = themeBtn.parentElement;
+        container.style.position = 'relative'; 
+        container.appendChild(themePopup);
+
+        // Toggle visibility on click
+        themeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Toggle between showing and hiding
+            if (themePopup.style.display === 'block') {
+                themePopup.style.display = 'none';
+            } else {
+                themePopup.style.display = 'block';
+            }
+        });
+    }
+});
+
+/* =========================================
+   3. THEME COLOR FUNCTIONS
+   ========================================= */
+// This function swaps the CSS variables to change colors instantly
+function setTheme(themeName) {
+    const root = document.documentElement;
+
+    if (themeName === 'default') {
+        root.style.setProperty('--cyan', '#00f5d4');
+        root.style.setProperty('--magenta', '#ff00f5');
+        root.style.setProperty('--dark-violet', '#0d0221');
+    } 
+    else if (themeName === 'matrix') {
+        root.style.setProperty('--cyan', '#00ff00');   // Matrix Green
+        root.style.setProperty('--magenta', '#008f11'); // Darker Green
+        root.style.setProperty('--dark-violet', '#000000'); // Pure Black
+    } 
+    else if (themeName === 'vaporwave') {
+        root.style.setProperty('--cyan', '#ff71ce');   // Hot Pink
+        root.style.setProperty('--magenta', '#01cdfe'); // Bright Blue
+        root.style.setProperty('--dark-violet', '#2b1c40'); // Deep Purple
+    }
+
+    // Hide the popup after selection
+    const popup = document.querySelector('.theme-popup');
+    if (popup) popup.style.display = 'none';
+}l.js"></script>
+    
 </body>
 </html>
