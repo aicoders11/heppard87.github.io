@@ -1406,3 +1406,11 @@ footer {
     display: flex !important;
     flex-direction: column !important;
 }
+footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 5%;
+    border-top: 1px solid #00ffff; /* Neon cyan border */
+    background: rgba(0, 0, 0, 0.8);
+}
