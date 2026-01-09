@@ -3,89 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Services | CyberSolutionsOhio</title>
+    <title>CyberSolutionsOhio | Services</title>
+    <meta name="description" content="Explore our full range of services including AI, Data Analytics, and Cloud Solutions.">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Ensuring flip cards have a smooth feel */
+        .feature-item {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .feature-item:hover {
+            transform: scale(1.02);
+        }
+        /* Active filter button style */
+        .filter-btn.active {
+            background-color: var(--cyan);
+            color: var(--dark-violet);
+            box-shadow: 0 0 15px var(--cyan);
+        }
+    </style>
 </head>
 <body>
     <header>
         <nav>
             <a href="index.html" class="logo">CyberSolutionsOhio</a>
             <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
-                <input type="text" name="q" placeholder="Search...">
+                <input type="text" name="q" placeholder="Search the web...">
                 <button type="submit">Search</button>
             </form>
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About Us</a></li>
-                <li><a href="services.html">Services</a></li>
-                <li><a href="converter.html">Converter</a></li>
+                <li><a href="services.html" class="active">Services</a></li>
+                <li><a href="games.html">Games</a></li>
                 <li><a href="apps.html">Apps</a></li>
+                <li><a href="converter.html">Converter</a></li>
                 <li><a href="contact.html">Contact</a></li>
-                
-                <li class="theme-menu-container">
-                    <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
-                    <div id="theme-options" class="theme-popup">
-                        <button onclick="setTheme('default')">Cyberpunk</button>
-                        <button onclick="setTheme('matrix')">Matrix</button>
-                        <button onclick="setTheme('sunset')">Sunset</button>
-                    </div>
-                </li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <section class="content-section">
+        <section class="content-section features">
             <div class="page-header">
-                <h2>Operational Capabilities</h2>
+                <h1>Our Services</h1>
+                <p>We offer a range of solutions designed to meet the diverse needs of modern businesses.</p>
             </div>
-            
+
+            <!-- Category Filtering -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="web">Web</button>
+                <button class="filter-btn" data-filter="security">Security</button>
+                <button class="filter-btn" data-filter="cloud">Cloud</button>
+                <button class="filter-btn" data-filter="ai">AI</button>
+                <button class="filter-btn" data-filter="data">Data</button>
+            </div>
+
             <div class="features-grid">
-                <div class="feature-item">
-                    <div class="feature-front">
-                        <h3 style="color: var(--cyan);">Penetration Testing</h3>
-                        <p>Comprehensive security auditing to identify system vulnerabilities before they are exploited.</p>
-                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
-                            <li>Network Scanning</li>
-                            <li>Vulnerability Assessment</li>
-                            <li>Exploit Analysis</li>
-                        </ul>
+                <!-- Web Development -->
+                <div class="feature-item reveal" data-category="web">
+                    <div class="feature-item-inner">
+                        <div class="feature-front">
+                            <h3>Web Development</h3>
+                            <p>Building responsive, high-performance websites.</p>
+                            <small class="highlight-cyan">(Click to Flip)</small>
+                        </div>
+                        <div class="feature-back">
+                            <h3>Capabilities</h3>
+                            <p>Full-stack React/Node solutions, custom animations, and SEO optimization.</p>
+                            <a href="contact.html" class="read-more-btn">Contact Us</a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="feature-item">
-                    <div class="feature-front">
-                        <h3 style="color: var(--cyan);">Full-Stack Development</h3>
-                        <p>End-to-end web application development using modern frameworks and secure architecture.</p>
-                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
-                            <li>React / Node.js</li>
-                            <li>Database Design</li>
-                            <li>API Integration</li>
-                        </ul>
+                <!-- Cybersecurity -->
+                <div class="feature-item reveal" data-category="security">
+                    <div class="feature-item-inner">
+                        <div class="feature-front">
+                            <h3>Cybersecurity Audits</h3>
+                            <p>Identifying & mitigating vulnerabilities.</p>
+                            <small class="highlight-cyan">(Click to Flip)</small>
+                        </div>
+                        <div class="feature-back">
+                            <h3>Security Protocols</h3>
+                            <p>Penetration testing, encryption implementation, and threat assessment.</p>
+                            <a href="contact.html" class="read-more-btn">Contact Us</a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="feature-item">
-                    <div class="feature-front">
-                        <h3 style="color: var(--cyan);">Cloud Infrastructure</h3>
-                        <p>Scalable and secure cloud deployment strategies for high-availability systems.</p>
-                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
-                            <li>AWS / Azure Management</li>
-                            <li>Docker & Kubernetes</li>
-                            <li>CI/CD Pipelines</li>
-                        </ul>
+                <!-- UI/UX -->
+                <div class="feature-item reveal" data-category="web">
+                    <div class="feature-item-inner">
+                        <div class="feature-front">
+                            <h3>UI/UX Design</h3>
+                            <p>Intuitive and engaging user experiences.</p>
+                            <small class="highlight-cyan">(Click to Flip)</small>
+                        </div>
+                        <div class="feature-back">
+                            <h3>Design Focus</h3>
+                            <p>User-centric design, high-fidelity prototyping, and brand identity.</p>
+                            <a href="contact.html" class="read-more-btn">Contact Us</a>
+                        </div>
                     </div>
                 </div>
 
-                <div class="feature-item">
-                    <div class="feature-front">
-                        <h3 style="color: var(--cyan);">Digital Forensics</h3>
-                        <p>Data recovery and incident response for compromised digital assets.</p>
-                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
-                            <li>Secure Data Recovery</li>
-                            <li>Incident Reporting</li>
-                            <li>Malware Analysis</li>
-                        </ul>
+                <!-- AI -->
+                <div class="feature-item reveal" data-category="ai">
+                    <div class="feature-item-inner">
+                        <div class="feature-front">
+                            <h3>AI & Automation</h3>
+                            <p>Leverage the power of AI to streamline operations.</p>
+                            <small class="highlight-cyan">(Click to Flip)</small>
+                        </div>
+                        <div class="feature-back">
+                            <h3>Automation</h3>
+                            <p>Custom machine learning models and intelligent chatbots for your business.</p>
+                            <a href="contact.html" class="read-more-btn">Get Started</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data -->
+                <div class="feature-item reveal" data-category="data">
+                    <div class="feature-item-inner">
+                        <div class="feature-front">
+                            <h3>Data Analytics</h3>
+                            <p>Turn your data into actionable insights.</p>
+                            <small class="highlight-cyan">(Click to Flip)</small>
+                        </div>
+                        <div class="feature-back">
+                            <h3>Insights</h3>
+                            <p>Real-time dashboards, predictive analytics, and visualization tools.</p>
+                            <a href="contact.html" class="read-more-btn">Analyze Now</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cloud -->
+                <div class="feature-item reveal" data-category="cloud">
+                    <div class="feature-item-inner">
+                        <div class="feature-front">
+                            <h3>Cloud Migration</h3>
+                            <p>Seamless transition to the cloud.</p>
+                            <small class="highlight-cyan">(Click to Flip)</small>
+                        </div>
+                        <div class="feature-back">
+                            <h3>Infrastructure</h3>
+                            <p>Secure AWS, Azure, and Google Cloud hosting and migration strategies.</p>
+                            <a href="contact.html" class="read-more-btn">Migrate</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -94,175 +162,69 @@
 
     <footer>
         <div class="footer-content">
-            <p>&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
+            <!-- Images removed as requested -->
+            <p>&copy; 2026 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
+            <div style="margin: 15px 0;">
+                <button id="subscribeBtn" class="cta-button">Subscribe to Newsletter</button>
+            </div>
+            <ul class="social-links">
+                <li><a href="#">LinkedIn</a></li>
+                <li><a href="#">Twitter</a></li>
+                <li><a href="#">GitHub</a></li>
+            </ul>
         </div>
     </footer>
 
-    <script src="js/main.js"></script>
-    <script src="js/theme.js"></script>
+    <button id="theme-toggle-button" class="cta-button">Change Theme</button>
+
     <script>
-        // Theme Menu Logic
-        const themeBtn = document.getElementById('theme-menu-trigger');
-        const themePopup = document.getElementById('theme-options');
-
-        if (themeBtn && themePopup) {
-            themeBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isHidden = (themePopup.style.display === 'none' || themePopup.style.display === '');
-                themePopup.style.display = isHidden ? 'flex' : 'none';
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Flip Logic
+            const cards = document.querySelectorAll('.feature-item');
+            cards.forEach(card => {
+                card.addEventListener('click', () => {
+                    card.classList.toggle('is-flipped');
+                });
             });
-            document.addEventListener('click', (e) => {
-                if (!themeBtn.contains(e.target) && !themePopup.contains(e.target)) {
-                    themePopup.style.display = 'none';
-                }
-            });
-        }
 
-        function setTheme(theme) {
-            const root = document.documentElement;
-            if (theme === 'matrix') {
-                root.style.setProperty('--cyan', '#00ff00');
-                root.style.setProperty('--magenta', '#003300');
-            } else if (theme === 'sunset') {
-                root.style.setProperty('--cyan', '#ffcc00');
-                root.style.setProperty('--magenta', '#ff5500');
-            } else {
-                root.style.setProperty('--cyan', '#00f5d4');
-                root.style.setProperty('--magenta', '#ff00f5');
-            }
-            if(themePopup) themePopup.style.display = 'none';
-        }
+            // 2. Filter Logic
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const items = document.querySelectorAll('.feature-item');
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Update active button
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+
+                    const filterValue = btn.getAttribute('data-filter');
+
+                    items.forEach(item => {
+                        if (filterValue === 'all' || item.getAttribute('data-category') === filterValue) {
+                            item.style.display = 'block';
+                            setTimeout(() => { item.style.opacity = '1'; }, 10);
+                        } else {
+                            item.style.opacity = '0';
+                            setTimeout(() => { item.style.display = 'none'; }, 300);
+                        }
+                    });
+                });
+            });
+
+            // 3. Simple Intersection Observer for 'Reveal' effect
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        });
     </script>
-</body>
-</html>
-        <div class="filter-buttons">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="web">Web</button>
-            <button class="filter-btn" data-filter="security">Security</button>
-            <button class="filter-btn" data-filter="cloud">Cloud</button>
-            <button class="filter-btn" data-filter="ai">AI</button>
-            <button class="filter-btn" data-filter="data">Data</button>
-        </div>
-
-        <div class="features-grid">
-            <div class="feature-item reveal" data-category="web">
-                <div class="feature-item-inner">
-                    <div class="feature-front">
-                        <h3>Web Development</h3>
-                        <p>Building responsive, high-performance websites.</p>
-                        <small>(Click to Flip)</small>
-                    </div>
-                    <div class="feature-back">
-                        <h3>Details</h3>
-                        <p>We build responsive, high-performance websites from the ground up.</p>
-                        <a href="#" class="read-more-btn">Contact Us</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="feature-item reveal" data-category="security">
-                <div class="feature-item-inner">
-                    <div class="feature-front">
-                        <h3>Cybersecurity Audits</h3>
-                        <p>Identifying & mitigating vulnerabilities.</p>
-                        <small>(Click to Flip)</small>
-                    </div>
-                    <div class="feature-back">
-                        <h3>Details</h3>
-                        <p>Identifying and mitigating vulnerabilities to protect your digital assets.</p>
-                        <a href="#" class="read-more-btn">Contact Us</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="feature-item reveal" data-category="web">
-                <div class="feature-item-inner">
-                    <div class="feature-front">
-                        <h3>UI/UX Design</h3>
-                        <p>Intuitive and engaging user experiences.</p>
-                        <small>(Click to Flip)</small>
-                    </div>
-                    <div class="feature-back">
-                        <h3>Details</h3>
-                        <p>Creating intuitive and engaging user experiences for your audience.</p>
-                        <a href="#" class="read-more-btn">Contact Us</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="feature-item reveal" data-category="ai">
-                <div class="feature-item-inner">
-                    <div class="feature-front">
-                        <h3>AI & Automation</h3>
-                        <p>Leverage the power of AI to streamline operations.</p>
-                        <small>(Click to Flip)</small>
-                    </div>
-                    <div class="feature-back">
-                        <h3>Details</h3>
-                        <p>Custom machine learning models and chatbots to save you time.</p>
-                        <a href="#" class="read-more-btn">Read More</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="feature-item reveal" data-category="data">
-                <div class="feature-item-inner">
-                    <div class="feature-front">
-                        <h3>Data Analytics</h3>
-                        <p>Turn your data into actionable insights.</p>
-                        <small>(Click to Flip)</small>
-                    </div>
-                    <div class="feature-back">
-                        <h3>Details</h3>
-                        <p>Advanced data visualization and real-time business intelligence.</p>
-                        <a href="#" class="read-more-btn">Read More</a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="feature-item reveal" data-category="cloud">
-                <div class="feature-item-inner">
-                    <div class="feature-front">
-                        <h3>Cloud Migration</h3>
-                        <p>Seamless transition to the cloud.</p>
-                        <small>(Click to Flip)</small>
-                    </div>
-                    <div class="feature-back">
-                        <h3>Details</h3>
-                        <p>Secure migration strategies for AWS, Azure, and Google Cloud.</p>
-                        <a href="#" class="read-more-btn">Read More</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-</main>
-
-<footer>
-    <div class="footer-content">
-        <div class="footer-trust-bar">
-            <img src="img/CIA_logo_(2021).svg.png" alt="CIA" class="footer-logo">
-            <img src="img/Federal-Bureau-of-Investigation-Logo-500x400.png" alt="FBI" class="footer-logo">
-            <img src="img/bp-logo.png 1.png" alt="BP" class="footer-logo">
-            <img src="img/burger-king-logo.png" alt="BK" class="footer-logo">
-            <img src="img/visa-logo-png-transparent.png" alt="Visa" class="footer-logo">
-        </div>
-        <p>&copy; 2024 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
-        <button id="subscribeBtn" class="cta-button">Subscribe to Newsletter</button>
-        <ul class="social-links">
-            <li><a href="#">LinkedIn</a></li>
-            <li><a href="#">Twitter</a></li>
-            <li><a href="#">GitHub</a></li>
-        </ul>
-    </div>
-</footer>
- <button id="theme-toggle-button">Change Theme</button>
-    <script src="js/main.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/chatbot.js"></script>
-   
-    <script src="js/modal.js"></script>
- 
 </body>
 </html>
-                
+
