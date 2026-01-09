@@ -1,1 +1,156 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSolutionsOhio | Apps Suite</title>
+    <meta name="description" content="Interactive tools and games by CyberSolutionsOhio.">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">CyberSolutionsOhio</a>
+            <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
+                <input type="text" name="q" placeholder="Search...">
+                <button type="submit">Search</button>
+            </form>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="games.html">Games</a></li>
+                <li><a href="apps.html">Apps</a></li>
+                <li><a href="contact.html">Contact</a></li>
+                <li class="theme-menu-container">
+                    <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
+                    <div id="theme-options" class="theme-popup">
+                        <button onclick="setTheme('default')">Cyberpunk</button>
+                        <button onclick="setTheme('matrix')">Matrix</button>
+                        <button onclick="setTheme('sunset')">Sunset</button>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="content-section">
+            <div class="page-header">
+                <h2>Software & Games Suite</h2>
+                <p style="text-align: center; color: var(--cyan);">Explore our latest interactive experiments.</p>
+            </div>
+            
+            <div class="features-grid">
+                
+                <a href="3d-pong/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>3D Pong</h3>
+                        <p>Classic arcade action in a new dimension.</p>
+                        <span class="read-more-btn">PLAY NOW</span>
+                    </div>
+                </a>
+
+                <a href="city-builder/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>City Builder</h3>
+                        <p>Construct and manage your own cyber-metropolis.</p>
+                        <span class="read-more-btn">LAUNCH</span>
+                    </div>
+                </a>
+
+                <a href="3d-asteroid-field/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Asteroid Field</h3>
+                        <p>Navigate through a 3D field of space debris.</p>
+                        <span class="read-more-btn">EXPLORE</span>
+                    </div>
+                </a>
+
+                <a href="3d-world-clock/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>World Clock 3D</h3>
+                        <p>Visualize time zones on a rotating globe.</p>
+                        <span class="read-more-btn">VIEW</span>
+                    </div>
+                </a>
+
+                <a href="simon/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Simon</h3>
+                        <p>Test your memory with this classic pattern game.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+
+                <a href="tic-tac-toe/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Tic Tac Toe</h3>
+                        <p>The classic X's and O's strategy game.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+
+                 <a href="memory-game/index.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Memory Matrix</h3>
+                        <p>Match the cards to clear the board.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+
+                 <a href="solitaire/solitaire.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Solitaire</h3>
+                        <p>Relax with a classic game of patience.</p>
+                        <span class="read-more-btn">DEAL CARDS</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script src="js/theme.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeBtn = document.getElementById('theme-menu-trigger');
+            const themePopup = document.getElementById('theme-options');
+
+            if (themeBtn && themePopup) {
+                themeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const isHidden = (themePopup.style.display === 'none' || themePopup.style.display === '');
+                    themePopup.style.display = isHidden ? 'block' : 'none';
+                });
+                window.addEventListener('click', (e) => {
+                    if (e.target !== themeBtn && !themePopup.contains(e.target)) {
+                        themePopup.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        function setTheme(themeName) {
+            const root = document.documentElement;
+            if (themeName === 'default') {
+                root.style.setProperty('--cyan', '#00f5d4');
+                root.style.setProperty('--magenta', '#ff00f5');
+                root.style.setProperty('--dark-violet', '#0d0221');
+            } else if (themeName === 'matrix') {
+                root.style.setProperty('--cyan', '#00ff00');
+                root.style.setProperty('--magenta', '#008f11');
+                root.style.setProperty('--dark-violet', '#000000');
+            } else if (themeName === 'sunset') {
+                root.style.setProperty('--cyan', '#ff71ce');
+                root.style.setProperty('--magenta', '#01cdfe');
+                root.style.setProperty('--dark-violet', '#2b1c40');
+            }
+            document.getElementById('theme-options').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
