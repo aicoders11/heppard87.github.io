@@ -3,109 +3,413 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Holo-Earth Clock | CyberSolutionsOhio</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Global World Clock</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; }
-        #clock-overlay {
-            position: absolute; top: 20px; right: 20px;
-            background: rgba(0, 20, 40, 0.8); border: 1px solid #00f5d4;
-            padding: 1rem; color: #00f5d4; border-radius: 4px;
-            pointer-events: none;
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', monospace; }
+        
+        #back-btn {
+            position: absolute; top: 20px; left: 20px; z-index: 100;
+            background: rgba(0, 245, 212, 0.1); border: 1px solid #00f5d4;
+            color: #00f5d4; padding: 8px 16px; text-decoration: none;
+            font-weight: bold; border-radius: 4px; backdrop-filter: blur(4px);
+            transition: all 0.2s;
         }
-        .time-row { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 5px; font-size: 1.1rem; }
-        .time-label { color: #aaa; }
-        h1 { position: absolute; top: 20px; left: 20px; color: white; margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        #back-btn:hover { background: #00f5d4; color: #000; }
+
+        #clock-ui {
+            position: absolute; bottom: 20px; left: 20px;
+            color: #00f5d4; pointer-events: auto;
+            background: rgba(0,0,0,0.85); padding: 20px;
+            border-radius: 8px; border: 1px solid #00f5d4;
+            width: 280px;
+            max-height: 70vh; display: flex; flex-direction: column;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+        
+        /* Search & Tools */
+        .tools { display: flex; gap: 5px; margin-bottom: 10px; }
+        #search-input {
+            flex: 1; background: rgba(0,0,0,0.5); border: 1px solid #333; color: #fff;
+            padding: 5px; font-family: inherit; border-radius: 4px; outline: none;
+        }
+        #search-input:focus { border-color: #00f5d4; }
+        
+        #find-me-btn {
+            background: rgba(0, 255, 0, 0.1); border: 1px solid #00ff00; color: #00ff00;
+            cursor: pointer; padding: 5px 10px; border-radius: 4px; font-size: 1.2rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #find-me-btn:hover { background: #00ff00; color: #000; }
+
+        #times-list-container {
+            overflow-y: auto; flex: 1; padding-right: 5px;
+        }
+        #times-list-container::-webkit-scrollbar { width: 6px; }
+        #times-list-container::-webkit-scrollbar-thumb { background: #00f5d4; border-radius: 3px; }
+        
+        h1 { margin: 0 0 10px 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        .time-zone { 
+            font-size: 0.9rem; margin-bottom: 6px; display: flex; justify-content: space-between; 
+            cursor: pointer; padding: 6px; border-radius: 4px; transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+        .time-zone:hover { background: rgba(0, 245, 212, 0.1); border-color: rgba(0, 245, 212, 0.3); }
+        .highlight { color: #d300c5; font-weight: bold; margin-right: 10px; }
+        .day-indicator { font-size: 0.8em; color: #888; margin-left: auto; margin-right: 10px; }
+        
+        #controls {
+            position: absolute; top: 20px; right: 20px;
+            display: flex; gap: 10px;
+        }
+        .btn {
+            background: rgba(0,0,0,0.5); border: 1px solid #555; color: #aaa;
+            padding: 5px 10px; cursor: pointer; font-size: 0.8rem; border-radius: 4px;
+        }
+        .btn:hover { border-color: #fff; color: #fff; }
     </style>
 </head>
 <body>
-    <h1>Global Time Dilation</h1>
-    
-    <div id="clock-overlay">
-        <div class="time-row"><span class="time-label">UTC</span> <span id="t-utc">00:00:00</span></div>
-        <div class="time-row"><span class="time-label">New York</span> <span id="t-ny">00:00:00</span></div>
-        <div class="time-row"><span class="time-label">London</span> <span id="t-ldn">00:00:00</span></div>
-        <div class="time-row"><span class="time-label">Tokyo</span> <span id="t-tok">00:00:00</span></div>
+
+    <a href="apps.html" id="back-btn">&lt; DASHBOARD</a>
+
+    <div id="controls">
+        <button class="btn" onclick="toggleAutoRotate()">Pause Rotation</button>
+        <button class="btn" onclick="resetView()">Reset View</button>
+    </div>
+
+    <div id="clock-ui">
+        <h1>Global Status</h1>
+        <div class="tools">
+            <input type="text" id="search-input" placeholder="Search city..." oninput="filterCities()">
+            <button id="find-me-btn" onclick="findMe()" title="Find My Location">📍</button>
+        </div>
+        <div id="times-list-container">
+            <div id="times-list">Initializing...</div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
-        // --- SCENE ---
+        // --- 3D SCENE ---
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x020205);
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.z = 35;
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 3.5;
 
-        const renderer = new THREE.WebGLRenderer({antialias: true});
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // --- EARTH (Wireframe Style) ---
-        const sphereGeo = new THREE.IcosahedronGeometry(10, 2);
-        
-        // 1. Solid Dark Core
-        const coreMat = new THREE.MeshBasicMaterial({ color: 0x001122 });
-        const core = new THREE.Mesh(sphereGeo, coreMat);
-        scene.add(core);
-
-        // 2. Wireframe Overlay
-        const wireGeo = new THREE.WireframeGeometry(sphereGeo);
-        const wireMat = new THREE.LineBasicMaterial({ color: 0x0055ff, transparent: true, opacity: 0.3 });
-        const wireframe = new THREE.LineSegments(wireGeo, wireMat);
-        core.add(wireframe);
-
-        // 3. Atmosphere Glow
-        const glowGeo = new THREE.IcosahedronGeometry(10.2, 2);
-        const glowMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.05, side: THREE.BackSide });
-        const glow = new THREE.Mesh(glowGeo, glowMat);
-        scene.add(glow);
-
-        // Stars
+        // 1. STARFIELD
         const starsGeo = new THREE.BufferGeometry();
         const starCount = 2000;
-        const posArray = new Float32Array(starCount * 3);
+        const starPos = new Float32Array(starCount * 3);
         for(let i=0; i<starCount*3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 200;
+            starPos[i] = (Math.random() - 0.5) * 150;
         }
-        starsGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const starsMat = new THREE.PointsMaterial({size: 0.15, color: 0xffffff});
-        const stars = new THREE.Points(starsGeo, starsMat);
-        scene.add(stars);
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.15, transparent: true, opacity: 0.6 });
+        const starSystem = new THREE.Points(starsGeo, starsMat);
+        scene.add(starSystem);
 
-        // --- CLOCK LOGIC ---
-        function updateTime() {
-            const now = new Date();
+        // 2. LIGHTING & SUN MESH
+        const sunPos = new THREE.Vector3(10, 5, 10);
+        
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        sunLight.position.copy(sunPos);
+        scene.add(sunLight);
+        
+        const ambientLight = new THREE.AmbientLight(0x222222);
+        scene.add(ambientLight);
+
+        // Visible Sun
+        const sunMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(0.5, 32, 32),
+            new THREE.MeshBasicMaterial({ color: 0xffaa00 })
+        );
+        sunMesh.position.copy(sunPos);
+        scene.add(sunMesh);
+        
+        // Sun Glow (Simple Sprite)
+        // Since we can't load textures easily, we'll use a larger transparent sphere
+        const sunGlow = new THREE.Mesh(
+            new THREE.SphereGeometry(1.5, 32, 32),
+            new THREE.MeshBasicMaterial({ color: 0xffdd00, transparent: true, opacity: 0.1, wireframe: false })
+        );
+        sunGlow.position.copy(sunPos);
+        scene.add(sunGlow);
+
+
+        // --- EARTH GROUP ---
+        const earthGroup = new THREE.Group();
+        scene.add(earthGroup);
+
+        // 3. EARTH
+        const geometry = new THREE.SphereGeometry(1, 64, 64);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00f5d4, wireframe: true, transparent: true, opacity: 0.1 });
+        const globe = new THREE.Mesh(geometry, material);
+        earthGroup.add(globe);
+
+        const coreGeo = new THREE.SphereGeometry(0.99, 64, 64);
+        const coreMat = new THREE.MeshPhongMaterial({ 
+            color: 0x051020, emissive: 0x000510, specular: 0x111111, shininess: 20
+        });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        earthGroup.add(core);
+
+        // 4. MOON
+        const moonGroup = new THREE.Group(); 
+        scene.add(moonGroup);
+        
+        const moonGeo = new THREE.SphereGeometry(0.27, 32, 32);
+        const moonMat = new THREE.MeshBasicMaterial({ color: 0x888888, wireframe: true });
+        const moon = new THREE.Mesh(moonGeo, moonMat);
+        moon.position.set(4, 0, 0); 
+        moonGroup.add(moon);
+
+        const orbitGeo = new THREE.RingGeometry(3.98, 4.02, 64);
+        const orbitMat = new THREE.MeshBasicMaterial({ color: 0x333333, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
+        const orbit = new THREE.Mesh(orbitGeo, orbitMat);
+        orbit.rotation.x = Math.PI / 2;
+        scene.add(orbit);
+
+        // 5. SATELLITE (ISS)
+        const satGroup = new THREE.Group(); 
+        earthGroup.add(satGroup); 
+        const satBody = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.1), new THREE.MeshBasicMaterial({color: 0xffaa00}));
+        const satPanel = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.01, 0.05), new THREE.MeshBasicMaterial({color: 0x333333}));
+        satBody.add(satPanel);
+        satBody.position.set(1.2, 0, 0); 
+        satGroup.add(satBody);
+
+        // --- MARKERS ---
+        const markers = []; // Store for animation
+
+        function addMarker(lat, lon, name, color = 0xd300c5) {
+            const phi = (90 - lat) * (Math.PI / 180);
+            const theta = (lon + 180) * (Math.PI / 180);
+            const x = -(Math.sin(phi) * Math.cos(theta));
+            const z = (Math.sin(phi) * Math.sin(theta));
+            const y = (Math.cos(phi));
+
+            // Dot
+            const dot = new THREE.Mesh(
+                new THREE.SphereGeometry(0.015, 8, 8), 
+                new THREE.MeshBasicMaterial({ color: color })
+            );
+            dot.position.set(x, y, z);
             
-            const format = (d) => d.toLocaleTimeString('en-US', {hour12: false});
+            // Beam
+            const beamGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.2, 8);
+            beamGeo.translate(0, 0.1, 0); 
+            beamGeo.rotateX(Math.PI/2);
             
-            document.getElementById('t-utc').innerText = now.toLocaleTimeString('en-US', {timeZone: 'UTC', hour12: false});
-            document.getElementById('t-ny').innerText = now.toLocaleTimeString('en-US', {timeZone: 'America/New_York', hour12: false});
-            document.getElementById('t-ldn').innerText = now.toLocaleTimeString('en-US', {timeZone: 'Europe/London', hour12: false});
-            document.getElementById('t-tok').innerText = now.toLocaleTimeString('en-US', {timeZone: 'Asia/Tokyo', hour12: false});
+            const beamMat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.6 });
+            const beam = new THREE.Mesh(beamGeo, beamMat);
+            beam.position.set(x, y, z);
+            beam.lookAt(0,0,0); 
+            beam.rotateX(-Math.PI/2);
+
+            earthGroup.add(dot);
+            earthGroup.add(beam);
+            
+            // Store for pulsing
+            markers.push({ beam: beam, baseScale: 1.0, phase: Math.random() * Math.PI });
+            
+            return { dot, beam };
         }
-        setInterval(updateTime, 1000);
-        updateTime();
 
-        // --- ANIMATION ---
+        const cities = [
+            { name: "New York", lat: 40.71, lon: -74.00 },
+            { name: "London", lat: 51.50, lon: -0.12 },
+            { name: "Paris", lat: 48.85, lon: 2.35 },
+            { name: "Moscow", lat: 55.75, lon: 37.61 },
+            { name: "Dubai", lat: 25.20, lon: 55.27 },
+            { name: "New Delhi", lat: 28.61, lon: 77.20 },
+            { name: "Singapore", lat: 1.35, lon: 103.81 },
+            { name: "Tokyo", lat: 35.67, lon: 139.65 },
+            { name: "Sydney", lat: -33.86, lon: 151.20 },
+            { name: "Honolulu", lat: 21.30, lon: -157.85 },
+            { name: "Los Angeles", lat: 34.05, lon: -118.24 },
+            { name: "Rio de Janeiro", lat: -22.90, lon: -43.17 },
+            { name: "McMurdo Station", lat: -77.85, lon: 166.67 },
+            { name: "Easter Island", lat: -27.11, lon: -109.35 }
+        ];
+
+        cities.forEach(c => addMarker(c.lat, c.lon, c.name));
+
+        // --- GEOLOCATION ---
+        window.findMe = function() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    // Add Green Marker
+                    addMarker(lat, lon, "You", 0x00ff00);
+                    
+                    // Spin to location
+                    spinTo(lon);
+                    
+                    alert(`Found you at ${lat.toFixed(2)}, ${lon.toFixed(2)}!`);
+                }, error => {
+                    alert("Location access denied or unavailable.");
+                });
+            } else {
+                alert("Geolocation not supported by this browser.");
+            }
+        }
+
+        // --- CONTROLS & ANIMATION ---
+        let isDragging = false;
+        let prevPos = { x: 0, y: 0 };
+        let autoRotate = true;
+        let targetRotationY = null;
+
+        document.addEventListener('mousedown', (e) => {
+            if(e.target.closest('#clock-ui') || e.target.closest('#controls')) return;
+            isDragging = true; 
+            autoRotate = false; 
+            targetRotationY = null;
+        });
+        
+        document.addEventListener('mouseup', () => isDragging = false);
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.offsetX - prevPos.x;
+                const deltaY = e.offsetY - prevPos.y;
+                earthGroup.rotation.y += deltaX * 0.005;
+                earthGroup.rotation.x += deltaY * 0.005;
+            }
+            prevPos = { x: e.offsetX, y: e.offsetY };
+        });
+
         function animate() {
             requestAnimationFrame(animate);
-            
-            // Rotate Earth
-            core.rotation.y += 0.002;
-            
-            // Subtle floating effect
-            core.position.y = Math.sin(Date.now() * 0.001) * 0.5;
-            
+            const time = Date.now() * 0.003;
+
+            // Auto Rotate
+            if (autoRotate && !isDragging) {
+                earthGroup.rotation.y += 0.001;
+            }
+
+            // Spin To Logic (Lerp)
+            if (targetRotationY !== null && !isDragging) {
+                // Handle angle wrapping (make sure we take shortest path)
+                let current = earthGroup.rotation.y % (Math.PI * 2);
+                let target = targetRotationY % (Math.PI * 2);
+                
+                // Naive approach (imperfect for wrapping but works for basic nav)
+                if(Math.abs(current - target) < 0.005) {
+                    earthGroup.rotation.y = targetRotationY;
+                    targetRotationY = null;
+                } else {
+                    earthGroup.rotation.y += (targetRotationY - earthGroup.rotation.y) * 0.05;
+                }
+            }
+
+            // Pulse Markers
+            markers.forEach(m => {
+                const scale = 1 + Math.sin(time + m.phase) * 0.3;
+                m.beam.scale.set(1, 1, scale); 
+                // Beam geometry was translated, so scaling Z stretches it outward along its local axis
+            });
+
+            // Orbits
+            moonGroup.rotation.y += 0.002;
+            moon.rotation.y += 0.01;
+            satGroup.rotation.z += 0.01;
+            satGroup.rotation.y += 0.005;
+            starSystem.rotation.y -= 0.0001;
+
             renderer.render(scene, camera);
         }
         animate();
 
-        // Handle Resize
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        window.toggleAutoRotate = () => {
+            autoRotate = !autoRotate;
+            targetRotationY = null;
+        };
+        
+        window.resetView = () => {
+            targetRotationY = 0;
+            earthGroup.rotation.x = 0;
+        };
+
+        window.spinTo = function(lon) {
+            autoRotate = false;
+            earthGroup.rotation.x = 0;
+            const rad = Math.PI / 180;
+            // Target angle to face camera (+Z)
+            // Longitude 0 is usually at -Z in ThreeJS sphere UVs, but our placement logic uses sin/cos
+            // Experimentally, (lon * rad) - PI/2 usually aligns it
+            targetRotationY = (lon * rad) - Math.PI/2; 
+        };
+
+        // --- CLOCK UI ---
+        function updateClocks() {
+            const list = document.getElementById('times-list');
+            const filter = document.getElementById('search-input').value.toLowerCase();
+            
+            const zoneMap = {
+                "New York": "America/New_York",
+                "London": "Europe/London",
+                "Paris": "Europe/Paris",
+                "Moscow": "Europe/Moscow",
+                "Dubai": "Asia/Dubai",
+                "New Delhi": "Asia/Kolkata",
+                "Singapore": "Asia/Singapore",
+                "Tokyo": "Asia/Tokyo",
+                "Sydney": "Australia/Sydney",
+                "Honolulu": "Pacific/Honolulu",
+                "Los Angeles": "America/Los_Angeles",
+                "Rio de Janeiro": "America/Sao_Paulo",
+                "McMurdo Station": "Antarctica/McMurdo",
+                "Easter Island": "Pacific/Easter"
+            };
+
+            let html = "";
+            cities.forEach(c => {
+                if (c.name.toLowerCase().includes(filter)) {
+                    const zone = zoneMap[c.name];
+                    if(zone) {
+                        const now = new Date();
+                        const timeString = now.toLocaleTimeString("en-US", { 
+                            timeZone: zone, hour: '2-digit', minute: '2-digit', hour12: false 
+                        });
+                        
+                        const hour = parseInt(timeString.split(':')[0]);
+                        const isNight = hour < 6 || hour >= 18;
+                        const icon = isNight ? '☾' : '☀';
+
+                        html += `
+                        <div class="time-zone" onclick="spinTo(${c.lon})">
+                            <div><span class="highlight">${c.name}</span> <span class="day-indicator">${icon}</span></div>
+                            <div>${timeString}</div>
+                        </div>`;
+                    }
+                }
+            });
+            list.innerHTML = html;
+        }
+        
+        // Filter function just triggers update
+        window.filterCities = updateClocks;
+
+        setInterval(updateClocks, 1000);
+        updateClocks();
+
     </script>
 </body>
 </html>
+
+
