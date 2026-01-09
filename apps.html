@@ -1,5 +1,70 @@
-<div class="features-grid">
-                
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSolutionsOhio | Apps Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Extra safety styles in case css file loads slowly */
+        body { background-color: #050508; color: white; font-family: sans-serif; }
+        a { text-decoration: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">CyberSolutionsOhio</a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="apps.html">Apps</a></li>
+                <li class="theme-menu-container">
+                    <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
+                    <div id="theme-options" class="theme-popup">
+                        <button onclick="setTheme('default')">Cyberpunk</button>
+                        <button onclick="setTheme('matrix')">Matrix</button>
+                        <button onclick="setTheme('sunset')">Sunset</button>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="dashboard-main">
+        
+        <aside class="sidebar">
+            <h3>Control Panel</h3>
+            <input type="search" id="appFilter" placeholder="Filter Apps..." class="sidebar-input">
+            
+            <div class="sidebar-menu">
+                <label class="sidebar-label">
+                    <input type="checkbox" checked> All Apps
+                </label>
+                <label class="sidebar-label">
+                    <input type="checkbox"> Games
+                </label>
+                <label class="sidebar-label">
+                    <input type="checkbox"> Tools
+                </label>
+            </div>
+            
+            <br>
+            <h3>System Status</h3>
+            <div style="font-family: monospace; color: var(--cyan, #00f5d4); font-size: 0.9rem;">
+                <p>CPU: <span style="color: var(--magenta, #ff00f5);">OPTIMAL</span></p>
+                <p>NET: <span style="color: var(--magenta, #ff00f5);">SECURE</span></p>
+            </div>
+        </aside>
+
+        <section class="dashboard-content">
+            
+            <div class="page-header">
+                <h2>Installed Applications</h2>
+            </div>
+
+            <div class="features-grid">
+
                 <a href="solar-system.html" class="feature-item">
                     <div class="feature-front">
                         <h3>Solar System</h3>
@@ -48,191 +113,6 @@
                     </div>
                 </a>
 
-            </div>        /* Content Area */
-        .dashboard-content { flex: 1; }
-        
-        /* Terminal Card (Password) */
-        .terminal-card { background: #000; border: 1px solid #333; padding: 1.5rem; border-radius: 6px; font-family: monospace; margin-bottom: 2rem; position: relative; }
-        .terminal-card h2 { color: var(--cyan); margin-top: 0; font-size: 1.2rem; }
-        .terminal-card input { background: transparent; border: none; border-bottom: 2px solid #333; color: white; font-family: monospace; font-size: 1.1rem; width: 100%; padding: 0.5rem 0; outline: none; }
-        .terminal-card input:focus { border-color: var(--cyan); }
-        
-        #strength-bar-container { height: 6px; background: #222; margin-top: 10px; border-radius: 3px; overflow: hidden; }
-        #strength-bar { height: 100%; width: 0%; background: var(--magenta); transition: width 0.3s, background 0.3s; }
-        
-        /* Grid */
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
-        .feature-item { background: var(--card-bg); border-radius: 8px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; }
-        .feature-item:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0, 245, 212, 0.2); border-color: var(--cyan); }
-        .feature-front { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
-        .feature-item h3 { color: var(--cyan); margin: 0 0 0.5rem 0; font-size: 1.1rem; }
-        .feature-item p { color: #aaa; font-size: 0.9rem; flex: 1; }
-        .read-more-btn { margin-top: 1rem; display: inline-block; padding: 0.5rem 1rem; background: rgba(0, 245, 212, 0.1); color: var(--cyan); font-size: 0.8rem; font-weight: bold; border-radius: 4px; text-align: center; }
-        
-        /* Theme Menu */
-        .theme-menu-container { position: relative; }
-        .nav-theme-btn { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); padding: 0.3rem 0.8rem; cursor: pointer; font-family: monospace; }
-        .theme-popup { position: absolute; top: 100%; right: 0; background: #000; border: 1px solid #333; display: none; flex-direction: column; width: 120px; z-index: 100; margin-top: 0.5rem; }
-        .theme-popup.show { display: flex; }
-        .theme-popup button { background: transparent; color: white; border: none; padding: 0.8rem; text-align: left; cursor: pointer; border-bottom: 1px solid #222; }
-        .theme-popup button:hover { background: #222; color: var(--cyan); }
-
-        footer { background: #000; padding: 2rem; text-align: center; color: #555; margin-top: auto; border-top: 1px solid #222; }
-
-        @media (max-width: 768px) {
-            .dashboard-main { flex-direction: column; }
-            .sidebar { width: 100%; }
-            nav { flex-direction: column; align-items: flex-start; }
-            nav ul { flex-wrap: wrap; }
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <nav>
-            <a href="index.html" class="logo">CyberSolutionsOhio</a>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="services.html">Services</a></li>
-                <li><a href="apps.html">Apps</a></li>
-                <li class="theme-menu-container">
-                    <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
-                    <div id="theme-options" class="theme-popup">
-                        <button onclick="setTheme('cyber')">Cyberpunk</button>
-                        <button onclick="setTheme('matrix')">Matrix</button>
-                        <button onclick="setTheme('sunset')">Sunset</button>
-                    </div>
-                </li>
-            </ul>
-        </nav>
-    </header>
-
-    <main class="dashboard-main">
-        
-        <aside class="sidebar">
-            <h3>Control Panel</h3>
-            <input type="search" id="appFilter" placeholder="Filter Apps..." class="sidebar-input">
-            
-            <div class="sidebar-menu">
-                <label class="sidebar-label">
-                    <input type="checkbox" checked> All Apps
-                </label>
-                <label class="sidebar-label">
-                    <input type="checkbox"> Security Tools
-                </label>
-                <label class="sidebar-label">
-                    <input type="checkbox"> Games
-                </label>
-            </div>
-            
-            <br>
-            <h3>System Status</h3>
-            <div style="font-family: monospace; color: var(--cyan); font-size: 0.9rem;">
-                <p>CPU: <span style="color: var(--magenta);">OPTIMAL</span></p>
-                <p>NET: <span style="color: var(--magenta);">SECURE</span></p>
-            </div>
-        </aside>
-
-        <section class="dashboard-content">
-            
-            <!-- Password Strength Tool -->
-            <div class="terminal-card">
-                <h2>> PASSWORD_STRENGTH_ANALYZER</h2>
-                <p>Enter a string to evaluate entropy and crack time.</p>
-                <input type="text" id="passwordInput" placeholder="Enter password to test...">
-                <div id="strength-bar-container">
-                    <div id="strength-bar"></div>
-                </div>
-                <p id="strength-text" style="margin-top: 10px; color: #888; font-size: 0.9rem;">Status: WAITING_FOR_INPUT...</p>
-            </div>
-
-            <div class="page-header">
-                <h2>Installed Applications</h2>
-            </div>
-
-            <!-- FEATURES GRID: Updated with Flat Links -->
-          <div class="features-grid">
-
-                <a href="momentum-runner.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>Momentum Runner</h3>
-                        <p>Momentum-based platforming.</p>
-                        <span class="read-more-btn">PLAY</span>
-                    </div>
-                </a>
-                
-                <a href="solar-system.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>Solar System</h3>
-                        <p>Interactive 3D tour.</p>
-                        <span class="read-more-btn">LAUNCH</span>
-                    </div>
-                </a>
-
-                <a href="3d-pong.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>3D Pong</h3>
-                        <p>Arcade action.</p>
-                        <span class="read-more-btn">PLAY</span>
-                    </div>
-                </a>
-
-                <a href="city-builder.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>City Builder</h3>
-                        <p>Manage a metropolis.</p>
-                        <span class="read-more-btn">LAUNCH</span>
-                    </div>
-                </a>
-
-                <a href="asteroid-field.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>Asteroid Field</h3>
-                        <p>Avoid debris.</p>
-                        <span class="read-more-btn">EXPLORE</span>
-                    </div>
-                </a>
-
-                <a href="world-clock.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>World Clock</h3>
-                        <p>Global time zones.</p>
-                        <span class="read-more-btn">VIEW</span>
-                    </div>
-                </a>
-
-                <a href="simon.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>Simon</h3>
-                        <p>Memory Pattern Game.</p>
-                        <span class="read-more-btn">PLAY</span>
-                    </div>
-                </a>
-
-                <a href="tic-tac-toe.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>Tic Tac Toe</h3>
-                        <p>Classic Strategy.</p>
-                        <span class="read-more-btn">PLAY</span>
-                    </div>
-                </a>
-
-                <a href="memory-game.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>Memory Matrix</h3>
-                        <p>Match the cards.</p>
-                        <span class="read-more-btn">PLAY</span>
-                    </div>
-                </a>
-
-                <a href="solitaire.html" class="feature-item">
-                    <div class="feature-front">
-                        <h3>Solitaire</h3>
-                        <p>Classic Card Game.</p>
-                        <span class="read-more-btn">PLAY</span>
-                    </div>
-                </a>
-
             </div>
         </section>
     </main>
@@ -242,83 +122,39 @@
     </footer>
 
     <script>
-        // --- Password Strength Logic ---
-        const passInput = document.getElementById('passwordInput');
-        const strengthBar = document.getElementById('strength-bar');
-        const strengthText = document.getElementById('strength-text');
-
-        if(passInput) {
-            passInput.addEventListener('input', (e) => {
-                const val = e.target.value;
-                let score = 0;
-                if(val.length > 5) score += 20;
-                if(val.length > 10) score += 20;
-                if(/[A-Z]/.test(val)) score += 20;
-                if(/[0-9]/.test(val)) score += 20;
-                if(/[^A-Za-z0-9]/.test(val)) score += 20;
-
-                strengthBar.style.width = score + '%';
-                
-                if(score < 40) {
-                    strengthBar.style.backgroundColor = '#ff4444';
-                    strengthText.innerText = 'Status: WEAK (Crack time: Instant)';
-                } else if (score < 80) {
-                    strengthBar.style.backgroundColor = 'orange';
-                    strengthText.innerText = 'Status: MODERATE (Crack time: Hours)';
-                } else {
-                    strengthBar.style.backgroundColor = '#00f5d4';
-                    strengthText.innerText = 'Status: SECURE (Crack time: Years)';
-                }
-            });
-        }
-
-        // --- Theme Logic ---
+        // Toggle Theme Menu
         const themeBtn = document.getElementById('theme-menu-trigger');
         const themePopup = document.getElementById('theme-options');
-        
         if(themeBtn) {
             themeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                themePopup.classList.toggle('show');
+                themePopup.style.display = themePopup.style.display === 'flex' ? 'none' : 'flex';
             });
+            document.addEventListener('click', () => themePopup.style.display = 'none');
         }
 
-        document.addEventListener('click', () => {
-            if(themePopup) themePopup.classList.remove('show');
+        // Search Filter
+        document.getElementById('appFilter').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.feature-item').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
+            });
         });
 
+        // Theme Setter
         function setTheme(theme) {
             const root = document.documentElement;
             if(theme === 'matrix') {
                 root.style.setProperty('--cyan', '#00ff00');
                 root.style.setProperty('--magenta', '#003300');
-                root.style.setProperty('--bg-gradient', 'linear-gradient(180deg, #000 0%, #050 100%)');
             } else if (theme === 'sunset') {
                 root.style.setProperty('--cyan', '#ffcc00');
                 root.style.setProperty('--magenta', '#ff5500');
-                root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #2b0b17 0%, #521d2e 100%)');
             } else {
-                // Cyberpunk Default
                 root.style.setProperty('--cyan', '#00f5d4');
-                root.style.setProperty('--magenta', '#d300c5');
-                root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #0b0d17 0%, #1a1d2e 100%)');
+                root.style.setProperty('--magenta', '#ff00f5');
             }
-        }
-
-        // --- Filter Logic ---
-        const filterInput = document.getElementById('appFilter');
-        if(filterInput) {
-            filterInput.addEventListener('input', function(e) {
-                const term = e.target.value.toLowerCase();
-                const cards = document.querySelectorAll('.feature-item');
-                cards.forEach(card => {
-                    const txt = card.innerText.toLowerCase();
-                    card.style.display = txt.includes(term) ? 'flex' : 'none';
-                });
-            });
         }
     </script>
 </body>
 </html>
-
-
