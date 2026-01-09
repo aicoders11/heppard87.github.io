@@ -5,38 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberSolutionsOhio | Apps Dashboard</title>
     <meta name="description" content="Interactive tools and games dashboard.">
-    <link rel="stylesheet" href="css/style.css">
+    <!-- Assuming you have this file, otherwise styles below will handle basics -->
+    <link rel="stylesheet" href="css/style.css"> 
     <style>
-        /* FIX: Ensure visited links stay Cyan/White so titles don't disappear */
-        a, a:visited {
-            color: inherit;
-            text-decoration: none;
+        :root {
+            --bg-color: #0b0d17;
+            --text-color: #ffffff;
+            --cyan: #00f5d4;
+            --magenta: #d300c5;
+            --card-bg: #15192b;
+            --bg-gradient: linear-gradient(135deg, #0b0d17 0%, #1a1d2e 100%);
         }
-        .feature-item h3 {
-            color: var(--cyan, #00f5d4); /* Force Cyan color */
+
+        /* Basic Resets & Layout if style.css is missing */
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-gradient); color: var(--text-color); min-height: 100vh; display: flex; flex-direction: column; }
+        a, a:visited { color: inherit; text-decoration: none; transition: color 0.3s; }
+        a:hover { color: var(--cyan); }
+        
+        header { background: rgba(0,0,0,0.8); padding: 1rem; border-bottom: 1px solid var(--cyan); }
+        nav { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        nav ul { list-style: none; display: flex; gap: 1.5rem; margin: 0; padding: 0; align-items: center; }
+        .logo { font-weight: bold; font-size: 1.5rem; color: var(--cyan); letter-spacing: 2px; }
+        
+        .dashboard-main { display: flex; flex: 1; padding: 2rem; gap: 2rem; max-width: 1400px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background: var(--card-bg); padding: 1.5rem; border-radius: 8px; border-left: 3px solid var(--magenta); height: fit-content; }
+        .sidebar h3 { color: var(--cyan); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.5rem; margin-top: 0; }
+        .sidebar-input { width: 100%; padding: 0.8rem; background: #000; border: 1px solid #333; color: white; margin-bottom: 1rem; box-sizing: border-box; }
+        .sidebar-label { display: block; margin-bottom: 0.5rem; cursor: pointer; color: #ccc; }
+        
+        /* Content Area */
+        .dashboard-content { flex: 1; }
+        
+        /* Terminal Card (Password) */
+        .terminal-card { background: #000; border: 1px solid #333; padding: 1.5rem; border-radius: 6px; font-family: monospace; margin-bottom: 2rem; position: relative; }
+        .terminal-card h2 { color: var(--cyan); margin-top: 0; font-size: 1.2rem; }
+        .terminal-card input { background: transparent; border: none; border-bottom: 2px solid #333; color: white; font-family: monospace; font-size: 1.1rem; width: 100%; padding: 0.5rem 0; outline: none; }
+        .terminal-card input:focus { border-color: var(--cyan); }
+        
+        #strength-bar-container { height: 6px; background: #222; margin-top: 10px; border-radius: 3px; overflow: hidden; }
+        #strength-bar { height: 100%; width: 0%; background: var(--magenta); transition: width 0.3s, background 0.3s; }
+        
+        /* Grid */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+        .feature-item { background: var(--card-bg); border-radius: 8px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; }
+        .feature-item:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0, 245, 212, 0.2); border-color: var(--cyan); }
+        .feature-front { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
+        .feature-item h3 { color: var(--cyan); margin: 0 0 0.5rem 0; font-size: 1.1rem; }
+        .feature-item p { color: #aaa; font-size: 0.9rem; flex: 1; }
+        .read-more-btn { margin-top: 1rem; display: inline-block; padding: 0.5rem 1rem; background: rgba(0, 245, 212, 0.1); color: var(--cyan); font-size: 0.8rem; font-weight: bold; border-radius: 4px; text-align: center; }
+        
+        /* Theme Menu */
+        .theme-menu-container { position: relative; }
+        .nav-theme-btn { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); padding: 0.3rem 0.8rem; cursor: pointer; font-family: monospace; }
+        .theme-popup { position: absolute; top: 100%; right: 0; background: #000; border: 1px solid #333; display: none; flex-direction: column; width: 120px; z-index: 100; margin-top: 0.5rem; }
+        .theme-popup.show { display: flex; }
+        .theme-popup button { background: transparent; color: white; border: none; padding: 0.8rem; text-align: left; cursor: pointer; border-bottom: 1px solid #222; }
+        .theme-popup button:hover { background: #222; color: var(--cyan); }
+
+        footer { background: #000; padding: 2rem; text-align: center; color: #555; margin-top: auto; border-top: 1px solid #222; }
+
+        @media (max-width: 768px) {
+            .dashboard-main { flex-direction: column; }
+            .sidebar { width: 100%; }
+            nav { flex-direction: column; align-items: flex-start; }
+            nav ul { flex-wrap: wrap; }
         }
     </style>
 </head>
 <body>
     <header>
         <nav>
-            <li><a href="momentum-runner.html">Momentum Runner</a></li>
             <a href="index.html" class="logo">CyberSolutionsOhio</a>
-            <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
-                <input type="text" name="q" placeholder="Search...">
-                <button type="submit">Search</button>
-            </form>
             <ul>
                 <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Us</a></li>
+                <li><a href="momentum-runner.html" style="color: var(--magenta);"><b>PLAY RUNNER</b></a></li>
                 <li><a href="services.html">Services</a></li>
-                <li><a href="games.html">Games</a></li>
                 <li><a href="apps.html">Apps</a></li>
-                <li><a href="contact.html">Contact</a></li>
                 <li class="theme-menu-container">
                     <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
                     <div id="theme-options" class="theme-popup">
-                        <button onclick="setTheme('default')">Cyberpunk</button>
+                        <button onclick="setTheme('cyber')">Cyberpunk</button>
                         <button onclick="setTheme('matrix')">Matrix</button>
                         <button onclick="setTheme('sunset')">Sunset</button>
                     </div>
@@ -49,7 +99,7 @@
         
         <aside class="sidebar">
             <h3>Control Panel</h3>
-            <input type="search" placeholder="Filter Apps..." class="sidebar-input">
+            <input type="search" id="appFilter" placeholder="Filter Apps..." class="sidebar-input">
             
             <div class="sidebar-menu">
                 <label class="sidebar-label">
@@ -73,6 +123,7 @@
 
         <section class="dashboard-content">
             
+            <!-- Password Strength Tool -->
             <div class="terminal-card">
                 <h2>> PASSWORD_STRENGTH_ANALYZER</h2>
                 <p>Enter a string to evaluate entropy and crack time.</p>
@@ -80,64 +131,65 @@
                 <div id="strength-bar-container">
                     <div id="strength-bar"></div>
                 </div>
-                <p id="strength-text" style="margin-top: 10px; color: var(--light-slate);">Status: WAITING_FOR_INPUT...</p>
+                <p id="strength-text" style="margin-top: 10px; color: #888; font-size: 0.9rem;">Status: WAITING_FOR_INPUT...</p>
             </div>
 
             <div class="page-header">
                 <h2>Installed Applications</h2>
             </div>
 
-            <div class="features-grid">
+            <div class="features-grid" id="appsGrid">
 
+                <!-- The New Game -->
                 <a href="momentum-runner.html" class="feature-item">
                     <div class="feature-front">
                         <h3>Momentum Runner</h3>
-                        <p>Momentum-based platforming.</p>
-                        <span class="read-more-btn">PLAY</span>
+                        <p>Gothic parkour FPS. Use speed and physics to traverse the void.</p>
+                        <span class="read-more-btn" style="background: var(--magenta); color: white;">PLAY NOW</span>
                     </div>
                 </a>
                 
-                <a href="solar-system.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>Solar System</h3>
-                        <p>Interactive 3D tour.</p>
+                        <p>Interactive 3D tour of celestial bodies.</p>
                         <span class="read-more-btn">LAUNCH</span>
                     </div>
                 </a>
 
-                <a href="3d-pong/index.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>3D Pong</h3>
-                        <p>Arcade action.</p>
+                        <p>Classic arcade action in a new dimension.</p>
                         <span class="read-more-btn">PLAY</span>
                     </div>
                 </a>
 
-                <a href="city-builder/index.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>City Builder</h3>
-                        <p>Manage a metropolis.</p>
+                        <p>Manage a metropolis resource grid.</p>
                         <span class="read-more-btn">LAUNCH</span>
                     </div>
                 </a>
 
-                <a href="3d-asteroid-field/index.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>Asteroid Field</h3>
-                        <p>Avoid debris.</p>
+                        <p>Navigate debris in this 3D simulation.</p>
                         <span class="read-more-btn">EXPLORE</span>
                     </div>
                 </a>
 
-                <a href="3d-world-clock/index.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>World Clock</h3>
-                        <p>Global time zones.</p>
+                        <p>Global time zones visualization.</p>
                         <span class="read-more-btn">VIEW</span>
                     </div>
                 </a>
 
-                <a href="simon/index.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>Simon</h3>
                         <p>Memory Pattern Game.</p>
@@ -145,23 +197,118 @@
                     </div>
                 </a>
 
-                <a href="tic-tac-toe/index.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>Tic Tac Toe</h3>
-                        <p>Classic Strategy.</p>
+                        <p>Classic Strategy against AI.</p>
                         <span class="read-more-btn">PLAY</span>
                     </div>
                 </a>
 
-                <a href="memory-game/index.html" class="feature-item">
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>Memory Matrix</h3>
-                        <p>Match the cards.</p>
+                        <p>Match the cards to clear the grid.</p>
                         <span class="read-more-btn">PLAY</span>
                     </div>
                 </a>
 
-                <a href="solitaire/solitaire.html" class="feature-item">
+                <!-- Completed Solitaire Block -->
+                <a href="#" class="feature-item">
                     <div class="feature-front">
                         <h3>Solitaire</h3>
-                        <p>
+                        <p>Classic card sorting patience game.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+                
+                <a href="#" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Calculator</h3>
+                        <p>Standard scientific calculator tool.</p>
+                        <span class="read-more-btn">OPEN</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
+    </footer>
+
+    <script>
+        // --- Password Strength Logic ---
+        const passInput = document.getElementById('passwordInput');
+        const strengthBar = document.getElementById('strength-bar');
+        const strengthText = document.getElementById('strength-text');
+
+        passInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            let score = 0;
+            if(val.length > 5) score += 20;
+            if(val.length > 10) score += 20;
+            if(/[A-Z]/.test(val)) score += 20;
+            if(/[0-9]/.test(val)) score += 20;
+            if(/[^A-Za-z0-9]/.test(val)) score += 20;
+
+            strengthBar.style.width = score + '%';
+            
+            if(score < 40) {
+                strengthBar.style.backgroundColor = '#ff4444';
+                strengthText.innerText = 'Status: WEAK (Crack time: Instant)';
+            } else if (score < 80) {
+                strengthBar.style.backgroundColor = 'orange';
+                strengthText.innerText = 'Status: MODERATE (Crack time: Hours)';
+            } else {
+                strengthBar.style.backgroundColor = '#00f5d4';
+                strengthText.innerText = 'Status: SECURE (Crack time: Years)';
+            }
+        });
+
+        // --- Theme Logic ---
+        const themeBtn = document.getElementById('theme-menu-trigger');
+        const themePopup = document.getElementById('theme-options');
+        
+        themeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themePopup.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            themePopup.classList.remove('show');
+        });
+
+        function setTheme(theme) {
+            const root = document.documentElement;
+            if(theme === 'matrix') {
+                root.style.setProperty('--cyan', '#00ff00');
+                root.style.setProperty('--magenta', '#003300');
+                root.style.setProperty('--bg-gradient', 'linear-gradient(180deg, #000 0%, #050 100%)');
+            } else if (theme === 'sunset') {
+                root.style.setProperty('--cyan', '#ffcc00');
+                root.style.setProperty('--magenta', '#ff5500');
+                root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #2b0b17 0%, #521d2e 100%)');
+            } else {
+                // Cyberpunk Default
+                root.style.setProperty('--cyan', '#00f5d4');
+                root.style.setProperty('--magenta', '#d300c5');
+                root.style.setProperty('--bg-gradient', 'linear-gradient(135deg, #0b0d17 0%, #1a1d2e 100%)');
+            }
+        }
+
+        // --- Filter Logic ---
+        document.getElementById('appFilter').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.feature-item');
+            cards.forEach(card => {
+                const txt = card.innerText.toLowerCase();
+                card.style.display = txt.includes(term) ? 'flex' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
+
+                            
