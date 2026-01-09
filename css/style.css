@@ -1566,3 +1566,17 @@ footer {
 .highlight-cyan {
     color: var(--cyan);
 }
+/* --- FIX: THEME MENU & HEADER LAYOUT --- */
+header {
+    position: relative;
+    z-index: 1000; /* Forces header to stay on top of all page content */
+    overflow: visible; /* Allows the dropdown to hang down without being cut off */
+}
+
+nav {
+    overflow: visible; /* Ensures the navigation bar doesn't clip the menu */
+}
+
+.theme-popup {
+    z-index: 1001; /* Ensures the actual dropdown is the top-most layer */
+}
