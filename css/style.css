@@ -1510,3 +1510,43 @@ footer {
     cursor: pointer;
     box-shadow: 0 0 10px #00ffff;
 }
+/* Styling for the Themes button in the Nav */
+.nav-theme-btn {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 5px 15px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.theme-menu-container {
+    position: relative;
+}
+
+.theme-popup {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--magenta);
+    padding: 10px;
+    z-index: 1000;
+}
+
+.theme-popup button {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--cyan);
+    padding: 10px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.theme-popup button:hover {
+    background: rgba(255, 0, 245, 0.1);
+}
