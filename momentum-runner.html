@@ -152,6 +152,213 @@
 
     document.getElementById('start-button').addEventListener('click', startGame);
     document.getElementById('restart-button').addEventListener('click', () => {
+        ui.gameover.style.display = 'none';
+        startGame();
+    });
+
+    function startGame() {
+        gameState = 'playing';
+        score = 0;
+        level = 1;
+        nitro = 100;
+        speed = 5;
+        player.x = canvas.width / 2 - 25;
+        
+        ui.menu.style.display = 'none';
+        ui.canvas.style.display = 'block';
+        ui.score.style.display = 'block';
+        ui.level.style.display = 'block';
+        ui.nitro.style.display = 'block';
+        
+        update();
+    }
+
+    function update() {
+        if (gameState !== 'playing') return;
+
+        // Player Movement
+        if (keys.ArrowLeft && player.x > 100) player.x -= 7;
+        if (keys.ArrowRight && player.x < 700 - player.width) player.x += 7;
+        
+        // Nitro Logic
+        if (keys[" "] && nitro > 0) {
+            speed = 10;
+            nitro -= 0.5;
+        } else {
+            speed = 5 + (level * 0.5);
+            if (nitro < 100) nitro += 0.1;
+        }
+        ui.nitroFill.style.width = nitro + '%';
+
+        // Scoring
+        score += Math.round(speed / 5);
+        ui.scoreVal.innerText = score;
+        if (score > level * 1000) level++;
+        document.getElementById('level').innerText = level;
+
+        draw();
+        gameLoopId = requestAnimationFrame(update);
+    }
+
+    function draw() {
+        // Clear
+        ctx.fillStyle = "#0a0015";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Road
+        ctx.fillStyle = "#222";
+        ctx.fillRect(100, 0, 600, canvas.height);
+        
+        // Lane Lines (Animated)
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.setLineDash([40, 40]);
+        ctx.lineDashOffset = -score % 80;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(400, 0);
+        ctx.lineTo(400, 600);
+        ctx.stroke();
+
+        // Borders
+        ctx.fillStyle = "#FF00FF";
+        ctx.fillRect(90, 0, 10, canvas.height);
+        ctx.fillRect(700, 0, 10, canvas.height);
+
+        // Player
+        ctx.font = "50px Arial";
+        ctx.fillText(player.emoji, player.x, player.y + 50);
+        
+        // Simple Speed lines effect
+        if (speed > 8) {
+            ctx.fillStyle = "rgba(0, 255, 255, 0.3)";
+            for(let i=0; i<10; i++) {
+                ctx.fillRect(Math.random() * 600 + 100, Math.random() * 600, 2, 50);
+            }
+        }
+    }
+
+    // Initialize Audio (Fixed from your original code)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  </script>
+ </body>
+</html>    .mode-select, #vehicle-select { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
+    .mode-button, #start-button, #restart-button {
+      font-family: 'Orbitron', sans-serif; text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+    }
+    .mode-button {
+      font-size: 20px; font-weight: 600; color: #00FFFF; background: rgba(10, 0, 30, 0.8);
+      border: 3px solid #00FFFF; padding: 15px 30px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+    .mode-button:hover, .mode-button.selected { background: linear-gradient(90deg, #00FFFF, #FF00FF); color: #000; border-color: #FF00FF; }
+    #start-button, #restart-button {
+      font-size: 32px; font-weight: 600; color: #000; background: linear-gradient(90deg, #00FFFF, #FF00FF);
+      border: 3px solid #00FFFF; padding: 20px 60px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+    }
+    #start-button:hover, #restart-button:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 255, 255, 0.9); }
+    #game-canvas { display: none; border: 4px solid #00FFFF; box-shadow: 0 0 30px rgba(0, 255, 255, 0.6); }
+    #score-display, #level-display, #combo-display, #nitro-display {
+      position: absolute; background: rgba(10, 0, 30, 0.9); padding: 15px 30px; display: none; z-index: 5;
+    }
+    #score-display { top: 30px; left: 30px; font-size: 28px; color: #00FFFF; border: 2px solid #00FFFF; }
+    #level-display { top: 30px; right: 30px; font-size: 24px; color: #FF00FF; border: 2px solid #FF00FF; }
+    #combo-display { top: 110px; right: 30px; font-size: 32px; color: #FFFF00; border: 2px solid #FFFF00; }
+    #nitro-display { bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 20px; color: #FF00FF; border: 2px solid #FF00FF; }
+    #nitro-bar { width: 200px; height: 10px; background: #333; margin-top: 5px; }
+    #nitro-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF00FF, #00FFFF); transition: width 0.1s; }
+    .vehicle-card {
+      background: rgba(10, 0, 30, 0.8); border: 2px solid #00FFFF; padding: 15px; cursor: pointer; min-width: 120px; text-align: center;
+    }
+    .vehicle-card.selected { border-color: #FFFF00; background: rgba(0, 255, 255, 0.2); }
+    .vehicle-name { font-size: 16px; color: #00FFFF; font-weight: 600; }
+    .vehicle-stats { font-size: 12px; color: #FF00FF; }
+  </style>
+ </head>
+ <body>
+  <div id="game-wrapper">
+   <div id="menu-screen">
+    <h1 id="game-title">Mr Heppard's Drive Time</h1>
+    <div id="instructions">Arrow Keys: Move | Space: Nitro Boost</div>
+    <div class="mode-select">
+      <button class="mode-button selected" data-mode="normal">Classic Mode</button>
+      <button class="mode-button" data-mode="endless">Endless Mode</button>
+    </div>
+    <div id="vehicle-select">
+     <div class="vehicle-card selected" data-vehicle="standard">
+      <div class="vehicle-name">🚗 Standard</div><div class="vehicle-stats">Speed: ⭐⭐⭐</div>
+     </div>
+     <div class="vehicle-card" data-vehicle="sport">
+      <div class="vehicle-name">🏎️ Sport</div><div class="vehicle-stats">Speed: ⭐⭐⭐⭐</div>
+     </div>
+    </div>
+    <button id="start-button">Start Racing</button>
+   </div>
+
+   <div id="score-display">Score: <span id="score">0</span></div>
+   <div id="level-display">Level <span id="level">1</span></div>
+   <div id="nitro-display">NITRO <div id="nitro-bar"><div id="nitro-fill"></div></div></div>
+   
+   <canvas id="game-canvas" width="800" height="600"></canvas>
+
+   <div id="game-over-screen">
+    <h1 style="color:#FF00FF; font-size: 72px;">GAME OVER</h1>
+    <div style="font-size: 36px; color: #00FFFF; margin-bottom: 20px;">Score: <span id="final-score-value">0</span></div>
+    <button id="restart-button">Race Again</button>
+   </div>
+  </div>
+
+  <script>
+    // 1. Mock the missing SDKs so the code doesn't crash
+    window.elementSdk = window.elementSdk || { init: () => {}, setConfig: () => {} };
+    window.dataSdk = window.dataSdk || { init: async () => ({isOk: true}), create: async () => ({isOk: true}) };
+
+    // Game Variables
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    let gameState = 'menu'; // menu, playing, gameover
+    let score = 0;
+    let level = 1;
+    let nitro = 100;
+    let gameLoopId;
+    let speed = 5;
+    
+    // Player
+    const player = { x: 375, y: 500, width: 50, height: 80, color: '#00FFFF', emoji: '🚗' };
+    const keys = { ArrowLeft: false, ArrowRight: false, " ": false };
+
+    // Elements
+    const ui = {
+      menu: document.getElementById('menu-screen'),
+      gameover: document.getElementById('game-over-screen'),
+      canvas: document.getElementById('game-canvas'),
+      score: document.getElementById('score-display'),
+      scoreVal: document.getElementById('score'),
+      level: document.getElementById('level-display'),
+      nitro: document.getElementById('nitro-display'),
+      nitroFill: document.getElementById('nitro-fill'),
+      finalScore: document.getElementById('final-score-value')
+    };
+
+    // Input Handling
+    document.addEventListener('keydown', e => keys[e.key] = true);
+    document.addEventListener('keyup', e => keys[e.key] = false);
+
+    // Menu Interactions
+    document.querySelectorAll('.mode-button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.mode-button').forEach(btn => btn.classList.remove('selected'));
+            b.classList.add('selected');
+        });
+    });
+    document.querySelectorAll('.vehicle-card').forEach(c => {
+        c.addEventListener('click', () => {
+            document.querySelectorAll('.vehicle-card').forEach(card => card.classList.remove('selected'));
+            c.classList.add('selected');
+            player.emoji = c.querySelector('.vehicle-name').innerText.split(' ')[0];
+        });
+    });
+
+    document.getElementById('start-button').addEventListener('click', startGame);
+    document.getElementById('restart-button').addEventListener('click', () => {
         ui.gameover.style.display = 'none';</head>
 
 <body>
