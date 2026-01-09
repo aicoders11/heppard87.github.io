@@ -1,10 +1,9 @@
-                <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberSolutionsOhio | Services</title>
-    <meta name="description" content="Explore our full range of services including AI, Data Analytics, and Cloud Solutions.">
+    <title>Services | CyberSolutionsOhio</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,29 +11,130 @@
         <nav>
             <a href="index.html" class="logo">CyberSolutionsOhio</a>
             <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
-                <input type="text" name="q" placeholder="Search the web...">
+                <input type="text" name="q" placeholder="Search...">
                 <button type="submit">Search</button>
             </form>
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About Us</a></li>
                 <li><a href="services.html">Services</a></li>
-                <li><a href="games.html">Games</a></li>
-                <li><a href="apps.html">Apps</a></li>
                 <li><a href="converter.html">Converter</a></li>
+                <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                
+                <li class="theme-menu-container">
+                    <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
+                    <div id="theme-options" class="theme-popup">
+                        <button onclick="setTheme('default')">Cyberpunk</button>
+                        <button onclick="setTheme('matrix')">Matrix</button>
+                        <button onclick="setTheme('sunset')">Sunset</button>
+                    </div>
+                </li>
             </ul>
-   
         </nav>
     </header>
 
-<main>
-    <section class="content-section features">
-        <div class="page-header">
-            <h1>Our Services</h1>
-            <p>We offer a range of solutions designed to meet the diverse needs of modern businesses.</p>
-        </div>
+    <main>
+        <section class="content-section">
+            <div class="page-header">
+                <h2>Operational Capabilities</h2>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-front">
+                        <h3 style="color: var(--cyan);">Penetration Testing</h3>
+                        <p>Comprehensive security auditing to identify system vulnerabilities before they are exploited.</p>
+                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
+                            <li>Network Scanning</li>
+                            <li>Vulnerability Assessment</li>
+                            <li>Exploit Analysis</li>
+                        </ul>
+                    </div>
+                </div>
 
+                <div class="feature-item">
+                    <div class="feature-front">
+                        <h3 style="color: var(--cyan);">Full-Stack Development</h3>
+                        <p>End-to-end web application development using modern frameworks and secure architecture.</p>
+                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
+                            <li>React / Node.js</li>
+                            <li>Database Design</li>
+                            <li>API Integration</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-front">
+                        <h3 style="color: var(--cyan);">Cloud Infrastructure</h3>
+                        <p>Scalable and secure cloud deployment strategies for high-availability systems.</p>
+                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
+                            <li>AWS / Azure Management</li>
+                            <li>Docker & Kubernetes</li>
+                            <li>CI/CD Pipelines</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-front">
+                        <h3 style="color: var(--cyan);">Digital Forensics</h3>
+                        <p>Data recovery and incident response for compromised digital assets.</p>
+                        <ul style="margin-top: 10px; padding-left: 20px; color: #aaa; font-size: 0.9rem;">
+                            <li>Secure Data Recovery</li>
+                            <li>Incident Reporting</li>
+                            <li>Malware Analysis</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/theme.js"></script>
+    <script>
+        // Theme Menu Logic
+        const themeBtn = document.getElementById('theme-menu-trigger');
+        const themePopup = document.getElementById('theme-options');
+
+        if (themeBtn && themePopup) {
+            themeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = (themePopup.style.display === 'none' || themePopup.style.display === '');
+                themePopup.style.display = isHidden ? 'flex' : 'none';
+            });
+            document.addEventListener('click', (e) => {
+                if (!themeBtn.contains(e.target) && !themePopup.contains(e.target)) {
+                    themePopup.style.display = 'none';
+                }
+            });
+        }
+
+        function setTheme(theme) {
+            const root = document.documentElement;
+            if (theme === 'matrix') {
+                root.style.setProperty('--cyan', '#00ff00');
+                root.style.setProperty('--magenta', '#003300');
+            } else if (theme === 'sunset') {
+                root.style.setProperty('--cyan', '#ffcc00');
+                root.style.setProperty('--magenta', '#ff5500');
+            } else {
+                root.style.setProperty('--cyan', '#00f5d4');
+                root.style.setProperty('--magenta', '#ff00f5');
+            }
+            if(themePopup) themePopup.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
         <div class="filter-buttons">
             <button class="filter-btn active" data-filter="all">All</button>
             <button class="filter-btn" data-filter="web">Web</button>
