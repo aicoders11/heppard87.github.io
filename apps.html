@@ -6,7 +6,28 @@
     <title>CyberSolutionsOhio | Apps Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Extra safety styles in case css file loads slowly */
+        /* Safety Styles for the Password Card */
+        .terminal-card { 
+            background: #000; border: 1px solid #333; padding: 1.5rem; 
+            border-radius: 6px; font-family: monospace; margin-bottom: 2rem; 
+        }
+        .terminal-card h2 { color: var(--cyan, #00f5d4); margin-top: 0; font-size: 1.2rem; }
+        .terminal-card input { 
+            background: transparent; border: none; border-bottom: 2px solid #333; 
+            color: white; font-family: monospace; font-size: 1.1rem; width: 100%; 
+            padding: 0.5rem 0; outline: none; 
+        }
+        .terminal-card input:focus { border-color: var(--cyan, #00f5d4); }
+        
+        #strength-bar-container { 
+            height: 6px; background: #222; margin-top: 10px; border-radius: 3px; overflow: hidden; 
+        }
+        #strength-bar { 
+            height: 100%; width: 0%; background: var(--magenta, #ff00f5); 
+            transition: width 0.3s, background 0.3s; 
+        }
+        
+        /* General Safety */
         body { background-color: #050508; color: white; font-family: sans-serif; }
         a { text-decoration: none; }
     </style>
@@ -35,6 +56,185 @@
                         <button onclick="setTheme('default')">Cyberpunk</button>
                         <button onclick="setTheme('matrix')">Matrix</button>
                         <button onclick="setTheme('sunset')">Sunset</button>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="dashboard-main">
+        
+        <aside class="sidebar">
+            <h3>Control Panel</h3>
+            <input type="search" id="appFilter" placeholder="Filter Apps..." class="sidebar-input">
+            
+            <div class="sidebar-menu">
+                <label class="sidebar-label">
+                    <input type="checkbox" checked> All Apps
+                </label>
+                <label class="sidebar-label">
+                    <input type="checkbox"> Games
+                </label>
+                <label class="sidebar-label">
+                    <input type="checkbox"> Tools
+                </label>
+            </div>
+            
+            <br>
+            <h3>System Status</h3>
+            <div style="font-family: monospace; color: var(--cyan, #00f5d4); font-size: 0.9rem;">
+                <p>CPU: <span style="color: var(--magenta, #ff00f5);">OPTIMAL</span></p>
+                <p>NET: <span style="color: var(--magenta, #ff00f5);">SECURE</span></p>
+            </div>
+        </aside>
+
+        <section class="dashboard-content">
+            
+            <div class="terminal-card">
+                <h2>> PASSWORD_STRENGTH_ANALYZER</h2>
+                <p>Enter a string to evaluate entropy and crack time.</p>
+                <input type="text" id="passwordInput" placeholder="Enter password to test...">
+                <div id="strength-bar-container">
+                    <div id="strength-bar"></div>
+                </div>
+                <p id="strength-text" style="margin-top: 10px; color: #888; font-size: 0.9rem;">Status: WAITING_FOR_INPUT...</p>
+            </div>
+
+            <div class="page-header">
+                <h2>Installed Applications</h2>
+            </div>
+
+            <div class="features-grid">
+
+                <a href="solar-system.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Solar System</h3>
+                        <p>Interactive 3D tour.</p>
+                        <span class="read-more-btn">LAUNCH</span>
+                    </div>
+                </a>
+
+                <a href="3d-pong.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>3D Pong</h3>
+                        <p>Arcade action.</p>
+                        <span class="read-more-btn">PLAY</span>
+                    </div>
+                </a>
+
+                <a href="city-builder.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>City Builder</h3>
+                        <p>Manage a metropolis.</p>
+                        <span class="read-more-btn">LAUNCH</span>
+                    </div>
+                </a>
+
+                <a href="asteroid-field.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Asteroid Field</h3>
+                        <p>Avoid debris.</p>
+                        <span class="read-more-btn">EXPLORE</span>
+                    </div>
+                </a>
+
+                <a href="world-clock.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>World Clock</h3>
+                        <p>Global time zones.</p>
+                        <span class="read-more-btn">VIEW</span>
+                    </div>
+                </a>
+
+                <a href="solitaire.html" class="feature-item">
+                    <div class="feature-front">
+                        <h3>Solitaire</h3>
+                        <p>Classic cards.</p>
+                        <span class="read-more-btn">DEAL</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
+    </footer>
+
+    <script>
+        // --- 1. Password Analyzer Logic ---
+        const passInput = document.getElementById('passwordInput');
+        const strengthBar = document.getElementById('strength-bar');
+        const strengthText = document.getElementById('strength-text');
+
+        if(passInput) {
+            passInput.addEventListener('input', (e) => {
+                const val = e.target.value;
+                let score = 0;
+                if(val.length > 5) score += 20;
+                if(val.length > 10) score += 20;
+                if(/[A-Z]/.test(val)) score += 20;
+                if(/[0-9]/.test(val)) score += 20;
+                if(/[^A-Za-z0-9]/.test(val)) score += 20;
+
+                strengthBar.style.width = score + '%';
+                
+                if(score < 40) {
+                    strengthBar.style.backgroundColor = '#ff4444';
+                    strengthText.innerText = 'Status: WEAK (Crack time: Instant)';
+                } else if (score < 80) {
+                    strengthBar.style.backgroundColor = 'orange';
+                    strengthText.innerText = 'Status: MODERATE (Crack time: Hours)';
+                } else {
+                    strengthBar.style.backgroundColor = '#00f5d4';
+                    strengthText.innerText = 'Status: SECURE (Crack time: Years)';
+                }
+            });
+        }
+
+        // --- 2. Theme Menu Logic ---
+        const themeBtn = document.getElementById('theme-menu-trigger');
+        const themePopup = document.getElementById('theme-options');
+        if(themeBtn) {
+            themeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = (themePopup.style.display === 'none' || themePopup.style.display === '');
+                themePopup.style.display = isHidden ? 'flex' : 'none';
+            });
+            document.addEventListener('click', (e) => {
+                if (!themeBtn.contains(e.target) && !themePopup.contains(e.target)) {
+                    themePopup.style.display = 'none';
+                }
+            });
+        }
+
+        // --- 3. Filter Logic ---
+        document.getElementById('appFilter').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            document.querySelectorAll('.feature-item').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
+            });
+        });
+
+        // --- 4. Theme Setter ---
+        function setTheme(theme) {
+            const root = document.documentElement;
+            if(theme === 'matrix') {
+                root.style.setProperty('--cyan', '#00ff00');
+                root.style.setProperty('--magenta', '#003300');
+            } else if (theme === 'sunset') {
+                root.style.setProperty('--cyan', '#ffcc00');
+                root.style.setProperty('--magenta', '#ff5500');
+            } else {
+                root.style.setProperty('--cyan', '#00f5d4');
+                root.style.setProperty('--magenta', '#ff00f5');
+            }
+            if(themePopup) themePopup.style.display = 'none';
+        }
+    </script>
+</body>
+</html>                        <button onclick="setTheme('sunset')">Sunset</button>
                     </div>
                 </li>
             </ul>
