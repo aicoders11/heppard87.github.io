@@ -1,40 +1,238 @@
 <!doctype html>
 <html lang="en" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ultimate Momentum Platformer</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="/_sdk/element_sdk.js"></script>
-  <style>
-    body {
-      box-sizing: border-box;
-    }
-    
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.7; transform: scale(1.1); }
-    }
-    
-    @keyframes sparkle {
-      0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
-      50% { opacity: 1; transform: scale(1) rotate(180deg); }
-    }
-    
-    @keyframes celebrate {
-      0% { transform: scale(1) rotate(0deg); }
-      25% { transform: scale(1.2) rotate(-10deg); }
-      50% { transform: scale(1.2) rotate(10deg); }
-      75% { transform: scale(1.1) rotate(-5deg); }
-      100% { transform: scale(1) rotate(0deg); }
-    }
-    
-    @keyframes spin {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Momentum Platformer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { box-sizing: border-box; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } }
+        @keyframes sparkle { 0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); } 50% { opacity: 1; transform: scale(1) rotate(180deg); } }
+        @keyframes celebrate { 0% { transform: scale(1) rotate(0deg); } 25% { transform: scale(1.2) rotate(-10deg); } 50% { transform: scale(1.2) rotate(10deg); } 75% { transform: scale(1.1) rotate(-5deg); } 100% { transform: scale(1) rotate(0deg); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        .floating { animation: float 3s ease-in-out infinite; }
+        .pulsing { animation: pulse 1.5s ease-in-out infinite; }
+        .celebrating { animation: celebrate 0.5s ease-in-out; }
+        .spinning { animation: spin 2s linear infinite; }
+        .bouncing { animation: bounce 0.5s ease-in-out infinite; }
+        .game-font { font-family: 'Fredoka One', 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&amp;display=swap" rel="stylesheet">
+</head>
+<body class="h-full m-0 p-0 overflow-hidden">
+    <div id="game-container" class="w-full h-full relative" style="background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98D8AA 100%);">
+        <div id="title-screen" class="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex flex-col items-center justify-center z-50">
+            <div class="text-center max-w-2xl px-8">
+                <h1 class="game-font text-7xl text-white mb-6 drop-shadow-lg celebrating" style="text-shadow: 5px 5px 0 #000, -2px -2px 0 #FFD700;">🎮 MOMENTUM RUNNER 🎮</h1>
+                <div class="bg-black/40 backdrop-blur rounded-3xl p-8 mb-8">
+                    <p class="game-font text-xl text-white mb-4 leading-relaxed">Run, jump, and dash through amazing worlds!</p>
+                    <p class="game-font text-lg text-yellow-300">✨ 4 Game Modes | 🔥 Power-Ups ✨</p>
+                </div>
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-6 mb-8 border-4 border-yellow-400">
+                    <p class="game-font text-sm text-yellow-200">DESIGNED &amp; CREATED BY</p>
+                    <p class="game-font text-3xl text-white drop-shadow-lg" style="text-shadow: 3px 3px 0 #000;">⭐ CHRIS HEPPARD ⭐</p>
+                </div>
+                <button id="start-btn" class="game-font text-3xl bg-gradient-to-r from-green-400 to-cyan-400 text-white px-12 py-5 rounded-full hover:scale-110 transition-transform shadow-2xl bouncing"> 🚀 START GAME 🚀 </button>
+            </div>
+        </div>
+
+        <div id="mode-select" class="hidden absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 flex flex-col items-center justify-center z-50">
+            <div class="text-center">
+                <h1 class="game-font text-6xl text-white mb-8 drop-shadow-lg" style="text-shadow: 4px 4px 0 #000;">CHOOSE MODE</h1>
+                <div class="flex flex-col gap-4">
+                    <button class="mode-btn game-font text-2xl bg-gradient-to-r from-green-400 to-cyan-400 text-white px-8 py-4 rounded-full hover:scale-110 transition-transform" data-mode="adventure">🗺️ ADVENTURE</button>
+                    <button class="mode-btn game-font text-2xl bg-gradient-to-r from-red-400 to-rose-400 text-white px-8 py-4 rounded-full hover:scale-110 transition-transform" data-mode="endless">🏃 ENDLESS</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="ui-layer" class="hidden absolute top-0 left-0 w-full z-50 p-4">
+            <div class="flex justify-between items-start">
+                <div class="flex flex-col gap-2">
+                    <div id="health-bar" class="flex gap-1"></div>
+                    <div class="flex items-center gap-2 bg-black/30 rounded-full px-3 py-1">
+                        <span class="text-yellow-400 text-2xl">⭐</span> <span id="token-count" class="text-white game-font text-xl">0</span>
+                    </div>
+                </div>
+                <div id="game-title" class="game-font text-3xl text-white drop-shadow-lg" style="text-shadow: 3px 3px 0 #FF6B6B;">Momentum Runner</div>
+                <div class="flex flex-col gap-2 items-end">
+                    <div id="speed-indicator" class="bg-black/30 rounded-full px-3 py-1">
+                        <span class="text-cyan-400 game-font text-sm">SPEED: </span> <span id="speed-value" class="text-white game-font">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <canvas id="game-canvas" class="w-full h-full"></canvas>
+
+        <div id="game-over" class="hidden absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
+            <div class="text-center">
+                <h2 class="game-font text-6xl text-red-500 mb-4">GAME OVER</h2>
+                <button id="restart-btn" class="game-font text-2xl bg-green-400 text-white px-8 py-4 rounded-full">🔄 TRY AGAIN</button>
+            </div>
+        </div>
+
+        <div id="victory" class="hidden absolute inset-0 bg-yellow-400/80 flex flex-col items-center justify-center z-50">
+            <div class="text-center">
+                <h2 class="game-font text-6xl text-white mb-4">🎉 VICTORY! 🎉</h2>
+                <button id="play-again-btn" class="game-font text-2xl bg-purple-500 text-white px-8 py-4 rounded-full">🎮 PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const game = { canvas: null, ctx: null, width: 0, height: 0, camera: { x: 0, y: 0 }, gravity: 0.8, friction: 0.85, running: false, tokens: 0, totalTokens: 0, mode: 'adventure', timer: 0, checkpointX: 100, checkpointY: 300 };
+        const player = { x: 100, y: 300, width: 32, height: 48, vx: 0, vy: 0, speed: 0.5, runSpeed: 1.2, jumpForce: -18, maxSpeed: 8, maxRunSpeed: 14, isRunning: false, isGrounded: false, isJumping: false, scale: 1, health: 3, maxHealth: 3, invincible: 0, facingRight: true };
+        const keys = { left: false, right: false, up: false, down: false, run: false };
+        const TILE_SIZE = 40;
+        const BIOMES = { HILLS: { bg: ['#87CEEB', '#E0F6FF', '#98D8AA'], ground: '#6B8E23' }, VOLCANIC: { bg: ['#2C1810', '#5C3317', '#8B4513'], ground: '#4A0E0E' } };
+        
+        let platforms = [], enemies = [], collectibles = [], powerUps = [], checkpoints = [], particles = [], finishLine = null;
+
+        function generateLevel() {
+            platforms = []; enemies = []; collectibles = []; powerUps = []; checkpoints = []; particles = [];
+            // Basic floor
+            for (let i = 0; i < 50; i++) {
+                platforms.push({ x: i * TILE_SIZE, y: 500, width: TILE_SIZE, height: TILE_SIZE, type: 'ground' });
+            }
+            // Tokens
+            for (let i = 0; i < 10; i++) {
+                collectibles.push({ x: 400 + i * 100, y: 440, type: 'token', collected: false });
+            }
+            finishLine = { x: 2000, y: 100, width: 100, height: 400 };
+        }
+
+        function render() {
+            if (!game.ctx) return;
+            game.ctx.clearRect(0, 0, game.width, game.height);
+            const cam = game.camera;
+
+            // Background
+            game.ctx.fillStyle = "#87CEEB";
+            game.ctx.fillRect(0, 0, game.width, game.height);
+
+            platforms.forEach(p => {
+                game.ctx.fillStyle = "#6B8E23";
+                game.ctx.fillRect(p.x - cam.x, p.y - cam.y, p.width, p.height);
+            });
+
+            collectibles.forEach(c => {
+                if (!c.collected) {
+                    game.ctx.fillStyle = "#FFD700";
+                    game.ctx.beginPath();
+                    game.ctx.arc(c.x - cam.x + 15, c.y - cam.y + 15, 10, 0, Math.PI * 2);
+                    game.ctx.fill();
+                }
+            });
+
+            if (finishLine) {
+                game.ctx.fillStyle = "rgba(255,255,255,0.5)";
+                game.ctx.fillRect(finishLine.x - cam.x, finishLine.y - cam.y, finishLine.width, finishLine.height);
+            }
+
+            renderPlayer(game.ctx, cam);
+        }
+
+        function renderPlayer(ctx, cam) {
+            const x = player.x - cam.x;
+            const y = player.y - cam.y;
+            ctx.fillStyle = "#4ECDC4";
+            ctx.fillRect(x, y, player.width, player.height);
+        }
+
+        function update() {
+            if (!game.running) return;
+            if (keys.left) player.vx -= player.speed;
+            if (keys.right) player.vx += player.speed;
+            if (keys.up && player.isGrounded) { player.vy = player.jumpForce; player.isGrounded = false; }
+
+            player.vy += game.gravity;
+            player.vx *= game.friction;
+            player.x += player.vx;
+            player.y += player.vy;
+
+            // Simple floor collision
+            player.isGrounded = false;
+            platforms.forEach(p => {
+                if (player.x < p.x + p.width && player.x + player.width > p.x && player.y + player.height > p.y && player.y + player.height < p.y + p.height) {
+                    player.y = p.y - player.height;
+                    player.vy = 0;
+                    player.isGrounded = true;
+                }
+            });
+
+            // Tokens
+            collectibles.forEach(c => {
+                if (!c.collected && Math.abs(player.x - c.x) < 30 && Math.abs(player.y - c.y) < 30) {
+                    c.collected = true;
+                    game.tokens++;
+                    document.getElementById('token-count').textContent = game.tokens;
+                }
+            });
+
+            // Camera
+            game.camera.x = player.x - game.width / 2;
+            
+            if (finishLine && player.x > finishLine.x) victory();
+            if (player.y > 1000) gameOver();
+        }
+
+        function victory() { game.running = false; document.getElementById('victory').classList.remove('hidden'); }
+        function gameOver() { game.running = false; document.getElementById('game-over').classList.remove('hidden'); }
+
+        function resetGame() {
+            player.x = 100; player.y = 300; player.vx = 0; player.vy = 0;
+            game.tokens = 0; game.running = true;
+            generateLevel();
+            document.getElementById('game-over').classList.add('hidden');
+            document.getElementById('victory').classList.add('hidden');
+            document.getElementById('ui-layer').classList.remove('hidden');
+        }
+
+        function init() {
+            game.canvas = document.getElementById('game-canvas');
+            game.ctx = game.canvas.getContext('2d');
+            window.addEventListener('resize', () => {
+                game.width = game.canvas.width = window.innerWidth;
+                game.height = game.canvas.height = window.innerHeight;
+            });
+            window.dispatchEvent(new Event('resize'));
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'ArrowLeft') keys.left = true;
+                if (e.key === 'ArrowRight') keys.right = true;
+                if (e.key === 'ArrowUp' || e.key === ' ') keys.up = true;
+            });
+            document.addEventListener('keyup', e => {
+                if (e.key === 'ArrowLeft') keys.left = false;
+                if (e.key === 'ArrowRight') keys.right = false;
+                if (e.key === 'ArrowUp' || e.key === ' ') keys.up = false;
+            });
+
+            document.getElementById('start-btn').addEventListener('click', () => {
+                document.getElementById('title-screen').classList.add('hidden');
+                document.getElementById('mode-select').classList.remove('hidden');
+            });
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.getElementById('mode-select').classList.add('hidden');
+                    resetGame();
+                });
+            });
+            document.getElementById('restart-btn').addEventListener('click', resetGame);
+            document.getElementById('play-again-btn').addEventListener('click', resetGame);
+
+            function loop() { update(); render(); requestAnimationFrame(loop); }
+            loop();
+        }
+
+        init();
+    </script>
+</body>
+</html>    @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
