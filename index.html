@@ -11,10 +11,12 @@
     <header>
         <nav>
             <a href="index.html" class="logo">CyberSolutionsOhio</a>
+            
             <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
                 <input type="text" name="q" placeholder="Search the web...">
                 <button type="submit">Search</button>
             </form>
+
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About Us</a></li>
@@ -22,6 +24,7 @@
                 <li><a href="games.html">Games</a></li>
                 <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                
                 <li class="theme-menu-container">
                     <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
                     <div id="theme-options" class="theme-popup">
@@ -39,7 +42,7 @@
             <div class="content-card hero hero-two-column">
                 <div class="hero-left">
                     <div class="profile-picture">
-                        <img src="img/profile.jpg" alt="Founder of CyberSolutionsOhio.">
+                        <img src="img/profile.jpg" alt="Chris Heppard, Founder of CyberSolutionsOhio">
                     </div>
                 </div>
                 <div class="hero-right">
@@ -54,11 +57,11 @@
             <div class="page-header">
                 <h2>Where I'm From</h2>
             </div>
-            <div class="content-card" style="text-align: center; max-width: 900px; margin: 0 auto;">
-                <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px;">
-                    I am a visionary Full-Stack Developer and Security Specialist based in <strong style="color: var(--cyan);">Cincinnati, Ohio</strong>.
+            <div class="content-card centered-content">
+                <p class="intro-text">
+                    I am a visionary Full-Stack Developer and Security Specialist based in <strong class="highlight-cyan">Cincinnati, Ohio</strong>.
                 </p>
-                <p style="font-size: 1.1rem; line-height: 1.8;">
+                <p class="intro-text">
                     My journey began with a curiosity for how systems work, evolving into a career dedicated to protecting them. Whether it's securing sensitive data or creating engaging 3D web experiences, I bring a unique blend of creativity and technical rigor to every project.
                 </p>
             </div>
@@ -92,11 +95,15 @@
             const themePopup = document.getElementById('theme-options');
 
             if (themeBtn && themePopup) {
+                // Toggle menu
                 themeBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    themePopup.style.display = (themePopup.style.display === 'none' || themePopup.style.display === '') ? 'block' : 'none';
+                    // Toggle display between 'block' and 'none'
+                    const isHidden = (themePopup.style.display === 'none' || themePopup.style.display === '');
+                    themePopup.style.display = isHidden ? 'block' : 'none';
                 });
 
+                // Close menu if clicking outside
                 window.addEventListener('click', (e) => {
                     if (e.target !== themeBtn && !themePopup.contains(e.target)) {
                         themePopup.style.display = 'none';
@@ -105,6 +112,7 @@
             }
         });
 
+        // Theme switching function
         function setTheme(themeName) {
             const root = document.documentElement;
             if (themeName === 'default') {
@@ -120,7 +128,9 @@
                 root.style.setProperty('--magenta', '#01cdfe');
                 root.style.setProperty('--dark-violet', '#2b1c40');
             }
-            document.getElementById('theme-options').style.display = 'none';
+            // Hide menu after selection
+            const popup = document.getElementById('theme-options');
+            if (popup) popup.style.display = 'none';
         }
     </script>
 </body>
