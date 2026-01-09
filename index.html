@@ -16,25 +16,116 @@
                 <button type="submit">Search</button>
             </form>
             <ul>
-                
-    <li><a href="index.html">Home</a></li>
-    <li><a href="about.html">About Us</a></li>
-    <li><button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button></li> 
-    ...
-</ul>
-                
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About Us</a></li>
                 <li><a href="services.html">Services</a></li>
                 <li><a href="games.html">Games</a></li>
                 <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                <li style="position: relative;">
+                    <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
+                    <div id="theme-options" class="theme-popup" style="display: none; position: absolute; top: 100%; left: 0; background: #000; border: 1px solid var(--cyan); z-index: 1000;">
+                        <button onclick="setTheme('default')" style="display: block; width: 100%; color: var(--cyan); background: none; border: none; padding: 10px; cursor: pointer;">Cyberpunk</button>
+                        <button onclick="setTheme('matrix')" style="display: block; width: 100%; color: var(--cyan); background: none; border: none; padding: 10px; cursor: pointer;">Matrix</button>
+                        <button onclick="setTheme('vaporwave')" style="display: block; width: 100%; color: var(--cyan); background: none; border: none; padding: 10px; cursor: pointer;">Vaporwave</button>
+                    </div>
+                </li>
             </ul>
         </nav>
     </header>
 
     <main>
         <section class="content-section">
+            <div class="content-card hero hero-two-column">
+                <div class="hero-left">
+                    <div class="profile-picture">
+                        <img src="img/profile.jpg" alt="A photo of Chris Heppard, the founder of CyberSolutionsOhio.">
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <h1>CyberSolutions for a Modern Ohio</h1>
+                    <p>Chris Heppard is a visionary Full-Stack Developer and Security Specialist based in Cincinnati, Ohio. With a passion for immersive web technologies and robust cyber-infrastructure, Chris founded CyberSolutions to bridge the gap between interactive 3D design and enterprise-grade security.</p>
+                    <a href="apps.html" class="cta-button">View Software Suite</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section">
+            <div class="page-header">
+                <h2>Where I'm From</h2>
+            </div>
+            <div class="content-card" style="text-align: center; max-width: 900px; margin: 0 auto;">
+                <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px;">
+                    I am a visionary Full-Stack Developer and Security Specialist based in <strong style="color: var(--cyan);">Cincinnati, Ohio</strong>. 
+                </p>
+                <p style="font-size: 1.1rem; line-height: 1.8;">
+                    My journey began with a curiosity for how systems work, evolving into a career dedicated to protecting them.
+                </p>
+            </div>
+        </section>
+
+        <section class="content-section trust-bar">
+            <div class="page-header">
+                <h2>Trusted By</h2>
+            </div>
+            <div class="content-card">
+                <div class="trust-logos">
+                    <div class="logo-placeholder">Client A</div>
+                    <div class="logo-placeholder">Client B</div>
+                    <div class="logo-placeholder">Client C</div>
+                    <div class="logo-placeholder">Client D</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/filter.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("CyberSolutions System: Online");
+
+            const themeBtn = document.getElementById('theme-menu-trigger');
+            const themePopup = document.getElementById('theme-options');
+
+            if (themeBtn && themePopup) {
+                themeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    themePopup.style.display = (themePopup.style.display === 'none') ? 'block' : 'none';
+                });
+
+                // Close popup when clicking outside
+                window.addEventListener('click', (e) => {
+                    if (e.target !== themeBtn && !themePopup.contains(e.target)) {
+                        themePopup.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        function setTheme(themeName) {
+            const root = document.documentElement;
+            if (themeName === 'default') {
+                root.style.setProperty('--cyan', '#00f5d4');
+                root.style.setProperty('--magenta', '#ff00f5');
+                root.style.setProperty('--dark-violet', '#0d0221');
+            } else if (themeName === 'matrix') {
+                root.style.setProperty('--cyan', '#00ff00');
+                root.style.setProperty('--magenta', '#008f11');
+                root.style.setProperty('--dark-violet', '#000000');
+            } else if (themeName === 'vaporwave') {
+                root.style.setProperty('--cyan', '#ff71ce');
+                root.style.setProperty('--magenta', '#01cdfe');
+                root.style.setProperty('--dark-violet', '#2b1c40');
+            }
+            document.getElementById('theme-options').style.display = 'none';
+        }
+    </script>
+</body>
+</html>        <section class="content-section">
             <div class="content-card hero hero-two-column">
                 <div class="hero-left">
                     <div class="profile-picture">
