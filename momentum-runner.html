@@ -1,40 +1,158 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mr Heppard's Drive Time</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&amp;display=swap" rel="stylesheet">
+  <style>
+    body { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Orbitron', sans-serif; overflow: hidden; }
+    html, body, #game-wrapper { height: 100%; width: 100%; }
+    #game-wrapper {
+      background: linear-gradient(180deg, #0a0015 0%, #1a0033 50%, #0d001a 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;
+    }
+    #game-wrapper::before {
+      content: ''; position: absolute; width: 200%; height: 200%;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.03) 2px, rgba(0, 255, 255, 0.03) 4px),
+                  repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 0, 255, 0.03) 2px, rgba(255, 0, 255, 0.03) 4px);
+      pointer-events: none; animation: gridScroll 20s linear infinite;
+    }
+    @keyframes gridScroll { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 50px); } }
+    #menu-screen, #game-over-screen { text-align: center; z-index: 10; max-width: 90%; }
+    #game-over-screen { display: none; }
+    #game-title {
+      font-size: 64px; font-weight: 900; color: #00FFFF;
+      text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 30px #00FFFF, 0 0 40px #FF00FF, 2px 2px 0px #FF00FF;
+      margin-bottom: 20px; animation: neonPulse 2s ease-in-out infinite; letter-spacing: 4px; text-transform: uppercase;
+    }
+    @keyframes neonPulse {
+      0%, 100% { text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 30px #00FFFF, 0 0 40px #FF00FF; }
+      50% { text-shadow: 0 0 20px #00FFFF, 0 0 30px #00FFFF, 0 0 40px #00FFFF, 0 0 60px #FF00FF; }
+    }
+    #instructions {
+      font-size: 24px; color: #00FFFF; background: rgba(10, 0, 30, 0.8); border: 2px solid #FF00FF;
+      padding: 20px 40px; margin-bottom: 30px; box-shadow: 0 0 20px rgba(255, 0, 255, 0.5); letter-spacing: 2px;
+    }
+    .mode-select, #vehicle-select { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
+    .mode-button, #start-button, #restart-button {
+      font-family: 'Orbitron', sans-serif; text-transform: uppercase; cursor: pointer; transition: all 0.3s;
+    }
+    .mode-button {
+      font-size: 20px; font-weight: 600; color: #00FFFF; background: rgba(10, 0, 30, 0.8);
+      border: 3px solid #00FFFF; padding: 15px 30px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    }
+    .mode-button:hover, .mode-button.selected { background: linear-gradient(90deg, #00FFFF, #FF00FF); color: #000; border-color: #FF00FF; }
+    #start-button, #restart-button {
+      font-size: 32px; font-weight: 600; color: #000; background: linear-gradient(90deg, #00FFFF, #FF00FF);
+      border: 3px solid #00FFFF; padding: 20px 60px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+    }
+    #start-button:hover, #restart-button:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0, 255, 255, 0.9); }
+    #game-canvas { display: none; border: 4px solid #00FFFF; box-shadow: 0 0 30px rgba(0, 255, 255, 0.6); }
+    #score-display, #level-display, #combo-display, #nitro-display {
+      position: absolute; background: rgba(10, 0, 30, 0.9); padding: 15px 30px; display: none; z-index: 5;
+    }
+    #score-display { top: 30px; left: 30px; font-size: 28px; color: #00FFFF; border: 2px solid #00FFFF; }
+    #level-display { top: 30px; right: 30px; font-size: 24px; color: #FF00FF; border: 2px solid #FF00FF; }
+    #combo-display { top: 110px; right: 30px; font-size: 32px; color: #FFFF00; border: 2px solid #FFFF00; }
+    #nitro-display { bottom: 30px; left: 50%; transform: translateX(-50%); font-size: 20px; color: #FF00FF; border: 2px solid #FF00FF; }
+    #nitro-bar { width: 200px; height: 10px; background: #333; margin-top: 5px; }
+    #nitro-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #FF00FF, #00FFFF); transition: width 0.1s; }
+    .vehicle-card {
+      background: rgba(10, 0, 30, 0.8); border: 2px solid #00FFFF; padding: 15px; cursor: pointer; min-width: 120px; text-align: center;
+    }
+    .vehicle-card.selected { border-color: #FFFF00; background: rgba(0, 255, 255, 0.2); }
+    .vehicle-name { font-size: 16px; color: #00FFFF; font-weight: 600; }
+    .vehicle-stats { font-size: 12px; color: #FF00FF; }
+  </style>
+ </head>
+ <body>
+  <div id="game-wrapper">
+   <div id="menu-screen">
+    <h1 id="game-title">Mr Heppard's Drive Time</h1>
+    <div id="instructions">Arrow Keys: Move | Space: Nitro Boost</div>
+    <div class="mode-select">
+      <button class="mode-button selected" data-mode="normal">Classic Mode</button>
+      <button class="mode-button" data-mode="endless">Endless Mode</button>
+    </div>
+    <div id="vehicle-select">
+     <div class="vehicle-card selected" data-vehicle="standard">
+      <div class="vehicle-name">🚗 Standard</div><div class="vehicle-stats">Speed: ⭐⭐⭐</div>
+     </div>
+     <div class="vehicle-card" data-vehicle="sport">
+      <div class="vehicle-name">🏎️ Sport</div><div class="vehicle-stats">Speed: ⭐⭐⭐⭐</div>
+     </div>
+    </div>
+    <button id="start-button">Start Racing</button>
+   </div>
 
-<head>
+   <div id="score-display">Score: <span id="score">0</span></div>
+   <div id="level-display">Level <span id="level">1</span></div>
+   <div id="nitro-display">NITRO <div id="nitro-bar"><div id="nitro-fill"></div></div></div>
+   
+   <canvas id="game-canvas" width="800" height="600"></canvas>
 
-    <meta charset="UTF-8">
+   <div id="game-over-screen">
+    <h1 style="color:#FF00FF; font-size: 72px;">GAME OVER</h1>
+    <div style="font-size: 36px; color: #00FFFF; margin-bottom: 20px;">Score: <span id="final-score-value">0</span></div>
+    <button id="restart-button">Race Again</button>
+   </div>
+  </div>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    // 1. Mock the missing SDKs so the code doesn't crash
+    window.elementSdk = window.elementSdk || { init: () => {}, setConfig: () => {} };
+    window.dataSdk = window.dataSdk || { init: async () => ({isOk: true}), create: async () => ({isOk: true}) };
 
-    <title>CyberSolutionsOhio | Apps Dashboard</title>
+    // Game Variables
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+    let gameState = 'menu'; // menu, playing, gameover
+    let score = 0;
+    let level = 1;
+    let nitro = 100;
+    let gameLoopId;
+    let speed = 5;
+    
+    // Player
+    const player = { x: 375, y: 500, width: 50, height: 80, color: '#00FFFF', emoji: '🚗' };
+    const keys = { ArrowLeft: false, ArrowRight: false, " ": false };
 
-    <meta name="description" content="Interactive tools and games dashboard.">
+    // Elements
+    const ui = {
+      menu: document.getElementById('menu-screen'),
+      gameover: document.getElementById('game-over-screen'),
+      canvas: document.getElementById('game-canvas'),
+      score: document.getElementById('score-display'),
+      scoreVal: document.getElementById('score'),
+      level: document.getElementById('level-display'),
+      nitro: document.getElementById('nitro-display'),
+      nitroFill: document.getElementById('nitro-fill'),
+      finalScore: document.getElementById('final-score-value')
+    };
 
-    <link rel="stylesheet" href="css/style.css">
+    // Input Handling
+    document.addEventListener('keydown', e => keys[e.key] = true);
+    document.addEventListener('keyup', e => keys[e.key] = false);
 
-    <style>
+    // Menu Interactions
+    document.querySelectorAll('.mode-button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.mode-button').forEach(btn => btn.classList.remove('selected'));
+            b.classList.add('selected');
+        });
+    });
+    document.querySelectorAll('.vehicle-card').forEach(c => {
+        c.addEventListener('click', () => {
+            document.querySelectorAll('.vehicle-card').forEach(card => card.classList.remove('selected'));
+            c.classList.add('selected');
+            player.emoji = c.querySelector('.vehicle-name').innerText.split(' ')[0];
+        });
+    });
 
-        /* FIX: Ensure visited links stay Cyan/White so titles don't disappear */
-
-        a, a:visited {
-
-            color: inherit;
-
-            text-decoration: none;
-
-        }
-
-        .feature-item h3 {
-
-            color: var(--cyan, #00f5d4); /* Force Cyan color */
-
-        }
-
-    </style>
-
-</head>
+    document.getElementById('start-button').addEventListener('click', startGame);
+    document.getElementById('restart-button').addEventListener('click', () => {
+        ui.gameover.style.display = 'none';</head>
 
 <body>
 
