@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberSolutionsOhio | Home</title>
-    <meta name="description" content="CyberSolutionsOhio, led by Chris Heppard, provides agile web development, cybersecurity, and cloud solutions for humans.">
+    <meta name="description" content="CyberSolutionsOhio provides web development and security solutions in Cincinnati.">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -22,12 +22,12 @@
                 <li><a href="games.html">Games</a></li>
                 <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
-                <li style="position: relative;">
+                <li class="theme-menu-container">
                     <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
-                    <div id="theme-options" class="theme-popup" style="display: none; position: absolute; top: 100%; left: 0; background: #000; border: 1px solid var(--cyan); z-index: 1000;">
-                        <button onclick="setTheme('default')" style="display: block; width: 100%; color: var(--cyan); background: none; border: none; padding: 10px; cursor: pointer;">Cyberpunk</button>
-                        <button onclick="setTheme('matrix')" style="display: block; width: 100%; color: var(--cyan); background: none; border: none; padding: 10px; cursor: pointer;">Matrix</button>
-                        <button onclick="setTheme('vaporwave')" style="display: block; width: 100%; color: var(--cyan); background: none; border: none; padding: 10px; cursor: pointer;">Vaporwave</button>
+                    <div id="theme-options" class="theme-popup">
+                        <button onclick="setTheme('default')">Cyberpunk</button>
+                        <button onclick="setTheme('matrix')">Matrix</button>
+                        <button onclick="setTheme('sunset')">Sunset</button>
                     </div>
                 </li>
             </ul>
@@ -35,6 +35,51 @@
     </header>
 
     <main>
+        <section class="content-section">
+            <div class="content-card hero hero-two-column">
+                <div class="hero-left">
+                    <div class="profile-picture">
+                        <img src="img/profile.jpg" alt="Founder of CyberSolutionsOhio.">
+                    </div>
+                </div>
+                <div class="hero-right">
+                    <h1>CyberSolutions for a Modern Ohio</h1>
+                    <p>Chris Heppard is a visionary Full-Stack Developer based in **Cincinnati, Ohio**. He founded CyberSolutions to bridge the gap between 3D design and enterprise security.</p>
+                    <a href="apps.html" class="cta-button">View Software Suite</a>
+                </div>
+            </div>
+        </section>
+
+        </main>
+
+    <script src="js/main.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/filter.js"></script>
+
+    <script>
+        // Inline logic to fix the THEMES toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeBtn = document.getElementById('theme-menu-trigger');
+            const themePopup = document.getElementById('theme-options');
+
+            if (themeBtn && themePopup) {
+                themeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    themePopup.style.display = (themePopup.style.display === 'block') ? 'none' : 'block';
+                });
+
+                // Close if user clicks outside
+                window.addEventListener('click', (e) => {
+                    if (e.target !== themeBtn && !themePopup.contains(e.target)) {
+                        themePopup.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>    <main>
         <section class="content-section">
             <div class="content-card hero hero-two-column">
                 <div class="hero-left">
