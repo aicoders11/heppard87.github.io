@@ -1414,3 +1414,99 @@ footer {
     border-top: 1px solid #00ffff; /* Neon cyan border */
     background: rgba(0, 0, 0, 0.8);
 }
+/* --- Footer Layout Container --- */
+.site-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 5%;
+    background: rgba(0, 0, 0, 0.95);
+    border-top: 2px solid #00ffff;
+    position: relative;
+    width: 100%;
+    margin-top: 50px;
+}
+
+/* Equal width columns for perfect centering */
+.footer-left, .footer-center, .footer-right {
+    flex: 1;
+    display: flex;
+}
+
+.footer-left { justify-content: flex-start; }
+.footer-center { justify-content: center; }
+.footer-right { justify-content: flex-end; }
+
+/* --- Cyber Button Styling --- */
+.cyber-btn {
+    background: transparent;
+    color: #00ffff;
+    border: 1px solid #00ffff;
+    padding: 12px 24px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+    outline: none;
+}
+
+.cyber-btn:hover {
+    background: #00ffff;
+    color: #000;
+    box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+    transform: translateY(-2px);
+}
+
+/* --- Theme Popup Menu Styling --- */
+.theme-menu-container {
+    position: relative;
+}
+
+.theme-popup {
+    display: none; /* Controlled by your JS */
+    position: absolute;
+    bottom: 60px; /* Sits above the button */
+    left: 0;
+    background: #000;
+    border: 1px solid #00ffff;
+    padding: 10px;
+    min-width: 150px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    z-index: 100;
+}
+
+.theme-popup button {
+    display: block;
+    width: 100%;
+    background: none;
+    border: none;
+    color: #00ffff;
+    padding: 8px;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.theme-popup button:hover {
+    background: rgba(0, 255, 255, 0.1);
+}
+
+/* --- Chatbot Widget Fix --- */
+.chat-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: #00ffff;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00ffff;
+}
