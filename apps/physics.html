@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chris Heppard's Physics Lab v3 (Interactive)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <style>
+        body { margin: 0; background: #000; color: #0ff; font-family: monospace; overflow: hidden; }
+        #ui-layer { position: absolute; top: 10px; left: 10px; pointer-events: none; }
+        .btn { border: 1px solid #0ff; background: rgba(0,255,255,0.1); padding: 5px 10px; margin-bottom: 5px; width: 220px; cursor: pointer; pointer-events: auto; font-size: 12px; }
+        #crate-btn { border-color: #4af; color: #4af; }
+        #ball-btn { border-color: #f0f; color: #f0f; }
+        #cone-btn { border-color: #ff0; color: #ff0; }
+        #grav-btn { border-color: #0f0; color: #0f0; }
+        #clear-btn { border-color: #f00; color: #f00; }
+        #stats { position: absolute; top: 10px; right: 10px; text-align: right; font-weight: bold; }
+        #loading { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            border: 1px solid #0ff; padding: 20px; background: #000; z-index: 10;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading">SYSTEM INITIALIZING...</div>
+
+<div id="ui-layer">
+    <div class="btn" id="crate-btn">[■] HEAVY CRATE<br>MASS: 10 | DRAG: HIGH</div>
+    <div class="btn" id="ball-btn">[●] SUPER BALL<br>MASS: 1 | BOUNCE: 110%</div>
+    <div class="btn" id="cone-btn">[▲] ZERO-G CONE<br>MASS: 2 | GRAVITY: INVERTED</div>
+    <div class="btn" id="grav-btn">[G] TOGGLE GRAVITY<br>CURRENT: NORMAL</div>
+    <div class="btn" id="clear-btn">[X] CLEAR SECTOR</div>
+</div>
+
+<div id="stats">
+    <div style="color: #f00;">TIME: <span id="timer">60.0</span></div>
+    <div style="color: #0f0;">TARGETS: <span id="targets">0</span></div>
+</div>
+
+<script>
+    // --- Engine Setup ---
+    const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint, Events } = Matter;
+    const engine = Engine.create();
+    const world = engine.world;
+
+    // --- Renderer ---
+    const render = Render.create({
+        element: document.body,
+        engine: engine,
+        options: { width: window.innerWidth, height: window.innerHeight, wireframes: false, background: '#000' }
+    });
+
+    Render.run(render);
+    const runner = Runner.create();
+    Runner.run(runner, engine);
+
+    // --- Boundaries ---
+    const ground = Bodies.rectangle(window.innerWidth/2, window.innerHeight + 30, window.innerWidth, 60, { isStatic: true });
+    const wallL = Bodies.rectangle(-30, window.innerHeight/2, 60, window.innerHeight, { isStatic: true });
+    const wallR = Bodies.rectangle(window.innerWidth + 30, window.innerHeight/2, 60, window.innerHeight, { isStatic: true });
+    const ceiling = Bodies.rectangle(window.innerWidth/2, -30, window.innerWidth, 60, { isStatic: true });
+    Composite.add(world, [ground, wallL, wallR, ceiling]);
+
+    // --- CLICK AND DRAG INTERACTION ---
+    const mouse = Mouse.create(render.canvas);
+    const mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: { stiffness: 0.2, render: { visible: false } }
+    });
+    Composite.add(world, mouseConstraint);
+    render.mouse = mouse; // Keeps mouse sync'd with renderer
+
+    // --- Gravity Controls ---
+    let isZeroG = false;
+    document.getElementById('grav-btn').onclick = () => {
+        isZeroG = !isZeroG;
+        engine.gravity.y = isZeroG ? 0 : 1;
+        document.getElementById('grav-btn').innerHTML = `[G] TOGGLE GRAVITY<br>CURRENT: ${isZeroG ? 'ZERO-G' : 'NORMAL'}`;
+    };
+
+    // --- Object Spawning ---
+    document.getElementById('crate-btn').onclick = () => {
+        const crate = Bodies.rectangle(window.innerWidth/2, 150, 60, 60, { 
+            mass: 10, frictionAir: 0.1, render: { fillStyle: '#4af' } 
+        });
+        Composite.add(world, crate);
+    };
+
+    document.getElementById('ball-btn').onclick = () => {
+        const ball = Bodies.circle(window.innerWidth/2, 150, 25, { 
+            mass: 1, restitution: 1.1, render: { fillStyle: '#f0f' } 
+        });
+        Composite.add(world, ball);
+    };
+
+    document.getElementById('cone-btn').onclick = () => {
+        const cone = Bodies.trapezoid(window.innerWidth/2, 150, 50, 60, 1, { 
+            mass: 2, render: { fillStyle: '#ff0' } 
+        });
+        // Special logic for inverted gravity on this specific object
+        Events.on(engine, 'beforeUpdate', () => {
+            cone.force.y = -0.005 * cone.mass; 
+        });
+        Composite.add(world, cone);
+    };
+
+    document.getElementById('clear-btn').onclick = () => {
+        Composite.clear(world, false);
+        Composite.add(world, [ground, wallL, wallR, ceiling, mouseConstraint]);
+    };
+
+    // --- Timer & UI ---
+    let timeLeft = 60.0;
+    setInterval(() => {
+        if(timeLeft > 0) {
+            timeLeft -= 0.1;
+            document.getElementById('timer').innerText = timeLeft.toFixed(1);
+        }
+    }, 100);
+
+    window.onload = () => {
+        setTimeout(() => document.getElementById('loading').style.display = 'none', 800);
+    };
+</script>
+</body>
+</html>
