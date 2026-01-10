@@ -24,7 +24,33 @@
         <h2 style="letter-spacing:10px;">NEURAL_LINK_ESTABLISHING</h2>
         <div id="load-status">Injecting Core Logic...</div>
     </div>
+createScene().then(() => {
+    engine.runRenderLoop(() => {
+        if (gameActive && scene && player) {
+            const dt = engine.getDeltaTime() / 1000;
+            const speed = (350 + (sector * 50)) * dt;
+            
+            player.position.z += speed;
+            distance -= speed; // Distance counts down from 5000
 
+            // Trigger Boss ONLY when distance reaches 0
+            if (distance <= 0 && !isBossActive) {
+                isBossActive = true;
+                distance = 0; 
+                bossMesh.setEnabled(true);
+                document.getElementById("boss-ui").style.display = "block";
+                document.getElementById("boss-warning").style.display = "inline";
+                document.getElementById("mission-name").innerText = "FINAL SECTOR: GUARDIAN";
+            }
+
+            // Update HUD
+            document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
+            document.getElementById("score").innerText = Math.floor(score += dt * 5);
+            
+            scene.render();
+        }
+    });
+});
     <div id="hud">
         <div>SYNC_RATE: <span id="score">0</span>%<br>HULL: <span id="shield-val">NOMINAL</span></div>
         <div style="text-align: center;"><span id="mission-name">SECTOR 1: THE RIM</span><br><span id="boss-warning" style="color:red; display:none;">!!! ANOMALY DETECTED !!!</span></div>
