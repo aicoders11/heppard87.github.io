@@ -56,82 +56,86 @@ const engine = new BABYLON.Engine(canvas, true);
 let scene, player, camera, gameActive = false;
 let score = 0, distance = 5000, kills = 0, sector = 1;
 let inputMap = {}, enemyPool = [], laserPool = [], stars = [];
-let canFire = true, isBossActive = false, bossHP = 100, bossMesh;
-let weaponType = 1; // 1: Pulse, 2: Spread, 3: Singularity Beam
+let planets = [], pickups = [], activePowerup = null;
+let weaponType = 1; // 1: Pulse, 2: Spread, 3: Thunder Beam
 
-// --- 1. NEURAL LINK AUDIO ENGINE ---
+// --- 1. NEURAL LINK AUDIO ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSFX(freq, type = 'square', duration = 0.1, slide = true) {
+function playSFX(freq, type = 'square', duration = 0.1) {
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = type; osc.connect(gain); gain.connect(audioCtx.destination);
     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    if(slide) osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
+    osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
     gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
     osc.start(); osc.stop(audioCtx.currentTime + duration);
 }
 
-// --- 2. STORY & WINGMAN SYSTEM ---
+// --- 2. STORY & WINGMAN INTERCEPTS ---
 function triggerStory(dist) {
     const msg = document.getElementById("game-msg");
-    const mission = document.getElementById("mission-name");
-    
-    if (dist < 4500 && dist > 4480) {
-        msg.innerText = ">> WINGMAN: 'Neural link confirmed. I'm moving to your flank.'";
-        playSFX(800, 'sine', 0.4, false);
+    if (dist < 4800 && dist > 4750) {
+        msg.innerText = ">> WINGMAN: 'Panda-1, I'm joining the formation. Watch for supply crates!'";
+        playSFX(600, 'sine', 0.4);
     }
-    if (dist < 3000 && dist > 2980) {
-        msg.innerText = ">> WINGMAN: 'Scouts detected! Switch to SPREAD SHOT [Key: 2]!'";
-        playSFX(800, 'sine', 0.4, false);
-    }
-    if (dist < 1000 && dist > 980) {
-        msg.style.color = "#f00";
-        msg.innerText = ">> GUARDIAN: 'ANOMALY DETECTED. PREPARE FOR PURGE.'";
-        playSFX(100, 'sawtooth', 1.0);
+    if (dist < 2500 && dist > 2450) {
+        msg.innerText = ">> WINGMAN: 'Heavy resistance ahead. Sector 2 Spire is coming into range.'";
+        playSFX(600, 'sine', 0.4);
     }
 }
 
 const createScene = async () => {
     scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(0, 0, 0.05, 1);
+    scene.clearColor = new BABYLON.Color4(0, 0, 0.02, 1);
     camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 60, -250), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
     new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.8;
 
-    // Warp Speed Background (Long Trails)
+    // Warp Background
     for (let i = 0; i < 300; i++) {
-        const star = BABYLON.MeshBuilder.CreateBox("star", { width: 0.5, height: 0.5, depth: 80 }, scene);
-        star.position.set((Math.random()-0.5)*2000, (Math.random()-0.5)*1500, Math.random()*8000);
+        const star = BABYLON.MeshBuilder.CreateBox("star", { width: 0.5, height: 0.5, depth: 100 }, scene);
+        star.position.set((Math.random()-0.5)*3000, (Math.random()-0.5)*2000, Math.random()*10000);
         const sMat = new BABYLON.StandardMaterial("sm", scene);
-        sMat.emissiveColor = new BABYLON.Color3(0.4, 0.6, 1);
+        sMat.emissiveColor = new BABYLON.Color3(0.5, 0.7, 1);
         star.material = sMat;
         stars.push(star);
     }
 
-    // Weapons (Multi-Type)
-    const lBox = BABYLON.MeshBuilder.CreateBox("lb", {width:2, height:2, depth:60}, scene);
-    lBox.setEnabled(false);
-    for(let i=0; i<60; i++) {
-        const l = lBox.createInstance("l"+i); l.setEnabled(false);
-        laserPool.push({ mesh: l, active: false, vx: 0 });
+    const manager = new BABYLON.AssetsManager(scene);
+
+    // --- 3. LOADING ALL NEW ASSETS ---
+    // Planets (Background Progression)
+    for (let i = 1; i <= 11; i++) {
+        const pTask = manager.addMeshTask("planet"+i, "", "./", `Planet_${i}.gltf`);
+        pTask.onSuccess = (t) => {
+            const p = t.loadedMeshes[0]; p.setEnabled(false);
+            p.scaling.setAll(400); planets.push(p);
+        };
     }
 
-    // --- 3. ASSET LOADING (STRICTLY PRESERVED) ---
-    const manager = new BABYLON.AssetsManager(scene);
-    const pTask = manager.addMeshTask("p", "", "./", "Spaceship_RaeTheRedPanda.gltf");
-    pTask.onSuccess = (t) => { player = t.loadedMeshes[0]; player.scaling.setAll(12); };
+    // Pickups (Power-up System)
+    const items = ["Thunder", "Health", "KeyCard", "Crate"];
+    items.forEach(type => {
+        const iTask = manager.addMeshTask(type, "", "./", `Pickup_${type}.gltf`);
+        iTask.onSuccess = (t) => {
+            t.loadedMeshes[0].setEnabled(false);
+            pickups.push({ mesh: t.loadedMeshes[0], type: type, active: false });
+        };
+    });
+
+    // Original Models (STRICTLY PRESERVED)
+    const panda = manager.addMeshTask("panda", "", "./", "Spaceship_RaeTheRedPanda.gltf");
+    panda.onSuccess = (t) => { player = t.loadedMeshes[0]; player.scaling.setAll(12); };
     
-    const eTask = manager.addMeshTask("e", "", "./", "Spaceship_BarbaraTheBee.gltf");
-    eTask.onSuccess = (t) => {
+    const bee = manager.addMeshTask("bee", "", "./", "Spaceship_BarbaraTheBee.gltf");
+    bee.onSuccess = (t) => {
         t.loadedMeshes[0].setEnabled(false);
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 20; i++) {
             const e = t.loadedMeshes[0].clone("e"+i);
             e.setEnabled(false); e.scaling.setAll(10);
-            enemyPool.push({ mesh: e, active: false, phase: Math.random() * Math.PI });
+            enemyPool.push({ mesh: e, active: false });
         }
-        bossMesh = t.loadedMeshes[0].clone("boss");
-        bossMesh.setEnabled(false); bossMesh.scaling.setAll(80);
     };
 
     manager.onFinish = () => {
@@ -142,63 +146,24 @@ const createScene = async () => {
     return scene;
 };
 
-const fireLaser = () => {
-    if (!gameActive || !canFire) return;
-    const spawn = (vx, offX) => {
-        const l = laserPool.find(lp => !lp.active);
-        if(l) {
-            l.active = true; l.mesh.setEnabled(true);
-            l.mesh.position.set(player.position.x + offX, player.position.y, player.position.z + 20);
-            l.vx = vx;
-        }
-    };
-
-    if (weaponType === 1) { // Pulse
-        spawn(0, 0); playSFX(400);
-    } else if (weaponType === 2) { // Spread
-        spawn(-15, -10); spawn(0, 0); spawn(15, 10); playSFX(300);
-    } else { // Singularity Beam
-        spawn(0, 0); playSFX(600, 'sawtooth', 0.05, false);
-    }
-    
-    canFire = false; 
-    setTimeout(() => canFire = true, weaponType === 3 ? 50 : 180);
-};
-
+// --- 4. GAMEPLAY LOGIC ---
 window.startGame = () => {
     document.getElementById("overlay").style.display = "none";
     gameActive = true;
     audioCtx.resume();
-    setInterval(() => { if(gameActive && !isBossActive) spawnEnemy(); }, 1000);
+    setInterval(() => { if(gameActive) spawnEnemy(); }, 1000);
 };
 
-const spawnEnemy = () => {
-    const e = enemyPool.find(ep => !ep.active);
-    if (e) {
-        e.active = true; e.mesh.setEnabled(true);
-        e.mesh.position.set((Math.random()-0.5)*1200, 400, player.position.z + 2500);
+const fireLaser = () => {
+    if (!gameActive || !canFire) return;
+    const l = laserPool.find(lp => !lp.active);
+    if (l) {
+        l.active = true; l.mesh.setEnabled(true);
+        l.mesh.position.copyFrom(player.position);
+        playSFX(weaponType === 3 ? 600 : 400);
+        canFire = false; setTimeout(() => canFire = true, weaponType === 3 ? 800 : 150);
     }
 };
-
-// --- 4. CONTROLS (ARROWS + WASD + WEAPONS) ---
-window.addEventListener("keydown", (e) => { 
-    const key = e.key.toLowerCase();
-    if (key === "arrowup" || key === "w") inputMap["up"] = true;
-    if (key === "arrowdown" || key === "s") inputMap["down"] = true;
-    if (key === "arrowleft" || key === "a") inputMap["left"] = true;
-    if (key === "arrowright" || key === "d") inputMap["right"] = true;
-    if (e.code === "Space") fireLaser();
-    if (key === "1") weaponType = 1;
-    if (key === "2") weaponType = 2;
-    if (key === "3") weaponType = 3;
-});
-window.addEventListener("keyup", (e) => {
-    const key = e.key.toLowerCase();
-    if (key === "arrowup" || key === "w") inputMap["up"] = false;
-    if (key === "arrowdown" || key === "s") inputMap["down"] = false;
-    if (key === "arrowleft" || key === "a") inputMap["left"] = false;
-    if (key === "arrowright" || key === "d") inputMap["right"] = false;
-});
 
 createScene().then(() => {
     engine.runRenderLoop(() => {
@@ -210,48 +175,20 @@ createScene().then(() => {
 
             // Warp Speed Effect
             stars.forEach(s => {
-                s.position.z -= 2000 * dt;
-                if(s.position.z < player.position.z - 500) s.position.z = player.position.z + 8000;
+                s.position.z -= 3000 * dt;
+                if(s.position.z < player.position.z - 500) s.position.z = player.position.z + 9000;
             });
 
-            // Movement Logic
-            const m = 750 * dt;
-            if (inputMap["up"]) player.position.y += m;
-            if (inputMap["down"]) player.position.y -= m;
-            if (inputMap["left"]) { player.position.x -= m; player.rotation.z = 0.3; }
-            else if (inputMap["right"]) { player.position.x += m; player.rotation.z = -0.3; }
-            else { player.rotation.z = 0; }
+            // Modern Galaga Controls (WASD + Arrows)
+            const m = 800 * dt;
+            if (inputMap["w"] || inputMap["ArrowUp"]) player.position.y += m;
+            if (inputMap["s"] || inputMap["ArrowDown"]) player.position.y -= m;
+            if (inputMap["a"] || inputMap["ArrowLeft"]) player.position.x -= m;
+            if (inputMap["d"] || inputMap["ArrowRight"]) player.position.x += m;
 
-            camera.position.set(player.position.x * 0.15, player.position.y + 70, player.position.z - 280);
-            camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
-
-            // Enemy Modern AI (Swooping Squadrons)
-            enemyPool.forEach(e => {
-                if (e.active) {
-                    e.mesh.position.z -= 800 * dt;
-                    e.mesh.position.x += Math.sin(Date.now() * 0.004 + e.phase) * 8;
-                    e.mesh.position.y += Math.cos(Date.now() * 0.002) * 2;
-                    
-                    if (l = laserPool.find(lp => lp.active && lp.mesh.intersectsMesh(e.mesh))) {
-                        e.active = false; e.mesh.setEnabled(false);
-                        l.active = false; l.mesh.setEnabled(false);
-                        score += 100; kills++; playSFX(150, 'sawtooth');
-                    }
-                    if (e.mesh.position.z < player.position.z - 300) { e.active = false; e.mesh.setEnabled(false); }
-                }
-            });
-
-            laserPool.forEach(l => {
-                if (l.active) {
-                    l.mesh.position.z += 3000 * dt;
-                    l.mesh.position.x += l.vx * dt * 50;
-                    if (l.mesh.position.z > player.position.z + 4000) { l.active = false; l.mesh.setEnabled(false); }
-                }
-            });
-
-            document.getElementById("score-val").innerText = score;
+            // Update HUD
+            document.getElementById("score-val").innerText = Math.floor(player.position.z / 10);
             document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
-            document.getElementById("kill-val").innerText = kills;
         }
         scene.render();
     });
