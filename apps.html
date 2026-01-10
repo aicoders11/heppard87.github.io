@@ -6,7 +6,7 @@
     <title>CyberSolutionsOhio | Ultimate Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Cyberpunk Grid Layout Fix */
+        /* Definitive Cyberpunk UI Fix */
         body { 
             background-color: #020205; 
             color: #e0e0e0; 
@@ -17,18 +17,27 @@
             background-size: 50px 50px;
         }
 
-        .dashboard-content { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        .dashboard-content { 
+            padding: 2rem; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+        }
 
-        .section-divider { border-bottom: 1px solid #333; margin: 3rem 0 1.5rem 0; padding-bottom: 0.5rem; }
+        .section-divider { 
+            border-bottom: 1px solid #333; 
+            margin: 4rem 0 1.5rem 0; 
+            padding-bottom: 0.5rem; 
+        }
+
         .section-divider h2 { 
-            font-family: 'Fredoka One', sans-serif; 
+            font-family: 'Orbitron', sans-serif; 
             color: #ff00f5; 
             text-transform: uppercase; 
             font-size: 1.2rem;
             letter-spacing: 3px;
         }
 
-        /* Fixed Side-by-Side Grid */
+        /* Side-by-Side Grid System */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
@@ -57,19 +66,36 @@
         .feature-item h3 { 
             color: #00f5d4; 
             margin: 0 0 0.8rem 0; 
-            font-family: 'Fredoka One', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             font-size: 1.1rem;
             text-transform: uppercase;
         }
 
-        .feature-item p { color: #999; font-size: 0.9rem; line-height: 1.6; margin-bottom: 2rem; flex-grow: 1; }
-
-        .read-more-btn { 
-            color: #00f5d4; font-family: monospace; font-weight: bold; font-size: 0.8rem; text-align: center;
-            border: 1px solid #00f5d4; padding: 6px 20px; align-self: flex-end;
+        .feature-item p { 
+            color: #999; 
+            font-size: 0.9rem; 
+            line-height: 1.6; 
+            margin-bottom: 2rem; 
+            flex-grow: 1; 
         }
 
-        /* Fixed Footer */
+        .read-more-btn { 
+            color: #00f5d4; 
+            font-family: monospace; 
+            font-weight: bold; 
+            font-size: 0.8rem; 
+            text-align: center;
+            border: 1px solid #00f5d4; 
+            padding: 6px 20px; 
+            align-self: flex-end;
+            transition: 0.3s;
+        }
+
+        .feature-item:hover .read-more-btn {
+            background: rgba(0, 245, 212, 0.1);
+        }
+
+        /* Fixed Footer Layout */
         .credits-footer { 
             text-align: center; 
             padding: 60px 20px; 
@@ -77,11 +103,30 @@
             border-top: 1px solid #111;
             margin-top: 80px;
             width: 100%;
+            box-sizing: border-box;
         }
 
-        .credits-text { font-family: monospace; font-size: 0.75rem; color: #555; letter-spacing: 3px; text-transform: uppercase; margin: 0 0 10px 0; }
-        .credits-name { color: #00f5d4; font-weight: bold; text-shadow: 0 0 10px rgba(0, 245, 212, 0.3); }
-        .copyright-text { font-family: monospace; font-size: 0.65rem; color: #333; }
+        .credits-text { 
+            font-family: monospace; 
+            font-size: 0.75rem; 
+            color: #555; 
+            letter-spacing: 3px; 
+            text-transform: uppercase; 
+            margin: 0 0 10px 0; 
+        }
+
+        .credits-name { 
+            color: #00f5d4; 
+            font-weight: bold; 
+            text-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
+        }
+
+        .copyright-text { 
+            font-family: monospace; 
+            font-size: 0.65rem; 
+            color: #333; 
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -99,51 +144,72 @@
     <main class="dashboard-main">
         <section class="dashboard-content">
             
+            <!-- ACTION PROTOCOLS -->
             <div class="section-divider"><h2>Action Protocols</h2></div>
             <div class="features-grid">
                 <a href="momentum-runner.html" class="feature-item">
-                    <h3>MOMENTUM RUNNER</h3><p>Avoid the firewall. Maintain high velocity.</p><span class="read-more-btn">PLAY</span>
+                    <h3>MOMENTUM RUNNER</h3><p>Avoid the firewall. Maintain terminal velocity.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="Rhythm Runner.html" class="feature-item">
-                    <h3>RHYTHM RUNNER</h3><p>Sync tactical data maneuvers to the beat.</p><span class="read-more-btn">PLAY</span>
+                    <h3>RHYTHM RUNNER</h3><p>Synchronize tactical maneuvers with the audio beat.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="TrippyRun.html" class="feature-item">
-                    <h3>TRIPPY RUN</h3><p>High-speed psychedelic visual data runner.</p><span class="read-more-btn">PLAY</span>
+                    <h3>TRIPPY RUN</h3><p>High-speed psychedelic visual data traversal.</p><span class="read-more-btn">PLAY</span>
+                </a>
+                <a href="3d-pong.html" class="feature-item">
+                    <h3>3D PONG</h3><p>Enhanced spatial arcade combat simulator.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="Cosmic Billiards.html" class="feature-item">
-                    <h3>COSMIC BILLIARDS</h3><p>Deep space physics simulator arcade.</p><span class="read-more-btn">PLAY</span>
+                    <h3>COSMIC BILLIARDS</h3><p>Physics-based deep space arcade simulation.</p><span class="read-more-btn">PLAY</span>
+                </a>
+                <a href="asteroid-field.html" class="feature-item">
+                    <h3>ASTEROID FIELD</h3><p>Navigate debris fields in hostile space.</p><span class="read-more-btn">EXPLORE</span>
                 </a>
             </div>
 
+            <!-- CREATIVE SIMULATIONS -->
             <div class="section-divider"><h2>Creative Simulations</h2></div>
             <div class="features-grid">
                 <a href="3D Voxel Painter Ultra.html" class="feature-item">
-                    <h3>VOXEL PAINTER</h3><p>Build 3D cyber-worlds in voxel space.</p><span class="read-more-btn">LAUNCH</span>
+                    <h3>VOXEL PAINTER</h3><p>Precision 3D construction suite for cyber-worlds.</p><span class="read-more-btn">LAUNCH</span>
                 </a>
                 <a href="3D DNA Visualizer.html" class="feature-item">
-                    <h3>DNA VISUALIZER</h3><p>Interactive biomedical helix mapping.</p><span class="read-more-btn">VIEW</span>
+                    <h3>DNA VISUALIZER</h3><p>Interactive biomedical data mapping engine.</p><span class="read-more-btn">VIEW</span>
                 </a>
                 <a href="3D Molecule Viewer.html" class="feature-item">
                     <h3>MOLECULE VIEWER</h3><p>Real-time molecular structure simulation.</p><span class="read-more-btn">VIEW</span>
                 </a>
                 <a href="Virtual Room Planner.html" class="feature-item">
-                    <h3>ROOM PLANNER</h3><p>Virtual architectural layout and design.</p><span class="read-more-btn">LAUNCH</span>
+                    <h3>ROOM PLANNER</h3><p>Virtual architectural layout and design suite.</p><span class="read-more-btn">LAUNCH</span>
+                </a>
+                <a href="Digital Zen Garden.html" class="feature-item">
+                    <h3>ZEN GARDEN</h3><p>Procedural relaxation and pattern meditation.</p><span class="read-more-btn">ENTER</span>
+                </a>
+                <a href="Interactive Solar System.html" class="feature-item">
+                    <h3>SOLAR SYSTEM</h3><p>Interactive 3D celestial body mapping.</p><span class="read-more-btn">LAUNCH</span>
                 </a>
             </div>
 
+            <!-- LOGICAL SYSTEMS -->
             <div class="section-divider"><h2>Logical Systems</h2></div>
             <div class="features-grid">
                 <a href="3D Chess.html" class="feature-item">
-                    <h3>3D CHESS</h3><p>Advanced logic simulator v4.2.</p><span class="read-more-btn">PLAY</span>
+                    <h3>3D CHESS</h3><p>Advanced tactical logic simulator v4.2.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="3D Solitaire.html" class="feature-item">
-                    <h3>3D SOLITAIRE</h3><p>Classic card logic in immersive space.</p><span class="read-more-btn">DEAL</span>
+                    <h3>3D SOLITAIRE</h3><p>Classic logic expanded into immersive space.</p><span class="read-more-btn">DEAL</span>
                 </a>
                 <a href="memory-game.html" class="feature-item">
-                    <h3>MEMORY GAME</h3><p>Neural pattern recall test.</p><span class="read-more-btn">PLAY</span>
+                    <h3>MEMORY GAME</h3><p>Neural pattern recall and efficiency testing.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="3D Data Visualizer.html" class="feature-item">
-                    <h3>DATA VISUALIZER</h3><p>Real-time analytics engine.</p><span class="read-more-btn">RUN</span>
+                    <h3>DATA VISUALIZER</h3><p>Real-time data stream analytics engine.</p><span class="read-more-btn">RUN</span>
+                </a>
+                <a href="Cyber Dreams.html" class="feature-item">
+                    <h3>CYBER DREAMS</h3><p>Atmospheric neural network simulation.</p><span class="read-more-btn">DREAM</span>
+                </a>
+                <a href="world-clock.html" class="feature-item">
+                    <h3>WORLD CLOCK</h3><p>Global temporal synchronization grid.</p><span class="read-more-btn">VIEW</span>
                 </a>
             </div>
 
