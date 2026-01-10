@@ -4,214 +4,187 @@
     <meta charset="UTF-8">
     <title>Project Chimera: Titan Breach</title>
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
-    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&display=swap');
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=JetBrains+Mono&display=swap');
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Orbitron'; }
         #renderCanvas { width: 100%; height: 100%; outline: none; }
-        #hud { position: absolute; top: 20px; width: 100%; color: #0ff; display: flex; justify-content: space-around; pointer-events: none; z-index: 10; text-shadow: 0 0 10px #0ff; }
-        #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; color: white; }
-        .btn { padding: 15px 40px; border: 2px solid #0ff; color: #0ff; background: transparent; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
-        .btn:hover { background: #0ff; color: #000; }
-        #powerup-ui { color: #f0f; font-weight: bold; display: none; }
+        
+        /* Narrative UI */
+        #comms-window {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            width: 500px; background: rgba(0, 20, 40, 0.85); border: 2px solid #0ff;
+            padding: 15px; display: none; color: #0ff; font-family: 'JetBrains Mono';
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3); z-index: 50;
+        }
+        #comms-portrait { float: left; width: 60px; height: 60px; background: #044; border: 1px solid #0ff; margin-right: 15px; }
+        
+        #hud { position: absolute; top: 20px; width: 100%; color: #0ff; display: flex; justify-content: space-around; font-family: 'JetBrains Mono'; }
+        #weapon-ui { position: absolute; top: 100px; right: 20px; color: #0f0; text-align: right; font-size: 0.8rem; }
+        .active-w { color: #fff; text-shadow: 0 0 10px #0f0; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="hud">
-        <div>KILLS: <span id="kill-val">0</span></div>
-        <div id="powerup-ui">TRIPLE SHOT ACTIVE!</div>
-        <div>DIST: <span id="dist-val">5000</span>m</div>
+        <div>CORE_SYNC: <span id="score-val">0</span>%</div>
+        <div id="mission-status" style="color:#f0f;">STATUS: INFILTRATING</div>
+        <div>WARP_DRIVE: <span id="warp-val">1.0</span>x</div>
     </div>
-    <div id="overlay">
-        <h1 style="letter-spacing:10px;">TITAN BREACH</h1>
-        <p>SYNTH_AUDIO & FRACTURE_FX LOADED</p>
-        <button class="btn" onclick="startGame()">INITIATE</button>
+
+    <div id="comms-window">
+        <div id="comms-portrait"></div>
+        <div style="font-size: 0.7rem; color: #aaa;">INCOMING TRANSMISSION: WINGMAN_01</div>
+        <div id="comms-text" style="margin-top: 5px;">STAY IN FORMATION, CHIMERA. WE'RE HITTING THE CORE.</div>
     </div>
+
+    <div id="weapon-ui">
+        SELECT_SYSTEM [1-3]<br><br>
+        <div id="w1" class="active-w">PULSE_CANNON</div>
+        <div id="w2">SPREAD_WAVE</div>
+        <div id="w3">SINGULARITY_RAIL</div>
+    </div>
+
     <canvas id="renderCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
-let scene, player, gameActive = false, isTripleShot = false;
-let enemyPool = [], laserPool = [], debrisPool = [];
-let kills = 0, distance = 5000, inputMap = {};
+let scene, player, wingman, warpStars = [], weaponType = 1;
+let score = 0, gameActive = false, warpSpeed = 1500;
+let enemyPool = [], laserPool = [], inputMap = {};
 
-// --- SYNTHETIC SOUND ENGINE ---
+// Synthetic Audio
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSound(type) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain); gain.connect(audioCtx.destination);
-
-    if (type === 'laser') {
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-    } else if (type === 'hit') {
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-        osc.frequency.linearRampToValueAtTime(10, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
-    }
+function playSFX(f, type='square') {
+    const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+    o.type = type; o.connect(g); g.connect(audioCtx.destination);
+    o.frequency.setValueAtTime(f, audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + 0.1);
+    g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    o.start(); o.stop(audioCtx.currentTime + 0.1);
 }
 
-const createScene = async () => {
+const createScene = () => {
     scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(0, 0, 0.02, 1);
-    const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 60, -200), scene);
+    const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 50, -200), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
-    new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
 
-    // Modern Glow
-    const pipeline = new BABYLON.DefaultRenderingPipeline("default", true, scene, [camera]);
-    pipeline.bloomEnabled = true; pipeline.bloomWeight = 0.5;
+    // --- Warp Stars ---
+    for(let i=0; i<300; i++) {
+        const s = BABYLON.MeshBuilder.CreateBox("s", {width:0.4, height:0.4, depth:80}, scene);
+        s.position.set((Math.random()-0.5)*1200, (Math.random()-0.5)*1000, Math.random()*5000);
+        const m = new BABYLON.StandardMaterial("sm", scene);
+        m.emissiveColor = new BABYLON.Color3(0.4, 0.6, 1);
+        s.material = m;
+        warpStars.push(s);
+    }
 
-    // Player Mesh (Simple Geometric Titan)
-    player = BABYLON.MeshBuilder.CreateCylinder("p", {diameterTop:0, diameterBottom:20, height:30}, scene);
-    player.rotation.x = Math.PI / 2;
-    const pMat = new BABYLON.StandardMaterial("pm", scene);
-    pMat.emissiveColor = new BABYLON.Color3(0, 0.5, 1);
-    player.material = pMat;
+    // Player & Wingman
+    player = BABYLON.MeshBuilder.CreateBox("p", {size:12}, scene);
+    player.material = new BABYLON.StandardMaterial("pm", scene);
+    player.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
 
-    // Pool Enemies
+    wingman = BABYLON.MeshBuilder.CreateBox("w", {size:8}, scene);
+    wingman.position.set(-60, 0, 50);
+    wingman.material = new BABYLON.StandardMaterial("wm", scene);
+    wingman.material.emissiveColor = new BABYLON.Color3(1, 0.5, 0);
+
+    // Enemy & Laser Pooling
     for(let i=0; i<30; i++) {
         const e = BABYLON.MeshBuilder.CreatePolyhedron("e", {type:1, size:10}, scene);
         e.setEnabled(false);
-        enemyPool.push({ mesh: e, active: false, phase: Math.random() * Math.PI });
+        enemyPool.push({ mesh: e, active: false });
     }
-
-    // Pool Lasers
     for(let i=0; i<50; i++) {
-        const l = BABYLON.MeshBuilder.CreateBox("l", {size:2, depth:15}, scene);
-        l.material = new BABYLON.StandardMaterial("lm", scene);
-        l.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
+        const l = BABYLON.MeshBuilder.CreateBox("l", {width:1, height:1, depth:30}, scene);
         l.setEnabled(false);
-        laserPool.push({ mesh: l, active: false, vel: new BABYLON.Vector3(0,0,0) });
-    }
-
-    // Pool Debris (The "Melt" effect)
-    for(let i=0; i<60; i++) {
-        const d = BABYLON.MeshBuilder.CreateBox("d", {size:1.5}, scene);
-        d.setEnabled(false);
-        debrisPool.push({ mesh: d, active: false, vel: new BABYLON.Vector3(0,0,0) });
+        l.material = new BABYLON.StandardMaterial("lm", scene);
+        l.material.emissiveColor = new BABYLON.Color3(1, 1, 0);
+        laserPool.push({ mesh: l, active: false, vx: 0 });
     }
 
     return scene;
 };
 
-const spawnLaser = (pos, direction = 0) => {
-    const l = laserPool.find(lp => !lp.active);
-    if (l) {
-        l.active = true; l.mesh.setEnabled(true);
-        l.mesh.position.copyFrom(pos);
-        l.vel.set(direction, 0, 2000);
-        playSound('laser');
-    }
+const showComms = (text, duration = 3000) => {
+    const box = document.getElementById("comms-window");
+    document.getElementById("comms-text").innerText = text;
+    box.style.display = "block";
+    setTimeout(() => box.style.display = "none", duration);
 };
 
-const triggerMelt = (pos) => {
-    let shards = 0;
-    debrisPool.forEach(d => {
-        if (!d.active && shards < 6) {
-            d.active = true; d.mesh.setEnabled(true);
-            d.mesh.position.copyFrom(pos);
-            d.vel.set((Math.random()-0.5)*15, (Math.random()-0.5)*15, -10);
-            shards++;
-        }
-    });
-    playSound('hit');
-};
-
-const spawnWave = () => {
-    const center = (Math.random()-0.5)*400;
-    for(let i=0; i<5; i++) {
-        const e = enemyPool.find(ep => !ep.active);
-        if(e) {
-            e.active = true; e.mesh.setEnabled(true);
-            // V-Formation logic
-            e.mesh.position.set(center + (i-2)*60, Math.abs(i-2)*30, player.position.z + 2000);
-        }
-    }
-};
-
-window.startGame = () => {
-    document.getElementById("overlay").style.display = "none";
-    gameActive = true;
-    setInterval(() => { if(gameActive) spawnWave(); }, 2000);
-};
-
-window.addEventListener("keydown", (e) => inputMap[e.key.toLowerCase()] = true);
-window.addEventListener("keyup", (e) => inputMap[e.key.toLowerCase()] = false);
-window.addEventListener("keypress", (e) => {
+window.addEventListener("keydown", (e) => {
+    inputMap[e.key.toLowerCase()] = true;
     if(e.code === "Space") {
-        if(isTripleShot) {
-            spawnLaser(player.position, -15);
-            spawnLaser(player.position, 0);
-            spawnLaser(player.position, 15);
-        } else {
-            spawnLaser(player.position, 0);
+        const l = laserPool.find(lp => !lp.active);
+        if(l) {
+            l.active = true; l.mesh.setEnabled(true);
+            l.mesh.position.copyFrom(player.position);
+            l.vx = weaponType === 2 ? (Math.random()-0.5)*10 : 0;
+            playSFX(weaponType === 3 ? 800 : 400);
         }
+    }
+    if(["1","2","3"].includes(e.key)) {
+        weaponType = parseInt(e.key);
+        document.querySelectorAll("#weapon-ui div").forEach((el, i) => el.className = (i+1 === weaponType ? "active-w" : ""));
     }
 });
+window.addEventListener("keyup", (e) => inputMap[e.key.toLowerCase()] = false);
 
 createScene().then(() => {
+    showComms("SYSTEM_CHECK... ENEMY SQUADRONS DETECTED. ENGAGE.");
+    
     engine.runRenderLoop(() => {
-        if (!gameActive) return;
         const dt = engine.getDeltaTime() / 1000;
-        
-        // Player Movement
-        player.position.z += 400 * dt;
-        distance -= 400 * dt;
-        let targetRotZ = 0;
-        if(inputMap["a"]) { player.position.x -= 400 * dt; targetRotZ = 0.4; }
-        if(inputMap["d"]) { player.position.x += 400 * dt; targetRotZ = -0.4; }
-        player.rotation.z = BABYLON.Scalar.Lerp(player.rotation.z, targetRotZ, 0.1);
 
-        // Update Lasers
+        // Warp Animation
+        warpStars.forEach(s => {
+            s.position.z -= warpSpeed * dt;
+            if(s.position.z < -200) s.position.z = 5000;
+        });
+
+        // Wingman "Floating" AI
+        wingman.position.x = player.position.x - 60 + Math.sin(Date.now() * 0.002) * 10;
+        wingman.position.y = player.position.y + Math.cos(Date.now() * 0.002) * 10;
+
+        // Movement
+        if(inputMap["a"]) player.position.x -= 500 * dt;
+        if(inputMap["d"]) player.position.x += 500 * dt;
+
+        // Lasers
         laserPool.forEach(l => {
             if(l.active) {
-                l.mesh.position.x += l.vel.x * dt * 10;
-                l.mesh.position.z += l.vel.z * dt;
-                if(l.mesh.position.z > player.position.z + 2500) { l.active = false; l.mesh.setEnabled(false); }
+                l.mesh.position.z += (weaponType === 3 ? 5000 : 2000) * dt;
+                l.mesh.position.x += l.vx;
+                if(l.mesh.position.z > 3000) { l.active = false; l.mesh.setEnabled(false); }
             }
         });
 
-        // Update Enemies & Collision
+        // Story Triggers
+        score += dt * 5;
+        if(Math.floor(score) === 50) { showComms("THEY'RE JAMMING OUR RADAR! SWITCH TO SPREAD WAVE (2)"); warpSpeed = 3000; }
+        if(Math.floor(score) === 150) { showComms("TITAN BREACH IMMINENT. GO TO MAX WARP!"); warpSpeed = 6000; }
+
+        // Enemy Logic
         enemyPool.forEach(e => {
+            if(!e.active && Math.random() < 0.03) {
+                e.active = true; e.mesh.setEnabled(true);
+                e.mesh.position.set((Math.random()-0.5)*800, (Math.random()-0.5)*500, 3000);
+            }
             if(e.active) {
-                // Modern Galaga Snake Movement
-                e.mesh.position.y += Math.sin(player.position.z * 0.01 + e.phase) * 1;
-                
+                e.mesh.position.z -= 800 * dt;
                 laserPool.forEach(l => {
                     if(l.active && l.mesh.intersectsMesh(e.mesh)) {
-                        triggerMelt(e.mesh.position);
                         e.active = false; e.mesh.setEnabled(false);
                         l.active = false; l.mesh.setEnabled(false);
-                        kills++;
-                        if(kills === 10) { isTripleShot = true; document.getElementById("powerup-ui").style.display = "block"; }
+                        playSFX(100, 'sawtooth');
                     }
                 });
-                if(e.mesh.position.z < player.position.z - 100) { e.active = false; e.mesh.setEnabled(false); }
+                if(e.mesh.position.z < -200) { e.active = false; e.mesh.setEnabled(false); }
             }
         });
 
-        // Update Debris (Melt)
-        debrisPool.forEach(d => {
-            if(d.active) {
-                d.mesh.position.addInPlace(d.vel);
-                d.vel.scaleInPlace(0.98); // Drag
-                if(d.mesh.position.z < player.position.z - 50) { d.active = false; d.mesh.setEnabled(false); }
-            }
-        });
-
-        document.getElementById("kill-val").innerText = kills;
-        document.getElementById("dist-val").innerText = Math.floor(distance);
+        document.getElementById("score-val").innerText = Math.floor(score);
+        document.getElementById("warp-val").innerText = (warpSpeed/1500).toFixed(1);
         scene.render();
     });
 });
