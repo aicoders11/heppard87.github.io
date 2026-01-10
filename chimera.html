@@ -9,29 +9,45 @@
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=JetBrains+Mono:wght@400;700&display=swap');
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; }
         #renderCanvas { width: 100%; height: 100%; touch-action: none; outline: none; }
-        #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; transition: opacity 0.5s; }
-        #hud { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; z-index: 100; color: #0ff; pointer-events: none; display: flex; justify-content: space-between; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
-        .btn { margin-top: 20px; padding: 15px 40px; border: 2px solid #0ff; color: #0ff; background: transparent; cursor: pointer; font-family: 'Orbitron'; font-weight: bold; }
-        .btn:hover { background: #0ff; color: #000; }
+        #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 20px; transition: opacity 0.5s; }
+        #hud { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; z-index: 100; color: #0ff; pointer-events: none; display: flex; justify-content: space-between; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; text-shadow: 2px 2px #000; }
+        .lore-box { max-width: 600px; color: #888; font-size: 0.85rem; margin: 20px; line-height: 1.6; border: 1px solid #333; padding: 20px; background: rgba(10,10,25,0.8); box-shadow: 0 0 20px rgba(0,255,255,0.1); }
+        .btn { margin-top: 10px; padding: 15px 50px; border: 2px solid #0ff; color: #0ff; background: transparent; cursor: pointer; font-family: 'Orbitron'; font-weight: bold; letter-spacing: 2px; }
+        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
         #loading-screen { position: absolute; inset: 0; background: #000; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #0ff; }
+        .boss-bar-container { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 60%; height: 10px; border: 1px solid #f00; display: none; }
+        #boss-hp { width: 100%; height: 100%; background: #f00; transition: width 0.2s; }
     </style>
 </head>
 <body>
     <div id="loading-screen">
-        <h2>CALIBRATING NEURAL LINK...</h2>
-        <div id="load-status">Initializing Systems...</div>
+        <h2 style="letter-spacing:10px;">NEURAL_LINK_ESTABLISHING</h2>
+        <div id="load-status">Injecting Core Logic...</div>
     </div>
 
     <div id="hud">
         <div>SYNC_RATE: <span id="score">0</span>%<br>HULL: <span id="shield-val">NOMINAL</span></div>
-        <div style="text-align: center;">SECTOR: <span id="mission-name">THE RIM</span></div>
+        <div style="text-align: center;"><span id="mission-name">SECTOR 1: THE RIM</span><br><span id="boss-warning" style="color:red; display:none;">!!! ANOMALY DETECTED !!!</span></div>
         <div style="text-align: right;">THREATS: <span id="kill-val">0</span><br>DIST: <span id="dist-val">5000</span>m</div>
     </div>
 
     <div id="overlay" style="display:none">
-        <h1>PROJECT CHIMERA</h1>
-        <p id="game-msg">Neural Link Ready</p>
-        <button class="btn" onclick="startGame()">INITIATE BREACH</button>
+        <h1 style="color:#0ff; letter-spacing:15px; margin:0;">PROJECT CHIMERA</h1>
+        <p style="color:#f0f; letter-spacing:4px; font-size:0.7rem;">SINGULARITY BREACH • V25.0 TITAN OPTIMIZED</p>
+        
+        <div class="lore-box">
+            [SYSTEM LOG: ZERO ALLOCATION ENGAGED]<br>
+            Memory stutters purged. Logic loops optimized.<br>
+            The Dreadnought is at 100% capacity. Reach the Singularity Core.<br><br>
+            <b>CONTROLS: [WASD] TO FLY • [SPACE] TO FIRE WEAPONS</b>
+        </div>
+
+        <button class="btn" id="start-btn" onclick="startGame()">INITIATE BREACH</button>
+    </div>
+
+    <div class="boss-bar-container" id="boss-ui">
+        <div id="boss-hp"></div>
+        <p style="color:#f00; font-size:10px; margin:5px 0; text-align:center;">SINGULARITY_GUARDIAN_HEALTH</p>
     </div>
 
     <canvas id="renderCanvas"></canvas>
@@ -42,11 +58,8 @@
         let scene, player, camera, gameActive = false;
         let score = 0, distance = 5000, kills = 0, sector = 1;
 
-        let inputMap = {};
-        let enemyPool = [];
-        let laserPool = [];
-        let stars = [];
-        let canFire = true;
+        let inputMap = {}, enemyPool = [], laserPool = [], stars = [];
+        let canFire = true, isBossActive = false, bossHP = 100, bossMesh;
 
         const createScene = async () => {
             scene = new BABYLON.Scene(engine);
@@ -59,54 +72,45 @@
             scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
                 inputMap[evt.sourceEvent.key.toLowerCase()] = true;
-                inputMap[evt.sourceEvent.code.toLowerCase()] = true;
                 if (evt.sourceEvent.code === "Space") fireLaser();
             }));
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, (evt) => {
                 inputMap[evt.sourceEvent.key.toLowerCase()] = false;
-                inputMap[evt.sourceEvent.code.toLowerCase()] = false;
             }));
 
-            // --- Starfield ---
-            for (let i = 0; i < 400; i++) {
-                const star = BABYLON.MeshBuilder.CreateBox("star", { size: 2 }, scene);
-                star.position.set((Math.random()-0.5)*4000, (Math.random()-0.5)*3000, Math.random()*8000);
+            // Starfield
+            for (let i = 0; i < 500; i++) {
+                const star = BABYLON.MeshBuilder.CreateBox("star", { size: 1.5 }, scene);
+                star.position.set((Math.random()-0.5)*5000, (Math.random()-0.5)*3000, Math.random()*10000);
                 const sm = new BABYLON.StandardMaterial("sm", scene);
                 sm.emissiveColor = new BABYLON.Color3(1, 1, 1);
                 star.material = sm;
-                star.freezeWorldMatrix();
                 stars.push(star);
             }
 
             const manager = new BABYLON.AssetsManager(scene);
+            const pTask = manager.addMeshTask("p", "", "./", "Spaceship_RaeTheRedPanda.gltf");
+            pTask.onSuccess = (t) => { player = t.loadedMeshes[0]; player.scaling.setAll(12); };
 
-            const playerTask = manager.addMeshTask("playerTask", "", "./", "Spaceship_RaeTheRedPanda.gltf");
-            playerTask.onSuccess = (task) => {
-                player = task.loadedMeshes[0];
-                player.scaling = new BABYLON.Vector3(12, 12, 12);
-            };
-
-            const enemyTask = manager.addMeshTask("enemyTask", "", "./", "Spaceship_BarbaraTheBee.gltf");
-            enemyTask.onSuccess = (task) => {
-                const masterEnemy = task.loadedMeshes[0];
-                masterEnemy.setEnabled(false);
-                for (let i = 0; i < 15; i++) {
-                    const enemy = masterEnemy.clone("enemy_" + i);
-                    enemy.setEnabled(false);
-                    enemy.scaling = new BABYLON.Vector3(10, 10, 10);
-                    enemyPool.push({ mesh: enemy, active: false });
+            const eTask = manager.addMeshTask("e", "", "./", "Spaceship_BarbaraTheBee.gltf");
+            eTask.onSuccess = (t) => {
+                t.loadedMeshes[0].setEnabled(false);
+                for (let i = 0; i < 20; i++) {
+                    const e = t.loadedMeshes[0].clone("e"+i);
+                    e.setEnabled(false); e.scaling.setAll(10);
+                    enemyPool.push({ mesh: e, active: false });
                 }
+                // Use same model for Boss but much bigger
+                bossMesh = t.loadedMeshes[0].clone("boss");
+                bossMesh.setEnabled(false); bossMesh.scaling.setAll(80);
             };
 
-            // Laser Setup
-            const laserMat = new BABYLON.StandardMaterial("lMat", scene);
-            laserMat.emissiveColor = new BABYLON.Color3(1, 0, 1);
-            const laserModel = BABYLON.MeshBuilder.CreateBox("l", {width: 2, height: 2, depth: 40}, scene);
-            laserModel.material = laserMat;
-            laserModel.setEnabled(false);
-            for(let i=0; i<20; i++) {
-                const l = laserModel.createInstance("l"+i);
-                l.setEnabled(false);
+            const lMat = new BABYLON.StandardMaterial("lm", scene);
+            lMat.emissiveColor = new BABYLON.Color3(1, 0, 1);
+            const lBox = BABYLON.MeshBuilder.CreateBox("lb", {width:2, height:2, depth:60}, scene);
+            lBox.material = lMat; lBox.setEnabled(false);
+            for(let i=0; i<30; i++) {
+                const l = lBox.createInstance("l"+i); l.setEnabled(false);
                 laserPool.push({ mesh: l, active: false });
             }
 
@@ -114,7 +118,6 @@
                 document.getElementById("loading-screen").style.display = "none";
                 document.getElementById("overlay").style.display = "flex";
             };
-
             manager.load();
             return scene;
         };
@@ -123,86 +126,94 @@
             if (!gameActive || !canFire) return;
             const l = laserPool.find(lp => !lp.active);
             if (l) {
-                l.active = true;
-                l.mesh.setEnabled(true);
+                l.active = true; l.mesh.setEnabled(true);
                 l.mesh.position.copyFrom(player.position);
-                canFire = false;
-                setTimeout(() => canFire = true, 150);
+                canFire = false; setTimeout(() => canFire = true, 120);
             }
         };
 
         const spawnEnemy = () => {
-            const enemyObj = enemyPool.find(e => !e.active);
-            if (enemyObj) {
-                enemyObj.active = true;
-                enemyObj.mesh.setEnabled(true);
-                enemyObj.mesh.position.set((Math.random()-0.5)*800, (Math.random()-0.5)*500, player.position.z + 2500);
+            if (isBossActive) return;
+            const e = enemyPool.find(ep => !ep.active);
+            if (e) {
+                e.active = true; e.mesh.setEnabled(true);
+                e.mesh.position.set((Math.random()-0.5)*1000, (Math.random()-0.5)*600, player.position.z + 2500);
             }
         };
 
         window.startGame = () => {
             document.getElementById("overlay").style.display = "none";
             gameActive = true;
-            setInterval(() => { if(gameActive) spawnEnemy(); }, 1000 / sector);
+            setInterval(() => { if(gameActive) spawnEnemy(); }, 800);
         };
 
         createScene().then(() => {
             engine.runRenderLoop(() => {
                 if (gameActive && scene && player) {
                     const dt = engine.getDeltaTime() / 1000;
-                    const steerSpeed = 450 * dt;
+                    const speed = (350 + (sector * 50)) * dt;
+                    player.position.z += speed;
+                    camera.position.set(player.position.x * 0.3, player.position.y + 60, player.position.z - 250);
+                    camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
 
-                    player.position.z += 350 * dt;
-                    camera.position.z = player.position.z - 250;
-                    camera.position.x = player.position.x * 0.4;
+                    if (inputMap["w"]) player.position.y += 500 * dt;
+                    if (inputMap["s"]) player.position.y -= 500 * dt;
+                    if (inputMap["a"]) player.position.x -= 500 * dt;
+                    if (inputMap["d"]) player.position.x += 500 * dt;
 
-                    if (inputMap["w"] || inputMap["arrowup"]) player.position.y += steerSpeed;
-                    if (inputMap["s"] || inputMap["arrowdown"]) player.position.y -= steerSpeed;
-                    if (inputMap["a"] || inputMap["arrowleft"]) player.position.x -= steerSpeed;
-                    if (inputMap["d"] || inputMap["arrowright"]) player.position.x += steerSpeed;
+                    // Boss Logic
+                    if (distance <= 0 && !isBossActive) {
+                        isBossActive = true;
+                        bossMesh.setEnabled(true);
+                        document.getElementById("boss-ui").style.display = "block";
+                        document.getElementById("boss-warning").style.display = "inline";
+                    }
 
-                    // Lasers & Combat
+                    if (isBossActive) {
+                        bossMesh.position.set(Math.sin(score * 0.05) * 200, Math.cos(score * 0.05) * 100, player.position.z + 800);
+                        bossMesh.rotate(BABYLON.Axis.Y, 0.02);
+                    }
+
                     laserPool.forEach(l => {
                         if (l.active) {
-                            l.mesh.position.z += 1200 * dt;
+                            l.mesh.position.z += 2000 * dt;
+                            if (isBossActive && BABYLON.Vector3.Distance(l.mesh.position, bossMesh.position) < 100) {
+                                bossHP -= 2; l.active = false; l.mesh.setEnabled(false);
+                                document.getElementById("boss-hp").style.width = bossHP + "%";
+                                if (bossHP <= 0) {
+                                    gameActive = false;
+                                    document.getElementById("game-msg").innerText = "SINGULARITY NEUTRALIZED: VICTORY";
+                                    document.getElementById("overlay").style.display = "flex";
+                                }
+                            }
                             enemyPool.forEach(e => {
                                 if (e.active && BABYLON.Vector3.Distance(l.mesh.position, e.mesh.position) < 50) {
-                                    e.active = false; e.mesh.setEnabled(false);
-                                    l.active = false; l.mesh.setEnabled(false);
+                                    e.active = false; e.mesh.setEnabled(false); l.active = false; l.mesh.setEnabled(false);
                                     kills++; document.getElementById("kill-val").innerText = kills;
                                 }
                             });
-                            if (l.mesh.position.z > player.position.z + 2000) { l.active = false; l.mesh.setEnabled(false); }
+                            if (l.mesh.position.z > player.position.z + 3000) { l.active = false; l.mesh.setEnabled(false); }
                         }
                     });
 
-                    // Enemies & Sectors
                     enemyPool.forEach(e => {
                         if (e.active) {
-                            if (BABYLON.Vector3.Distance(player.position, e.mesh.position) < 40) {
-                                gameActive = false;
-                                document.getElementById("game-msg").innerText = "HULL BREACHED";
-                                document.getElementById("overlay").style.display = "flex";
-                                setTimeout(() => location.reload(), 2000);
-                            }
+                            if (BABYLON.Vector3.Distance(player.position, e.mesh.position) < 45) location.reload();
                             if (e.mesh.position.z < player.position.z - 200) { e.active = false; e.mesh.setEnabled(false); }
                         }
                     });
 
-                    stars.forEach(s => { if (s.position.z < player.position.z - 500) s.position.z += 8000; });
-
-                    score += dt * 10;
-                    distance -= 350 * dt;
-                    if (distance < 3000 && sector === 1) { sector = 2; document.getElementById("mission-name").innerText = "DATA SPIRE"; }
-                    if (distance < 1000 && sector === 2) { sector = 3; document.getElementById("mission-name").innerText = "SINGULARITY"; }
-
+                    stars.forEach(s => { if (s.position.z < player.position.z - 1000) s.position.z += 10000; });
+                    score += dt * 5; distance -= speed;
+                    if (distance < 3500 && sector === 1) { sector = 2; document.getElementById("mission-name").innerText = "SECTOR 2: DATA SPIRE"; }
+                    if (distance < 1500 && sector === 2) { sector = 3; document.getElementById("mission-name").innerText = "SECTOR 3: SINGULARITY"; }
+                    
                     document.getElementById("score").innerText = Math.floor(score);
                     document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
                 }
                 scene.render();
             });
         });
-
         window.addEventListener("resize", () => engine.resize());
     </script>
 </body>
