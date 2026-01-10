@@ -6,22 +6,28 @@
     <title>CyberSolutionsOhio | Ultimate Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Modern Cyberpunk Grid Layout */
+        /* Cyberpunk UI - Layout Fix */
         body { 
             background-color: #020205; 
             color: #e0e0e0; 
             font-family: 'Segoe UI', sans-serif; 
             margin: 0;
-            /* Restores the cyber grid background from your screenshot */
+            /* Cyber grid background */
             background-image: linear-gradient(rgba(0, 245, 212, 0.05) 1px, transparent 1px), 
                               linear-gradient(90deg, rgba(0, 245, 212, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-size: 50px 50px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
+
+        header { width: 100%; }
 
         .dashboard-content { 
             padding: 2rem; 
             max-width: 1400px; 
-            margin: 0 auto; 
+            margin: 0 auto;
+            flex: 1; /* Pushes footer down */
         }
 
         .section-divider { 
@@ -34,17 +40,26 @@
             font-family: 'Fredoka One', sans-serif; 
             color: #ff00f5; 
             text-transform: uppercase; 
-            font-size: 1.3rem;
-            letter-spacing: 4px;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            margin: 0;
         }
 
         /* FIXED: Side-by-Side Grid System */
         .features-grid {
             display: grid;
-            /* Forces cards to stay side-by-side; adjusts count based on width */
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-            gap: 20px;
+            /* This forces 3 columns on desktop, 2 on tablet, 1 on mobile */
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
             margin-bottom: 3rem;
+        }
+
+        /* Responsive Grid Overrides */
+        @media (max-width: 1100px) {
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 750px) {
+            .features-grid { grid-template-columns: 1fr; }
         }
 
         .feature-item { 
@@ -55,8 +70,9 @@
             border: 1px solid #1a1a1a; 
             text-decoration: none;
             padding: 1.8rem;
-            min-height: 200px;
+            min-height: 220px; /* Uniform card height */
             transition: all 0.3s ease;
+            box-sizing: border-box;
         }
 
         .feature-item:hover { 
@@ -67,7 +83,7 @@
 
         .feature-item h3 { 
             color: #00f5d4; 
-            margin: 0 0 1rem 0; 
+            margin: 0 0 0.8rem 0; 
             font-family: 'Fredoka One', sans-serif;
             font-size: 1.1rem;
             text-transform: uppercase;
@@ -76,30 +92,28 @@
         .feature-item p { 
             color: #999; 
             font-size: 0.9rem; 
-            line-height: 1.6;
-            margin-bottom: 2rem;
-            flex-grow: 1;
+            line-height: 1.6; 
+            margin-bottom: 1.5rem; 
+            flex-grow: 1; /* Pushes button to the bottom */
         }
 
-        /* Launch Button Styling */
         .read-more-btn { 
-            display: inline-block;
             color: #00f5d4; 
             font-family: monospace; 
             font-weight: bold; 
-            font-size: 0.8rem;
+            font-size: 0.8rem; 
             text-align: center;
-            border: 1px solid #00f5d4;
-            padding: 8px 20px;
-            align-self: flex-end;
-            transition: background 0.3s;
+            border: 1px solid #00f5d4; 
+            padding: 8px 20px; 
+            align-self: flex-end; /* Align to bottom right of card */
+            transition: 0.3s;
         }
 
-        .feature-item:hover .read-more-btn { 
-            background: rgba(0, 245, 212, 0.1); 
+        .feature-item:hover .read-more-btn {
+            background: rgba(0, 245, 212, 0.1);
         }
 
-        /* Credits Footer Fix */
+        /* Fixed Footer Fix */
         .credits-footer { 
             text-align: center; 
             padding: 60px 20px; 
@@ -107,9 +121,30 @@
             border-top: 1px solid #111;
             margin-top: 80px;
             width: 100%;
+            box-sizing: border-box;
         }
 
-        .credits-name { color: #00f5d4; font-weight: bold; }
+        .credits-text { 
+            font-family: monospace; 
+            font-size: 0.75rem; 
+            color: #555; 
+            letter-spacing: 3px; 
+            text-transform: uppercase; 
+            margin: 0 0 10px 0; 
+        }
+
+        .credits-name { 
+            color: #00f5d4; 
+            font-weight: bold; 
+            text-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
+        }
+
+        .copyright-text { 
+            font-family: monospace; 
+            font-size: 0.65rem; 
+            color: #333; 
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -127,60 +162,72 @@
     <main class="dashboard-main">
         <section class="dashboard-content">
             
+            <!-- ACTION PROTOCOLS -->
             <div class="section-divider"><h2>Action Protocols</h2></div>
             <div class="features-grid">
                 <a href="momentum-runner.html" class="feature-item">
-                    <h3>MOMENTUM RUNNER</h3>
-                    <p>Avoid the firewall. Maintain terminal velocity.</p>
-                    <span class="read-more-btn">PLAY</span>
+                    <h3>MOMENTUM RUNNER</h3><p>Avoid the firewall. Maintain terminal velocity.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="Rhythm Runner.html" class="feature-item">
-                    <h3>RHYTHM RUNNER</h3>
-                    <p>Synchronize tactical maneuvers with the audio beat.</p>
-                    <span class="read-more-btn">PLAY</span>
+                    <h3>RHYTHM RUNNER</h3><p>Synchronize tactical maneuvers with the audio beat.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="TrippyRun.html" class="feature-item">
-                    <h3>TRIPPY RUN</h3>
-                    <p>High-speed psychedelic visual data traversal.</p>
-                    <span class="read-more-btn">PLAY</span>
+                    <h3>TRIPPY RUN</h3><p>High-speed psychedelic visual data traversal.</p><span class="read-more-btn">PLAY</span>
+                </a>
+                <a href="3d-pong.html" class="feature-item">
+                    <h3>3D PONG</h3><p>Enhanced spatial arcade combat simulator.</p><span class="read-more-btn">PLAY</span>
+                </a>
+                <a href="Cosmic Billiards.html" class="feature-item">
+                    <h3>COSMIC BILLIARDS</h3><p>Physics-based deep space arcade simulation.</p><span class="read-more-btn">PLAY</span>
+                </a>
+                <a href="asteroid-field.html" class="feature-item">
+                    <h3>ASTEROID FIELD</h3><p>Navigate debris fields in hostile space.</p><span class="read-more-btn">EXPLORE</span>
                 </a>
             </div>
 
+            <!-- CREATIVE SIMULATIONS -->
             <div class="section-divider"><h2>Creative Simulations</h2></div>
             <div class="features-grid">
+                <a href="3D Voxel Painter Ultra.html" class="feature-item">
+                    <h3>VOXEL PAINTER</h3><p>Precision 3D construction suite for cyber-worlds.</p><span class="read-more-btn">LAUNCH</span>
+                </a>
                 <a href="3D DNA Visualizer.html" class="feature-item">
-                    <h3>DNA VISUALIZER</h3>
-                    <p>Interactive biomedical data mapping engine.</p>
-                    <span class="read-more-btn">VIEW</span>
+                    <h3>DNA VISUALIZER</h3><p>Interactive biomedical data mapping engine.</p><span class="read-more-btn">VIEW</span>
                 </a>
                 <a href="3D Molecule Viewer.html" class="feature-item">
-                    <h3>MOLECULE VIEWER</h3>
-                    <p>Real-time molecular structure simulation.</p>
-                    <span class="read-more-btn">VIEW</span>
+                    <h3>MOLECULE VIEWER</h3><p>Real-time molecular structure simulation.</p><span class="read-more-btn">VIEW</span>
                 </a>
                 <a href="Virtual Room Planner.html" class="feature-item">
-                    <h3>ROOM PLANNER</h3>
-                    <p>Virtual architectural layout and design suite.</p>
-                    <span class="read-more-btn">LAUNCH</span>
+                    <h3>ROOM PLANNER</h3><p>Virtual architectural layout and design suite.</p><span class="read-more-btn">LAUNCH</span>
+                </a>
+                <a href="Digital Zen Garden.html" class="feature-item">
+                    <h3>ZEN GARDEN</h3><p>Procedural relaxation and pattern meditation.</p><span class="read-more-btn">ENTER</span>
+                </a>
+                <a href="Interactive Solar System.html" class="feature-item">
+                    <h3>SOLAR SYSTEM</h3><p>Interactive 3D celestial body mapping.</p><span class="read-more-btn">LAUNCH</span>
                 </a>
             </div>
 
+            <!-- LOGICAL SYSTEMS -->
             <div class="section-divider"><h2>Logical Systems</h2></div>
             <div class="features-grid">
                 <a href="3D Chess.html" class="feature-item">
-                    <h3>3D CHESS</h3>
-                    <p>Advanced tactical logic simulator v4.2.</p>
-                    <span class="read-more-btn">PLAY</span>
+                    <h3>3D CHESS</h3><p>Advanced tactical logic simulator v4.2.</p><span class="read-more-btn">PLAY</span>
+                </a>
+                <a href="3D Solitaire.html" class="feature-item">
+                    <h3>3D SOLITAIRE</h3><p>Classic logic expanded into immersive space.</p><span class="read-more-btn">DEAL</span>
                 </a>
                 <a href="memory-game.html" class="feature-item">
-                    <h3>MEMORY GAME</h3>
-                    <p>Neural pattern recall and efficiency testing.</p>
-                    <span class="read-more-btn">PLAY</span>
+                    <h3>MEMORY GAME</h3><p>Neural pattern recall and efficiency testing.</p><span class="read-more-btn">PLAY</span>
                 </a>
                 <a href="3D Data Visualizer.html" class="feature-item">
-                    <h3>DATA VISUALIZER</h3>
-                    <p>Real-time data stream analytics engine.</p>
-                    <span class="read-more-btn">RUN</span>
+                    <h3>DATA VISUALIZER</h3><p>Real-time data stream analytics engine.</p><span class="read-more-btn">RUN</span>
+                </a>
+                <a href="Cyber Dreams.html" class="feature-item">
+                    <h3>CYBER DREAMS</h3><p>Atmospheric neural network simulation.</p><span class="read-more-btn">DREAM</span>
+                </a>
+                <a href="world-clock.html" class="feature-item">
+                    <h3>WORLD CLOCK</h3><p>Global temporal synchronization grid.</p><span class="read-more-btn">VIEW</span>
                 </a>
             </div>
 
@@ -188,10 +235,8 @@
     </main>
 
     <footer class="credits-footer">
-        <p style="font-family: monospace; font-size: 0.8rem; color: #444; letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase;">
-            A GAME DEVELOPED AND CODED BY <span class="credits-name">CHRIS HEPPARD</span>
-        </p>
-        <p style="font-family: monospace; font-size: 0.7rem; color: #444;">&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
+        <p class="credits-text">A GAME DEVELOPED AND CODED BY <span class="credits-name">CHRIS HEPPARD</span></p>
+        <p class="copyright-text">&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
     </footer>
 </body>
 </html>
