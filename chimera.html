@@ -17,8 +17,6 @@
         #loading-screen { position: absolute; inset: 0; background: #000; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #0ff; }
         .boss-bar-container { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 60%; height: 10px; border: 1px solid #f00; display: none; }
         #boss-hp { width: 100%; height: 100%; background: #f00; transition: width 0.2s; }
-        
-        /* Home Button Styling */
         #home-btn { position: absolute; top: 20px; left: 20px; z-index: 500; color: #0ff; text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; border: 1px solid #0ff; padding: 10px 20px; background: rgba(0, 0, 0, 0.5); transition: 0.3s; }
         #home-btn:hover { background: #0ff; color: #000; box-shadow: 0 0 15px #0ff; }
     </style>
@@ -81,7 +79,6 @@
                 inputMap[evt.sourceEvent.key.toLowerCase()] = false;
             }));
 
-            // Starfield
             for (let i = 0; i < 500; i++) {
                 const star = BABYLON.MeshBuilder.CreateBox("star", { size: 1.5 }, scene);
                 star.position.set((Math.random()-0.5)*5000, (Math.random()-0.5)*3000, Math.random()*10000);
@@ -180,10 +177,10 @@
                     camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
 
                     const moveSpeed = 500 * dt;
-                    if (inputMap["w"] || inputMap["arrowup"]) player.position.y += moveSpeed;
-                    if (inputMap["s"] || inputMap["arrowdown"]) player.position.y -= moveSpeed;
-                    if (inputMap["a"] || inputMap["arrowleft"]) player.position.x -= moveSpeed;
-                    if (inputMap["d"] || inputMap["arrowright"]) player.position.x += moveSpeed;
+                    if (inputMap["w"]) player.position.y += moveSpeed;
+                    if (inputMap["s"]) player.position.y -= moveSpeed;
+                    if (inputMap["a"]) player.position.x -= moveSpeed;
+                    if (inputMap["d"]) player.position.x += moveSpeed;
 
                     if (isBossActive) {
                         bossMesh.position.set(Math.sin(score * 0.05) * 200, Math.cos(score * 0.05) * 100, player.position.z + 800);
