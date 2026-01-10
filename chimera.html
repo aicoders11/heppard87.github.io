@@ -62,7 +62,6 @@
         const createScene = async () => {
             scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
-
             camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 60, -250), scene);
             camera.setTarget(BABYLON.Vector3.Zero());
             new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.8;
@@ -102,6 +101,7 @@
                 bossMesh.setEnabled(false); bossMesh.scaling.setAll(80);
             };
 
+            // Laser Setup
             const lMat = new BABYLON.StandardMaterial("lm", scene);
             lMat.emissiveColor = new BABYLON.Color3(1, 0, 1);
             const lBox = BABYLON.MeshBuilder.CreateBox("lb", {width:2, height:2, depth:60}, scene);
@@ -144,7 +144,7 @@
             setInterval(() => { if(gameActive && !isBossActive) spawnEnemy(); }, 1000 / sector);
         };
 
-        // Touch Controls
+        // Touch Steering
         let touchStartX = 0, touchStartY = 0;
         canvas.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
         canvas.addEventListener("touchmove", (e) => {
@@ -161,9 +161,9 @@
             engine.runRenderLoop(() => {
                 if (gameActive && scene && player) {
                     const dt = engine.getDeltaTime() / 1000;
-                    const currentSpeed = (350 + (sector * 50)) * dt;
-                    player.position.z += currentSpeed;
-                    distance -= currentSpeed;
+                    const speed = (350 + (sector * 50)) * dt;
+                    player.position.z += speed;
+                    distance -= speed;
 
                     if (distance <= 0 && !isBossActive) {
                         isBossActive = true;
