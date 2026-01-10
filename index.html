@@ -4,21 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CyberSolutionsOhio | Home</title>
-    <meta name="description" content="CyberSolutionsOhio provides web development and security solutions in Cincinnati.">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="flashlight-overlay"></div>
-
     <header>
         <nav>
             <a href="index.html" class="logo glitch-text" data-text="CyberSolutionsOhio">CyberSolutionsOhio</a>
-            
             <form class="search-form" action="https://www.google.com/search" method="get" target="_blank">
                 <input type="text" name="q" placeholder="Search the web...">
                 <button type="submit">Search</button>
             </form>
-
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About</a></li>
@@ -26,46 +22,25 @@
                 <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
                 <li><a href="hub.html" class="hub-link">[HUB_ACCESS]</a></li>
-                
-                <li class="theme-menu-container">
-                    <button id="theme-menu-trigger" class="nav-theme-btn">THEMES</button>
-                    <div id="theme-options" class="theme-popup">
-                        <button onclick="setTheme('default')">Cyberpunk</button>
-                        <button onclick="setTheme('matrix')">Matrix</button>
-                        <button onclick="setTheme('sunset')">Sunset</button>
-                    </div>
-                </li>
             </ul>
         </nav>
     </header>
 
     <main>
         <section class="content-section">
-            <div class="titan-wrapper" style="border: 2px solid var(--cyan); padding: 10px; background: #000; margin-top: 20px;">
-                <iframe 
-                    src="https://heppard87.github.io/chimera.html" 
-                    style="width: 100%; height: 500px; border: none;"
-                    title="Project Chimera Simulation">
-                </iframe>
-            </div>
-        </section>
-
-        <section class="content-section">
             <div class="content-card hero hero-two-column">
                 <div class="hero-left">
                     <div class="profile-picture">
-                        <img src="img/profile.jpg" alt="Chris Heppard, Founder of CyberSolutionsOhio" onerror="this.src='https://placehold.co/300x300/050510/00f5d4?text=CH'">
+                        <img src="img/profile.jpg" alt="Chris Heppard" onerror="this.src='https://placehold.co/300x300/050510/00f5d4?text=CH'">
                     </div>
                 </div>
                 <div class="hero-right">
                     <h1 class="glitch-text" data-text="CyberSolutions for a Modern Ohio">CyberSolutions for a Modern Ohio</h1>
-                    <p>Chris Heppard is a visionary Full-Stack Developer and Security Specialist based in Cincinnati, Ohio. He founded CyberSolutions to bridge the gap between 3D design and enterprise security.</p>
-                    
+                    <p>Chris Heppard bridges the gap between 3D design and enterprise security.</p>
                     <div class="system-status">
                         <span class="status-dot"></span>
-                        <span id="status-text">SYSTEM_INITIALIZED... READY_FOR_UPLINK</span>
+                        <span id="status-text">SYSTEM_INITIALIZED...</span>
                     </div>
-
                     <div class="hero-btns">
                         <a href="chimera-live.html" class="cta-button">LAUNCH TITAN BREACH [FULLSCREEN]</a>
                         <a href="apps.html" class="secondary-btn">View Software Suite</a>
@@ -73,9 +48,15 @@
                 </div>
             </div>
         </section>
+    </main>
 
-        <section class="content-section reveal">
-            <div class="page-header">
-                <h2>Regional Node: Cincinnati</h2>
-            </div>
-            <div class="content-
+    <script>
+        // Flashlight effect
+        const flashlight = document.getElementById('flashlight-overlay');
+        document.addEventListener('mousemove', (e) => {
+            flashlight.style.left = e.clientX + 'px';
+            flashlight.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>
