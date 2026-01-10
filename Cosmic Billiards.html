@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chris Heppard's Cosmic Billiards</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --glass-bg: rgba(5, 10, 20, 0.85);
+        }
+
+        body { margin: 0; overflow: hidden; background: #010105; font-family: 'Courier New', monospace; color: white; }
+
+        #ui-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+
+        .glass-panel {
+            pointer-events: auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Branding Header */
+        #header {
+            position: absolute; top: 30px; left: 30px; padding: 20px 30px;
+            border-left: 5px solid var(--neon-cyan);
+        }
+        #header h1 { margin: 0; font-size: 22px; letter-spacing: 3px; text-shadow: 0 0 15px var(--neon-cyan); }
+        #header p { margin: 5px 0 0 0; font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+
+        /* HUD */
+        #hud {
+            position: absolute; top: 30px; right: 30px; padding: 15px 25px;
+            text-align: right;
+        }
+        .stat-label { font-size: 10px; color: var(--neon-magenta); letter-spacing: 2px; }
+        .stat-value { font-size: 24px; font-weight: bold; text-shadow: 0 0 10px white; }
+
+        /* Interaction Tooltip */
+        #aim-ui {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            padding: 12px 25px; font-size: 12px; color: #aaa; text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #aim-ui span { color: var(--neon-cyan); font-weight: bold; }
+
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: var(--neon-cyan); font-size: 18px; letter-spacing: 5px;
+        }
+
+        canvas { display: block; }
+    </style>
+    <!-- Dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+</head>
+<body>
+
+    <div id="loading">ALIGNING PLANETARY ORBITS...</div>
+
+    <div id="ui-overlay">
+        <div id="header" class="glass-panel">
+            <h1>COSMIC BILLIARDS</h1>
+            <p>Astrophysical Engine v2.0</p>
+        </div>
+
+        <div id="hud" class="glass-panel">
+            <div class="stat-label">PLANETS SUNK</div>
+            <div id="score-val" class="stat-value">0 / 9</div>
+        </div>
+
+        <div id="aim-ui" class="glass-panel">
+            <span>DRAG BACK</span> FROM WHITE DWARF TO STRIKE &bull; <span>R-CLICK</span> TO VIEW SPACE
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG & PHYSICS ---
+        const BALL_RADIUS = 3;
+        const TABLE_W = 120, TABLE_H = 240;
+        const PLANETS = [
+            { name: 'Mercury', color: 0x888888 },
+            { name: 'Venus', color: 0xe3bb76 },
+            { name: 'Earth', color: 0x2233ff },
+            { name: 'Mars', color: 0xff3300 },
+            { name: 'Jupiter', color: 0xd39c7e },
+            { name: 'Saturn', color: 0xc5ab6e },
+            { name: 'Uranus', color: 0xbbe1e4 },
+            { name: 'Neptune', color: 0x6081ff },
+            { name: 'Pluto', color: 0x968370 }
+        ];
+
+        let world, scene, camera, renderer, clock;
+        let balls = [], ballMeshes = [];
+        let cueBall, cueMesh;
+        let isDragging = false, dragStart = new THREE.Vector3(), dragEnd = new THREE.Vector3();
+        let aimLine;
+        let score = 0;
+
+        init();
+
+        function init() {
+            // Physics
+            world = new CANNON.World();
+            world.gravity.set(0, -9.82, 0); // Slight downward force to keep balls on table
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x010105);
+            scene.fog = new THREE.FogExp2(0x010105, 0.002);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 220, 150);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Lights
+            scene.add(new THREE.AmbientLight(0x404040));
+            const light = new THREE.PointLight(0xffffff, 1.5, 1000);
+            light.position.set(0, 200, 0);
+            scene.add(light);
+
+            createTable();
+            createBalls();
+            createAimLine();
+
+            window.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener('resize', onResize);
+
+            document.getElementById('loading').style.display = 'none';
+            animate();
+        }
+
+        function createTable() {
+            // Table Floor
+            const tableGeo = new THREE.BoxGeometry(TABLE_W, 5, TABLE_H);
+            const tableMat = new THREE.MeshStandardMaterial({ 
+                color: 0x050515, 
+                roughness: 0.2, 
+                metalness: 0.8,
+                emissive: 0x00ffff,
+                emissiveIntensity: 0.05
+            });
+            const table = new THREE.Mesh(tableGeo, tableMat);
+            scene.add(table);
+
+            const floorBody = new CANNON.Body({ mass: 0 });
+            floorBody.addShape(new CANNON.Plane());
+            floorBody.quaternion.setFromAxisAngle(new CANNON.Vector3(1, 0, 0), -Math.PI/2);
+            floorBody.position.y = 0;
+            world.addBody(floorBody);
+
+            // Rails
+            const railMat = new THREE.MeshStandardMaterial({ color: 0x111122, emissive: 0x00ffff, emissiveIntensity: 0.2 });
+            const railThickness = 6, railHeight = 10;
+
+            const createRail = (w, h, x, z) => {
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, railHeight, h), railMat);
+                mesh.position.set(x, railHeight/2, z);
+                scene.add(mesh);
+                const body = new CANNON.Body({ mass: 0 });
+                body.addShape(new CANNON.Box(new CANNON.Vector3(w/2, railHeight/2, h/2)));
+                body.position.set(x, railHeight/2, z);
+                world.addBody(body);
+            };
+
+            createRail(TABLE_W + railThickness*2, railThickness, 0, -TABLE_H/2 - railThickness/2); // Top
+            createRail(TABLE_W + railThickness*2, railThickness, 0, TABLE_H/2 + railThickness/2);  // Bottom
+            createRail(railThickness, TABLE_H, -TABLE_W/2 - railThickness/2, 0); // Left
+            createRail(railThickness, TABLE_H, TABLE_W/2 + railThickness/2, 0);  // Right
+
+            // Pockets (Visuals)
+            const pocketGeo = new THREE.CircleGeometry(7, 32);
+            const pocketMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.5 });
+            const corners = [
+                [-TABLE_W/2, TABLE_H/2], [TABLE_W/2, TABLE_H/2],
+                [-TABLE_W/2, -TABLE_H/2], [TABLE_W/2, -TABLE_H/2],
+                [-TABLE_W/2, 0], [TABLE_W/2, 0]
+            ];
+            corners.forEach(c => {
+                const p = new THREE.Mesh(pocketGeo, pocketMat);
+                p.rotation.x = -Math.PI/2;
+                p.position.set(c[0], 2.6, c[1]);
+                scene.add(p);
+            });
+        }
+
+        function createBalls() {
+            // Cue Ball (White Dwarf)
+            cueMesh = new THREE.Mesh(
+                new THREE.SphereGeometry(BALL_RADIUS, 32, 32),
+                new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.8 })
+            );
+            scene.add(cueMesh);
+            cueBall = new CANNON.Body({ mass: 1, shape: new CANNON.Sphere(BALL_RADIUS) });
+            cueBall.position.set(0, BALL_RADIUS + 2.5, 60);
+            cueBall.linearDamping = 0.4;
+            cueBall.angularDamping = 0.4;
+            world.addBody(cueBall);
+
+            // Rack Planets
+            let idx = 0;
+            const startZ = -60;
+            for (let r = 0; r < 5; r++) {
+                for (let c = 0; c <= r; c++) {
+                    if (idx >= PLANETS.length) break;
+                    const p = PLANETS[idx];
+                    const mesh = new THREE.Mesh(
+                        new THREE.SphereGeometry(BALL_RADIUS, 32, 32),
+                        new THREE.MeshStandardMaterial({ 
+                            color: p.color, 
+                            emissive: p.color, 
+                            emissiveIntensity: 0.3,
+                            wireframe: true 
+                        })
+                    );
+                    scene.add(mesh);
+                    const body = new CANNON.Body({ mass: 1, shape: new CANNON.Sphere(BALL_RADIUS) });
+                    body.position.set((c - r/2) * (BALL_RADIUS * 2.1), BALL_RADIUS + 2.5, startZ - r * (BALL_RADIUS * 1.9));
+                    body.linearDamping = 0.4;
+                    body.angularDamping = 0.4;
+                    world.addBody(body);
+                    
+                    balls.push(body);
+                    ballMeshes.push(mesh);
+                    idx++;
+                }
+            }
+        }
+
+        function createAimLine() {
+            const mat = new THREE.LineBasicMaterial({ color: 0x00ffff });
+            const points = [new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)];
+            const geo = new THREE.BufferGeometry().setFromPoints(points);
+            aimLine = new THREE.Line(geo, mat);
+            aimLine.visible = false;
+            scene.add(aimLine);
+        }
+
+        function onMouseDown(e) {
+            if (e.button !== 0) return;
+            const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera({ x: mouseX, y: mouseY }, camera);
+            
+            const intersects = raycaster.intersectObject(cueMesh);
+            if (intersects.length > 0) {
+                isDragging = true;
+                dragStart.copy(cueMesh.position);
+                aimLine.visible = true;
+            }
+        }
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            const mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            const mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            
+            // Project mouse onto table plane
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera({ x: mouseX, y: mouseY }, camera);
+            const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -5);
+            raycaster.ray.intersectPlane(plane, dragEnd);
+
+            const points = [cueMesh.position, dragEnd];
+            aimLine.geometry.setFromPoints(points);
+        }
+
+        function onMouseUp() {
+            if (!isDragging) return;
+            isDragging = false;
+            aimLine.visible = false;
+
+            const force = dragStart.clone().sub(dragEnd);
+            const power = Math.min(force.length() * 2, 200);
+            force.normalize().multiplyScalar(power);
+            
+            cueBall.applyImpulse(new CANNON.Vector3(force.x, 0, force.z), cueBall.position);
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function checkPockets() {
+            const corners = [
+                [-TABLE_W/2, TABLE_H/2], [TABLE_W/2, TABLE_H/2],
+                [-TABLE_W/2, -TABLE_H/2], [TABLE_W/2, -TABLE_H/2],
+                [-TABLE_W/2, 0], [TABLE_W/2, 0]
+            ];
+
+            // Check Planets
+            for (let i = balls.length - 1; i >= 0; i--) {
+                const b = balls[i];
+                corners.forEach(c => {
+                    const dx = b.position.x - c[0];
+                    const dz = b.position.z - c[1];
+                    if (Math.sqrt(dx*dx + dz*dz) < 8) {
+                        scene.remove(ballMeshes[i]);
+                        world.remove(b);
+                        balls.splice(i, 1);
+                        ballMeshes.splice(i, 1);
+                        score++;
+                        document.getElementById('score-val').innerText = `${score} / 9`;
+                    }
+                });
+            }
+
+            // Check Cue Ball
+            corners.forEach(c => {
+                const dx = cueBall.position.x - c[0];
+                const dz = cueBall.position.z - c[1];
+                if (Math.sqrt(dx*dx + dz*dz) < 8) {
+                    cueBall.position.set(0, 5.5, 60);
+                    cueBall.velocity.set(0,0,0);
+                    cueBall.angularVelocity.set(0,0,0);
+                }
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1);
+            world.step(1/60, delta);
+
+            // Sync Visuals
+            cueMesh.position.copy(cueBall.position);
+            cueMesh.quaternion.copy(cueBall.quaternion);
+
+            for (let i = 0; i < balls.length; i++) {
+                ballMeshes[i].position.copy(balls[i].position);
+                ballMeshes[i].quaternion.copy(balls[i].quaternion);
+            }
+
+            checkPockets();
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

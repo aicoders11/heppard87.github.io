@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chris Heppard's Digital Zen Garden</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --glass-bg: rgba(5, 10, 20, 0.75);
+        }
+
+        body { margin: 0; overflow: hidden; background: #020205; font-family: 'Courier New', monospace; color: white; }
+
+        #ui-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+
+        .glass-panel {
+            pointer-events: auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Branding Header */
+        #header {
+            position: absolute; top: 30px; left: 30px; padding: 20px 30px;
+            border-left: 5px solid var(--neon-cyan);
+        }
+        #header h1 { margin: 0; font-size: 20px; letter-spacing: 3px; text-shadow: 0 0 15px var(--neon-cyan); }
+        #header p { margin: 5px 0 0 0; font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+
+        /* Tools Panel */
+        #tools-panel {
+            position: absolute; top: 30px; right: 30px; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px; width: 200px;
+        }
+        .tool-label { font-size: 10px; color: var(--neon-cyan); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.3);
+            color: white; padding: 10px; cursor: pointer; font-family: inherit;
+            font-size: 11px; text-transform: uppercase; transition: 0.3s;
+            border-radius: 4px; width: 100%;
+        }
+        .action-btn:hover { background: var(--neon-cyan); color: black; box-shadow: 0 0 15px var(--neon-cyan); }
+
+        /* Status Tip */
+        #status-tip {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            padding: 12px 25px; font-size: 11px; color: #aaa; text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        #status-tip span { color: var(--neon-cyan); font-weight: bold; }
+
+        #loading {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: var(--neon-cyan); font-size: 18px; letter-spacing: 5px;
+        }
+
+        canvas { display: block; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <div id="loading">CULTIVATING DIGITAL SERENITY...</div>
+
+    <div id="ui-overlay">
+        <div id="header" class="glass-panel">
+            <h1>DIGITAL ZEN GARDEN</h1>
+            <p>Tranquility Protocol v1.0</p>
+        </div>
+
+        <div id="tools-panel" class="glass-panel">
+            <div class="tool-label">Garden Tools</div>
+            <button class="action-btn" onclick="resetSand()">Level Sand</button>
+            <button class="action-btn" onclick="randomizeRocks()">Re-Align Rocks</button>
+            <div class="tool-label" style="margin-top: 10px;">Aesthetics</div>
+            <button class="action-btn" onclick="toggleColor()">Shift Aura</button>
+        </div>
+
+        <div id="status-tip" class="glass-panel">
+            <span>LEFT-CLICK & DRAG</span> TO RAKE THE SAND &bull; <span>RIGHT-CLICK</span> TO VIEW GARDEN
+        </div>
+    </div>
+
+    <script>
+        let scene, camera, renderer, clock;
+        let sandMesh, sandCanvas, sandCtx, sandTexture;
+        let rocks = [];
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let isDrawing = false;
+        let currentNeonColor = 0x00ffff;
+
+        const GARDEN_SIZE = 100;
+        const RESOLUTION = 1024;
+
+        init();
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020205);
+            scene.fog = new THREE.FogExp2(0x020205, 0.005);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 80, 80);
+            camera.lookAt(0, -10, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Lights
+            scene.add(new THREE.AmbientLight(0x202020));
+            const mainLight = new THREE.PointLight(0xffffff, 0.5, 300);
+            mainLight.position.set(0, 100, 50);
+            scene.add(mainLight);
+
+            setupSand();
+            randomizeRocks();
+
+            window.addEventListener('mousedown', (e) => { if(e.button === 0) isDrawing = true; });
+            window.addEventListener('mouseup', () => { isDrawing = false; });
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('resize', onResize);
+
+            document.getElementById('loading').style.display = 'none';
+            animate();
+        }
+
+        function setupSand() {
+            // Create hidden canvas for raking simulation
+            sandCanvas = document.createElement('canvas');
+            sandCanvas.width = RESOLUTION;
+            sandCanvas.height = RESOLUTION;
+            sandCtx = sandCanvas.getContext('2d');
+            resetSand();
+
+            sandTexture = new THREE.CanvasTexture(sandCanvas);
+            
+            // Sand Geometry with high vertex count for displacement
+            const geometry = new THREE.PlaneGeometry(GARDEN_SIZE, GARDEN_SIZE, 128, 128);
+            geometry.rotateX(-Math.PI / 2);
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x1a1a25,
+                roughness: 1.0,
+                metalness: 0.0,
+                displacementMap: sandTexture,
+                displacementScale: -4, // Raking creates grooves
+                bumpMap: sandTexture,
+                bumpScale: 0.5
+            });
+
+            sandMesh = new THREE.Mesh(geometry, material);
+            scene.add(sandMesh);
+
+            // Adding a subtle grid for that "digital" zen feel
+            const grid = new THREE.GridHelper(GARDEN_SIZE, 20, 0x00ffff, 0x111122);
+            grid.position.y = -0.5;
+            scene.add(grid);
+        }
+
+        function resetSand() {
+            sandCtx.fillStyle = '#888888'; // Neutral "mid" height
+            sandCtx.fillRect(0, 0, RESOLUTION, RESOLUTION);
+            if (sandTexture) sandTexture.needsUpdate = true;
+        }
+
+        function createRock() {
+            const geo = new THREE.IcosahedronGeometry(Math.random() * 4 + 2, 0);
+            const mat = new THREE.MeshStandardMaterial({
+                color: 0x111111,
+                emissive: currentNeonColor,
+                emissiveIntensity: 0.6,
+                flatShading: true
+            });
+            const rock = new THREE.Mesh(geo, mat);
+            
+            // Random position in garden
+            const r = Math.random() * 35 + 5;
+            const theta = Math.random() * Math.PI * 2;
+            rock.position.set(Math.cos(theta) * r, 0, Math.sin(theta) * r);
+            rock.rotation.set(Math.random(), Math.random(), Math.random());
+            
+            // Rock glow
+            const light = new THREE.PointLight(currentNeonColor, 1.5, 20);
+            light.position.y = 2;
+            rock.add(light);
+            
+            scene.add(rock);
+            rocks.push(rock);
+        }
+
+        function randomizeRocks() {
+            rocks.forEach(r => scene.remove(r));
+            rocks = [];
+            const count = 5 + Math.floor(Math.random() * 4);
+            for(let i=0; i<count; i++) createRock();
+        }
+
+        function toggleColor() {
+            currentNeonColor = currentNeonColor === 0x00ffff ? 0xff00ff : 0x00ffff;
+            rocks.forEach(r => {
+                r.material.emissive.setHex(currentNeonColor);
+                r.children[0].color.setHex(currentNeonColor);
+            });
+        }
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            if (isDrawing) {
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObject(sandMesh);
+
+                if (intersects.length > 0) {
+                    const pt = intersects[0].point;
+                    // Map world coords to canvas coords
+                    const x = ((pt.x + GARDEN_SIZE / 2) / GARDEN_SIZE) * RESOLUTION;
+                    const y = ((pt.z + GARDEN_SIZE / 2) / GARDEN_SIZE) * RESOLUTION;
+
+                    drawRake(x, y);
+                }
+            }
+        }
+
+        function drawRake(x, y) {
+            sandCtx.strokeStyle = '#000000'; // Depth
+            sandCtx.lineWidth = 12;
+            sandCtx.lineJoin = 'round';
+            sandCtx.lineCap = 'round';
+            
+            // Draw multiple lines for a "rake" effect
+            const spacing = 6;
+            for(let i=-2; i<=2; i++) {
+                sandCtx.beginPath();
+                // We use small offsets to simulate rake teeth
+                sandCtx.arc(x + i * spacing, y, 2, 0, Math.PI * 2);
+                sandCtx.fill();
+            }
+            sandTexture.needsUpdate = true;
+        }
+
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            // Subtle rock floating/pulsing
+            rocks.forEach((r, i) => {
+                r.position.y = Math.sin(time + i) * 0.5;
+                r.material.emissiveIntensity = 0.5 + Math.sin(time * 2 + i) * 0.2;
+            });
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

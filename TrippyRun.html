@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mr. Heppard's Trippy Run</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; }
+        #ui-layer { position: absolute; top: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        #hud { position: absolute; top: 20px; width: 100%; display: flex; justify-content: space-between; padding: 0 40px; box-sizing: border-box; }
+        .hud-text { color: #f0f; font-size: 24px; text-shadow: 0 0 10px #f0f; font-weight: bold; }
+        
+        #start-screen, #game-over { background: rgba(0,0,0,0.9); padding: 50px; border: 2px solid #0ff; text-align: center; pointer-events: auto; cursor: pointer; backdrop-filter: blur(8px); color: #fff; }
+        #game-over { display: none; border-color: #f00; }
+        
+        h1 { color: #0ff; margin: 0 0 10px 0; font-size: 40px; text-shadow: 0 0 20px #0ff; letter-spacing: 5px; }
+        p { color: #aaa; font-size: 16px; margin-top: 0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Glitch Effect */
+        .glitch { animation: shake 0.1s infinite; filter: hue-rotate(90deg) contrast(200%); }
+        @keyframes shake { 0% { transform: translate(3px, 3px); } 25% { transform: translate(-3px, -3px); } 50% { transform: translate(3px, -3px); } 75% { transform: translate(-3px, 3px); } }
+        
+        .btn { margin-top: 25px; padding: 15px 35px; background: #f0f; color: #fff; border: none; font-weight: bold; cursor: pointer; font-family: inherit; transition: 0.2s; }
+        .btn:hover { background: #fff; color: #000; box-shadow: 0 0 30px #f0f; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body id="game-body">
+    <div id="ui-layer">
+        <div id="hud">
+            <div class="hud-text">VELOCITY: <span id="speed-disp">100</span></div>
+            <div class="hud-text" style="color:#0ff">SYNC: <span id="score">0</span>%</div>
+        </div>
+
+        <div id="start-screen" onclick="startGame()">
+            <h1>TRIPPY RUN</h1>
+            <p>MR. HEPPARD'S TUNNEL</p>
+            <p style="font-size: 12px; color: #f0f; margin-top: 20px;">[ CLICK TO SYNC NEURAL LINK ]</p>
+        </div>
+
+        <div id="game-over">
+            <h1 style="color:#f00; text-shadow:0 0 20px #f00">CONNECTION LOST</h1>
+            <p id="final-score">Final Sync: 0%</p>
+            <button class="btn" onclick="location.reload()">RE-SYNC SIGNAL</button>
+        </div>
+    </div>
+
+    <script>
+        let isActive = false;
+        let score = 0;
+        let speed = 45;
+        const BPM = 135; 
+        const BEAT_TIME = 60 / BPM;
+        let beatTimer = 0;
+        const LANE_WIDTH = 4;
+        let lane = 0;
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.04);
+
+        // High FOV for "Trippy" tunnel effect
+        const camera = new THREE.PerspectiveCamera(95, window.innerWidth/window.innerHeight, 0.1, 200);
+        camera.position.set(0, 2, 5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Geometry Tunnel
+        const rings = [];
+        const ringGeo = new THREE.OctahedronGeometry(8, 0); 
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true, transparent: true, opacity: 0.4 });
+        for(let i=0; i<40; i++) {
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.position.z = -i * 4;
+            ring.rotation.z = i * 0.2;
+            scene.add(ring);
+            rings.push(ring);
+        }
+
+        // Player
+        const shipGeo = new THREE.TetrahedronGeometry(0.8);
+        const shipMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
+        const player = new THREE.Mesh(shipGeo, shipMat);
+        player.position.y = 0.5;
+        scene.add(player);
+
+        // Obstacles
+        const obstacles = [];
+        const obsGeo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        const obsMat = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true });
+
+        window.startGame = function() {
+            document.getElementById('start-screen').style.display = 'none';
+            isActive = true;
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if(!isActive) return;
+            if(e.key === 'ArrowLeft' && lane > -1) lane--;
+            if(e.key === 'ArrowRight' && lane < 1) lane++;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+
+            if(isActive) {
+                beatTimer += dt;
+                if(beatTimer >= BEAT_TIME) {
+                    beatTimer -= BEAT_TIME;
+                    score++;
+                    speed += 0.5;
+                    document.getElementById('score').innerText = score;
+                    document.getElementById('speed-disp').innerText = Math.floor(speed * 2);
+                    
+                    // Beat Pulse
+                    rings.forEach(r => { r.scale.setScalar(1.25); setTimeout(() => r.scale.setScalar(1.0), 50); });
+                    
+                    // Spawn
+                    const o = new THREE.Mesh(obsGeo, obsMat);
+                    const l = Math.floor(Math.random() * 3) - 1;
+                    o.position.set(l * LANE_WIDTH, 1, -160);
+                    scene.add(o);
+                    obstacles.push(o);
+                }
+
+                // Player
+                player.position.x += (lane * LANE_WIDTH - player.position.x) * 15 * dt;
+                player.rotation.z += dt * 5;
+                player.rotation.y += dt * 5;
+
+                // Move Tunnel
+                rings.forEach(r => {
+                    r.position.z += speed * dt;
+                    r.rotation.z += dt * 0.5;
+                    if(r.position.z > 5) r.position.z = -155;
+                });
+
+                // Obstacles
+                for(let i=obstacles.length-1; i>=0; i--) {
+                    const o = obstacles[i];
+                    o.position.z += speed * dt;
+                    o.rotation.x += dt * 3;
+                    
+                    if(Math.abs(o.position.z - player.position.z) < 1.5 && Math.abs(o.position.x - player.position.x) < 1.8) {
+                        isActive = false;
+                        document.getElementById('game-body').classList.add('glitch');
+                        document.getElementById('game-over').style.display = 'block';
+                        document.getElementById('final-score').innerText = `Final Sync: ${score}%`;
+                    }
+                    if(o.position.z > 10) { scene.remove(o); obstacles.splice(i, 1); }
+                }
+            } else {
+                // Intro Rotation
+                rings.forEach(r => r.rotation.z += 0.005);
+            }
+
+            renderer.render(scene, camera);
+        }
+        
+        window.onload = animate;
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
