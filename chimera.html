@@ -17,9 +17,15 @@
         #loading-screen { position: absolute; inset: 0; background: #000; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #0ff; }
         .boss-bar-container { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 60%; height: 10px; border: 1px solid #f00; display: none; }
         #boss-hp { width: 100%; height: 100%; background: #f00; transition: width 0.2s; }
+        
+        /* Home Button Styling */
+        #home-btn { position: absolute; top: 20px; left: 20px; z-index: 500; color: #0ff; text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; border: 1px solid #0ff; padding: 10px 20px; background: rgba(0, 0, 0, 0.5); transition: 0.3s; }
+        #home-btn:hover { background: #0ff; color: #000; box-shadow: 0 0 15px #0ff; }
     </style>
 </head>
 <body>
+    <a href="index.html" id="home-btn">← BACK_TO_HOME</a>
+
     <div id="loading-screen">
         <h2 style="letter-spacing:10px;">NEURAL_LINK_ESTABLISHING</h2>
         <div id="load-status">Injecting Core Logic...</div>
@@ -101,7 +107,6 @@
                 bossMesh.setEnabled(false); bossMesh.scaling.setAll(80);
             };
 
-            // Laser Setup
             const lMat = new BABYLON.StandardMaterial("lm", scene);
             lMat.emissiveColor = new BABYLON.Color3(1, 0, 1);
             const lBox = BABYLON.MeshBuilder.CreateBox("lb", {width:2, height:2, depth:60}, scene);
@@ -144,7 +149,6 @@
             setInterval(() => { if(gameActive && !isBossActive) spawnEnemy(); }, 1000 / sector);
         };
 
-        // Touch Steering
         let touchStartX = 0, touchStartY = 0;
         canvas.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
         canvas.addEventListener("touchmove", (e) => {
@@ -161,9 +165,9 @@
             engine.runRenderLoop(() => {
                 if (gameActive && scene && player) {
                     const dt = engine.getDeltaTime() / 1000;
-                    const speed = (350 + (sector * 50)) * dt;
-                    player.position.z += speed;
-                    distance -= speed;
+                    const currentSpeed = (350 + (sector * 50)) * dt;
+                    player.position.z += currentSpeed;
+                    distance -= currentSpeed;
 
                     if (distance <= 0 && !isBossActive) {
                         isBossActive = true;
