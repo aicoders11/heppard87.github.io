@@ -60,7 +60,10 @@
 
         let inputMap = {}, enemyPool = [], laserPool = [], stars = [];
         let canFire = true, isBossActive = false, bossHP = 100, bossMesh;
-
+let distance = 5000; // Reset distance to 5000m
+let isBossActive = false;
+let score = 0;
+let sector = 1;
         const createScene = async () => {
             scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
