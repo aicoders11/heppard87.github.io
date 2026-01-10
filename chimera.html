@@ -30,6 +30,7 @@
 
     <div id="overlay" style="display:none">
         <h1>PROJECT CHIMERA</h1>
+        <p id="game-msg">Neural Link Ready</p>
         <button class="btn" onclick="startGame()">INITIATE BREACH</button>
     </div>
 
@@ -38,33 +39,52 @@
     <script>
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
-        let scene, player, gameActive = false;
-        let score = 0;
+        let scene, player, camera, gameActive = false;
+        let score = 0, distance = 5000;
+
+        // Input and Enemy Logic
+        let inputMap = {};
+        let enemyPool = [];
+        const POOL_SIZE = 12;
 
         const createScene = async () => {
             scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-            const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 50, -200), scene);
+            camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 60, -250), scene);
             camera.setTarget(BABYLON.Vector3.Zero());
-
             new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.8;
+
+            // Keyboard Input Listeners
+            scene.actionManager = new BABYLON.ActionManager(scene);
+            scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
+                inputMap[evt.sourceEvent.key.toLowerCase()] = true;
+            }));
+            scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, (evt) => {
+                inputMap[evt.sourceEvent.key.toLowerCase()] = false;
+            }));
 
             const manager = new BABYLON.AssetsManager(scene);
 
-            // Loading your uploaded assets
+            // 1. Load Player
             const playerTask = manager.addMeshTask("playerTask", "", "./", "Spaceship_RaeTheRedPanda.gltf");
-            const enemyTask = manager.addMeshTask("enemyTask", "", "./", "Spaceship_BarbaraTheBee.gltf");
-            const planetTask = manager.addMeshTask("planetTask", "", "./", "Planet_1.gltf");
-
             playerTask.onSuccess = (task) => {
                 player = task.loadedMeshes[0];
-                player.scaling = new BABYLON.Vector3(10, 10, 10);
-                document.getElementById("load-status").innerText = "Pilot Link Established...";
+                player.scaling = new BABYLON.Vector3(12, 12, 12);
+                document.getElementById("load-status").innerText = "Pilot Synchronized...";
             };
 
+            // 2. Load Enemy Obstacles
+            const enemyTask = manager.addMeshTask("enemyTask", "", "./", "Spaceship_BarbaraTheBee.gltf");
             enemyTask.onSuccess = (task) => {
-                task.loadedMeshes.forEach(m => m.setEnabled(false)); // Hide master copy
+                const masterEnemy = task.loadedMeshes[0];
+                masterEnemy.setEnabled(false);
+                for (let i = 0; i < POOL_SIZE; i++) {
+                    const enemy = masterEnemy.clone("enemy_" + i);
+                    enemy.setEnabled(false);
+                    enemy.scaling = new BABYLON.Vector3(10, 10, 10);
+                    enemyPool.push({ mesh: enemy, active: false });
+                }
             };
 
             manager.onFinish = () => {
@@ -76,16 +96,67 @@
             return scene;
         };
 
+        const spawnEnemy = () => {
+            const enemyObj = enemyPool.find(e => !e.active);
+            if (enemyObj) {
+                enemyObj.active = true;
+                enemyObj.mesh.setEnabled(true);
+                // Random spawn coordinates
+                enemyObj.mesh.position.set(
+                    (Math.random() - 0.5) * 800, 
+                    (Math.random() - 0.5) * 500, 
+                    player.position.z + 2500
+                );
+            }
+        };
+
         window.startGame = () => {
             document.getElementById("overlay").style.display = "none";
             gameActive = true;
+            // Spawn an enemy every 1.2 seconds
+            setInterval(() => { if(gameActive) spawnEnemy(); }, 1200);
         };
 
         createScene().then(() => {
             engine.runRenderLoop(() => {
-                if (gameActive && scene) {
-                    score += 0.1;
+                if (gameActive && scene && player) {
+                    const dt = engine.getDeltaTime() / 1000;
+                    const steerSpeed = 400 * dt;
+
+                    // Forward Movement
+                    player.position.z += 300 * dt;
+                    camera.position.z = player.position.z - 250;
+                    camera.position.x = player.position.x * 0.5; // Slight camera lag for feel
+
+                    // Controls
+                    if (inputMap["w"] || inputMap["arrowup"]) player.position.y += steerSpeed;
+                    if (inputMap["s"] || inputMap["arrowdown"]) player.position.y -= steerSpeed;
+                    if (inputMap["a"] || inputMap["arrowleft"]) player.position.x -= steerSpeed;
+                    if (inputMap["d"] || inputMap["arrowright"]) player.position.x += steerSpeed;
+
+                    // Collision and Cleanup
+                    enemyPool.forEach(e => {
+                        if (e.active) {
+                            // Check distance for collision
+                            if (BABYLON.Vector3.Distance(player.position, e.mesh.position) < 40) {
+                                gameActive = false;
+                                document.getElementById("game-msg").innerText = "LINK TERMINATED: COLLISION";
+                                document.getElementById("overlay").style.display = "flex";
+                                setTimeout(() => location.reload(), 2000);
+                            }
+                            // Recycle if passed
+                            if (e.mesh.position.z < player.position.z - 200) {
+                                e.active = false;
+                                e.mesh.setEnabled(false);
+                            }
+                        }
+                    });
+
+                    // HUD Updates
+                    score += dt * 5;
+                    distance -= 300 * dt;
                     document.getElementById("score").innerText = Math.floor(score);
+                    document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
                 }
                 scene.render();
             });
