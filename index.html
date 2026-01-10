@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Interactive Mouse Flashlight -->
     <div id="flashlight-overlay"></div>
 
     <header>
@@ -19,13 +18,7 @@
                 <input type="text" name="q" placeholder="Search the web...">
                 <button type="submit">Search</button>
             </form>
-                <div class="titan-wrapper" style="border: 2px solid #0ff; padding: 10px; background: #000;">
-    <iframe 
-        src="https://heppard87.github.io/chimera.html" 
-        style="width: 100%; height: 500px; border: none;"
-        title="Project Chimera Simulation">
-    </iframe>
-</div>
+
             <ul>
                 <li><a href="index.html">Home</a></li>
                 <li><a href="about.html">About</a></li>
@@ -48,6 +41,16 @@
 
     <main>
         <section class="content-section">
+            <div class="titan-wrapper" style="border: 2px solid var(--cyan); padding: 10px; background: #000; margin-top: 20px;">
+                <iframe 
+                    src="https://heppard87.github.io/chimera.html" 
+                    style="width: 100%; height: 500px; border: none;"
+                    title="Project Chimera Simulation">
+                </iframe>
+            </div>
+        </section>
+
+        <section class="content-section">
             <div class="content-card hero hero-two-column">
                 <div class="hero-left">
                     <div class="profile-picture">
@@ -58,7 +61,6 @@
                     <h1 class="glitch-text" data-text="CyberSolutions for a Modern Ohio">CyberSolutions for a Modern Ohio</h1>
                     <p>Chris Heppard is a visionary Full-Stack Developer and Security Specialist based in Cincinnati, Ohio. He founded CyberSolutions to bridge the gap between 3D design and enterprise security.</p>
                     
-                    <!-- Live System Ticker -->
                     <div class="system-status">
                         <span class="status-dot"></span>
                         <span id="status-text">SYSTEM_INITIALIZED... READY_FOR_UPLINK</span>
@@ -85,97 +87,8 @@
                 </p>
             </div>
         </section>
+        
+        </main>
 
-        <section class="content-section trust-bar reveal">
-            <div class="page-header">
-                <h2>Trusted Partners</h2>
-            </div>
-            <div class="content-card">
-                <div class="trust-logos">
-                    <div class="logo-placeholder">SecureNode</div>
-                    <div class="logo-placeholder">DevCore</div>
-                    <div class="logo-placeholder">CyberOps</div>
-                    <div class="logo-placeholder">OhioTech</div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="site-footer">
-        <div class="footer-left">
-            <p>&copy; 2026 CyberSolutionsOhio</p>
-        </div>
-        <div class="footer-center">
-            <button id="subscribeBtn" class="cyber-btn">UPLINK_NEWSLETTER</button>
-        </div>
-        <div class="footer-right">
-            <ul class="social-links">
-                <li><a href="#">LinkedIn</a></li>
-                <li><a href="#">GitHub</a></li>
-            </ul>
-        </div>
-    </footer>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("CyberSolutions System: Online");
-
-            // 1. Flashlight Effect
-            const flashlight = document.getElementById('flashlight-overlay');
-            document.addEventListener('mousemove', (e) => {
-                flashlight.style.left = e.clientX + 'px';
-                flashlight.style.top = e.clientY + 'px';
-            });
-
-            // 2. Status Ticker Logic
-            const statusText = document.getElementById('status-text');
-            const messages = [
-                "ENCRYPTION_LAYER_ACTIVE",
-                "NODE_CINCINNATI_CONNECTED",
-                "SCANNING_VULNERABILITIES...",
-                "READY_FOR_PROJECT_UPLINK",
-                "CYBER_SOLUTIONS_ONLINE"
-            ];
-            let msgIdx = 0;
-            setInterval(() => {
-                msgIdx = (msgIdx + 1) % messages.length;
-                statusText.style.opacity = 0;
-                setTimeout(() => {
-                    statusText.innerText = messages[msgIdx];
-                    statusText.style.opacity = 1;
-                }, 500);
-            }, 4000);
-
-            // 3. Theme Logic
-            const themeBtn = document.getElementById('theme-menu-trigger');
-            const themePopup = document.getElementById('theme-options');
-            if (themeBtn && themePopup) {
-                themeBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    themePopup.style.display = (themePopup.style.display === 'flex') ? 'none' : 'flex';
-                });
-                window.addEventListener('click', (e) => {
-                    if (e.target !== themeBtn && !themePopup.contains(e.target)) {
-                        themePopup.style.display = 'none';
-                    }
-                });
-            }
-        });
-
-        function setTheme(themeName) {
-            const root = document.documentElement;
-            const themes = {
-                'default': { cyan: '#00f5d4', magenta: '#ff00f5', dark: '#0d0221' },
-                'matrix': { cyan: '#00ff00', magenta: '#003300', dark: '#000000' },
-                'sunset': { cyan: '#ff71ce', magenta: '#01cdfe', dark: '#2b1c40' }
-            };
-            const t = themes[themeName];
-            root.style.setProperty('--cyan', t.cyan);
-            root.style.setProperty('--magenta', t.magenta);
-            root.style.setProperty('--dark-violet', t.dark);
-            document.getElementById('theme-options').style.display = 'none';
-        }
-    </script>
-</body>
+    </body>
 </html>
-
