@@ -24,35 +24,9 @@
         <h2 style="letter-spacing:10px;">NEURAL_LINK_ESTABLISHING</h2>
         <div id="load-status">Injecting Core Logic...</div>
     </div>
-createScene().then(() => {
-    engine.runRenderLoop(() => {
-        if (gameActive && scene && player) {
-            const dt = engine.getDeltaTime() / 1000;
-            const speed = (350 + (sector * 50)) * dt;
-            
-            player.position.z += speed;
-            distance -= speed; // Distance counts down from 5000
 
-            // Trigger Boss ONLY when distance reaches 0
-            if (distance <= 0 && !isBossActive) {
-                isBossActive = true;
-                distance = 0; 
-                bossMesh.setEnabled(true);
-                document.getElementById("boss-ui").style.display = "block";
-                document.getElementById("boss-warning").style.display = "inline";
-                document.getElementById("mission-name").innerText = "FINAL SECTOR: GUARDIAN";
-            }
-
-            // Update HUD
-            document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
-            document.getElementById("score").innerText = Math.floor(score += dt * 5);
-            
-            scene.render();
-        }
-    });
-});
     <div id="hud">
-        <div>SYNC_RATE: <span id="score">0</span>%<br>HULL: <span id="shield-val">NOMINAL</span></div>
+        <div>SYNC_RATE: <span id="score-val">0</span>%<br>HULL: <span id="shield-val">NOMINAL</span></div>
         <div style="text-align: center;"><span id="mission-name">SECTOR 1: THE RIM</span><br><span id="boss-warning" style="color:red; display:none;">!!! ANOMALY DETECTED !!!</span></div>
         <div style="text-align: right;">THREATS: <span id="kill-val">0</span><br>DIST: <span id="dist-val">5000</span>m</div>
     </div>
@@ -60,15 +34,14 @@ createScene().then(() => {
     <div id="overlay" style="display:none">
         <h1 style="color:#0ff; letter-spacing:15px; margin:0;">PROJECT CHIMERA</h1>
         <p style="color:#f0f; letter-spacing:4px; font-size:0.7rem;">SINGULARITY BREACH • V25.0 TITAN OPTIMIZED</p>
-        
         <div class="lore-box">
             [SYSTEM LOG: ZERO ALLOCATION ENGAGED]<br>
             Memory stutters purged. Logic loops optimized.<br>
             The Dreadnought is at 100% capacity. Reach the Singularity Core.<br><br>
             <b>CONTROLS: [WASD] TO FLY • [SPACE] TO FIRE WEAPONS</b>
         </div>
-
         <button class="btn" id="start-btn" onclick="startGame()">INITIATE BREACH</button>
+        <p id="game-msg" style="color:#0f0; margin-top:15px;"></p>
     </div>
 
     <div class="boss-bar-container" id="boss-ui">
@@ -83,13 +56,9 @@ createScene().then(() => {
         const engine = new BABYLON.Engine(canvas, true);
         let scene, player, camera, gameActive = false;
         let score = 0, distance = 5000, kills = 0, sector = 1;
-
         let inputMap = {}, enemyPool = [], laserPool = [], stars = [];
         let canFire = true, isBossActive = false, bossHP = 100, bossMesh;
-let distance = 5000; // Reset distance to 5000m
-let isBossActive = false;
-let score = 0;
-let sector = 1;
+
         const createScene = async () => {
             scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
@@ -129,7 +98,6 @@ let sector = 1;
                     e.setEnabled(false); e.scaling.setAll(10);
                     enemyPool.push({ mesh: e, active: false });
                 }
-                // Use same model for Boss but much bigger
                 bossMesh = t.loadedMeshes[0].clone("boss");
                 bossMesh.setEnabled(false); bossMesh.scaling.setAll(80);
             };
@@ -173,60 +141,30 @@ let sector = 1;
         window.startGame = () => {
             document.getElementById("overlay").style.display = "none";
             gameActive = true;
-            setInterval(() => { if(gameActive) spawnEnemy(); }, 800);
+            setInterval(() => { if(gameActive && !isBossActive) spawnEnemy(); }, 1000 / sector);
         };
 
-   // --- TOUCH CONTROLS ---
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        canvas.addEventListener("touchstart", (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        });
-
+        // Touch Controls
+        let touchStartX = 0, touchStartY = 0;
+        canvas.addEventListener("touchstart", (e) => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; });
         canvas.addEventListener("touchmove", (e) => {
             e.preventDefault();
             if (!gameActive || !player) return;
-            
-            const touchX = e.touches[0].clientX;
-            const touchY = e.touches[0].clientY;
-            
-            // Sensitivity multiplier
             const sensitivity = 0.5;
-            player.position.x += (touchX - touchStartX) * sensitivity;
-            player.position.y -= (touchY - touchStartY) * sensitivity; 
-
-            touchStartX = touchX;
-            touchStartY = touchY;
+            player.position.x += (e.touches[0].clientX - touchStartX) * sensitivity;
+            player.position.y -= (e.touches[0].clientY - touchStartY) * sensitivity; 
+            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
         }, { passive: false });
-
-        canvas.addEventListener("touchend", () => {
-            fireLaser(); // Tap anywhere to fire on mobile
-        });
-
-        // --- GAME CONTROL & LOOP ---
-        window.startGame = () => {
-            document.getElementById("overlay").style.display = "none";
-            gameActive = true;
-            
-            // Enemy spawning logic
-            setInterval(() => { 
-                if(gameActive && !isBossActive) spawnEnemy(); 
-            }, 1000 / sector);
-        };
+        canvas.addEventListener("touchend", () => { fireLaser(); });
 
         createScene().then(() => {
             engine.runRenderLoop(() => {
                 if (gameActive && scene && player) {
                     const dt = engine.getDeltaTime() / 1000;
-                    
-                    // Progression & Levels
                     const currentSpeed = (350 + (sector * 50)) * dt;
                     player.position.z += currentSpeed;
                     distance -= currentSpeed;
 
-                    // Trigger Boss Fight at 0m
                     if (distance <= 0 && !isBossActive) {
                         isBossActive = true;
                         bossMesh.setEnabled(true);
@@ -234,28 +172,23 @@ let sector = 1;
                         document.getElementById("boss-warning").style.display = "inline";
                     }
 
-                    // Camera follow
                     camera.position.set(player.position.x * 0.3, player.position.y + 60, player.position.z - 250);
                     camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
 
-                    // Keyboard Controls
                     const moveSpeed = 500 * dt;
                     if (inputMap["w"] || inputMap["arrowup"]) player.position.y += moveSpeed;
                     if (inputMap["s"] || inputMap["arrowdown"]) player.position.y -= moveSpeed;
                     if (inputMap["a"] || inputMap["arrowleft"]) player.position.x -= moveSpeed;
                     if (inputMap["d"] || inputMap["arrowright"]) player.position.x += moveSpeed;
 
-                    // Combat & Boss Movement
                     if (isBossActive) {
                         bossMesh.position.set(Math.sin(score * 0.05) * 200, Math.cos(score * 0.05) * 100, player.position.z + 800);
                         bossMesh.rotate(BABYLON.Axis.Y, 0.02);
                     }
 
-                    // Projectile & Enemy Handling
                     laserPool.forEach(l => {
                         if (l.active) {
                             l.mesh.position.z += 2000 * dt;
-                            // Boss collision
                             if (isBossActive && BABYLON.Vector3.Distance(l.mesh.position, bossMesh.position) < 100) {
                                 bossHP -= 2; l.active = false; l.mesh.setEnabled(false);
                                 document.getElementById("boss-hp").style.width = bossHP + "%";
@@ -265,7 +198,6 @@ let sector = 1;
                                     document.getElementById("overlay").style.display = "flex";
                                 }
                             }
-                            // Regular enemy collision
                             enemyPool.forEach(e => {
                                 if (e.active && BABYLON.Vector3.Distance(l.mesh.position, e.mesh.position) < 50) {
                                     e.active = false; e.mesh.setEnabled(false); l.active = false; l.mesh.setEnabled(false);
@@ -276,7 +208,6 @@ let sector = 1;
                         }
                     });
 
-                    // Collision with enemies
                     enemyPool.forEach(e => {
                         if (e.active) {
                             if (BABYLON.Vector3.Distance(player.position, e.mesh.position) < 45) location.reload();
@@ -284,14 +215,12 @@ let sector = 1;
                         }
                     });
 
-                    // Background & UI
                     stars.forEach(s => { if (s.position.z < player.position.z - 1000) s.position.z += 10000; });
                     score += dt * 5;
-                    
                     if (distance < 3500 && sector === 1) { sector = 2; document.getElementById("mission-name").innerText = "SECTOR 2: DATA SPIRE"; }
                     if (distance < 1500 && sector === 2) { sector = 3; document.getElementById("mission-name").innerText = "SECTOR 3: SINGULARITY"; }
                     
-                    document.getElementById("score").innerText = Math.floor(score);
+                    document.getElementById("score-val").innerText = Math.floor(score);
                     document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
                 }
                 scene.render();
