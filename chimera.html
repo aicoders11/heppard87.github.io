@@ -51,149 +51,130 @@
     <canvas id="renderCanvas"></canvas>
 
     <script>
-     const canvas = document.getElementById("renderCanvas");
-const engine = new BABYLON.Engine(canvas, true);
-let scene, player, camera, gameActive = false;
-let score = 0, distance = 5000, kills = 0, sector = 1;
-let inputMap = {}, enemyPool = [], laserPool = [], stars = [];
-let planets = [], pickups = [], activePowerup = null;
-let weaponType = 1; // 1: Pulse, 2: Spread, 3: Thunder Beam
+        const canvas = document.getElementById("renderCanvas");
+        const engine = new BABYLON.Engine(canvas, true);
+        let scene, player, camera, gameActive = false;
+        let score = 0, distance = 5000, kills = 0, sector = 1;
+        let inputMap = {}, enemyPool = [], laserPool = [], stars = [];
+        let canFire = true, isBossActive = false, bossHP = 100, bossMesh;
 
-// --- 1. NEURAL LINK AUDIO ---
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-function playSFX(freq, type = 'square', duration = 0.1) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type; osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
-    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-    osc.start(); osc.stop(audioCtx.currentTime + duration);
-}
-
-// --- 2. STORY & WINGMAN INTERCEPTS ---
-function triggerStory(dist) {
-    const msg = document.getElementById("game-msg");
-    if (dist < 4800 && dist > 4750) {
-        msg.innerText = ">> WINGMAN: 'Panda-1, I'm joining the formation. Watch for supply crates!'";
-        playSFX(600, 'sine', 0.4);
-    }
-    if (dist < 2500 && dist > 2450) {
-        msg.innerText = ">> WINGMAN: 'Heavy resistance ahead. Sector 2 Spire is coming into range.'";
-        playSFX(600, 'sine', 0.4);
-    }
-}
-
-const createScene = async () => {
-    scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(0, 0, 0.02, 1);
-    camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 60, -250), scene);
-    camera.setTarget(BABYLON.Vector3.Zero());
-    new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.8;
-
-    // Warp Background
-    for (let i = 0; i < 300; i++) {
-        const star = BABYLON.MeshBuilder.CreateBox("star", { width: 0.5, height: 0.5, depth: 100 }, scene);
-        star.position.set((Math.random()-0.5)*3000, (Math.random()-0.5)*2000, Math.random()*10000);
-        const sMat = new BABYLON.StandardMaterial("sm", scene);
-        sMat.emissiveColor = new BABYLON.Color3(0.5, 0.7, 1);
-        star.material = sMat;
-        stars.push(star);
-    }
-
-    const manager = new BABYLON.AssetsManager(scene);
-
-    // --- 3. LOADING ALL NEW ASSETS ---
-    // Planets (Background Progression)
-    for (let i = 1; i <= 11; i++) {
-        const pTask = manager.addMeshTask("planet"+i, "", "./", `Planet_${i}.gltf`);
-        pTask.onSuccess = (t) => {
-            const p = t.loadedMeshes[0]; p.setEnabled(false);
-            p.scaling.setAll(400); planets.push(p);
-        };
-    }
-
-    // Pickups (Power-up System)
-    const items = ["Thunder", "Health", "KeyCard", "Crate"];
-    items.forEach(type => {
-        const iTask = manager.addMeshTask(type, "", "./", `Pickup_${type}.gltf`);
-        iTask.onSuccess = (t) => {
-            t.loadedMeshes[0].setEnabled(false);
-            pickups.push({ mesh: t.loadedMeshes[0], type: type, active: false });
-        };
-    });
-
-    // Original Models (STRICTLY PRESERVED)
-    const panda = manager.addMeshTask("panda", "", "./", "Spaceship_RaeTheRedPanda.gltf");
-    panda.onSuccess = (t) => { player = t.loadedMeshes[0]; player.scaling.setAll(12); };
-    
-    const bee = manager.addMeshTask("bee", "", "./", "Spaceship_BarbaraTheBee.gltf");
-    bee.onSuccess = (t) => {
-        t.loadedMeshes[0].setEnabled(false);
-        for (let i = 0; i < 20; i++) {
-            const e = t.loadedMeshes[0].clone("e"+i);
-            e.setEnabled(false); e.scaling.setAll(10);
-            enemyPool.push({ mesh: e, active: false });
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSFX(freq, type = 'square', duration = 0.1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type; osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
-    };
 
-    manager.onFinish = () => {
-        document.getElementById("loading-screen").style.display = "none";
-        document.getElementById("overlay").style.display = "flex";
-    };
-    manager.load();
-    return scene;
-};
+        const setupControls = (scene) => {
+            scene.actionManager = new BABYLON.ActionManager(scene);
+            scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyDownTrigger, (evt) => {
+                inputMap[evt.sourceEvent.key.toLowerCase()] = true;
+                if (evt.sourceEvent.code === "Space") fireLaser();
+            }));
+            scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, (evt) => {
+                inputMap[evt.sourceEvent.key.toLowerCase()] = false;
+            }));
 
-// --- 4. GAMEPLAY LOGIC ---
-window.startGame = () => {
-    document.getElementById("overlay").style.display = "none";
-    gameActive = true;
-    audioCtx.resume();
-    setInterval(() => { if(gameActive) spawnEnemy(); }, 1000);
-};
+            let touchStartX = 0, touchStartY = 0;
+            canvas.addEventListener("touchstart", (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                if (gameActive) fireLaser();
+            }, { passive: false });
 
-const fireLaser = () => {
-    if (!gameActive || !canFire) return;
-    const l = laserPool.find(lp => !lp.active);
-    if (l) {
-        l.active = true; l.mesh.setEnabled(true);
-        l.mesh.position.copyFrom(player.position);
-        playSFX(weaponType === 3 ? 600 : 400);
-        canFire = false; setTimeout(() => canFire = true, weaponType === 3 ? 800 : 150);
-    }
-};
+            canvas.addEventListener("touchmove", (e) => {
+                e.preventDefault();
+                if (!gameActive || !player) return;
+                const sensitivity = 0.8;
+                const deltaX = (e.touches[0].clientX - touchStartX) * sensitivity;
+                const deltaY = (e.touches[0].clientY - touchStartY) * sensitivity;
+                player.position.x += deltaX;
+                player.position.y -= deltaY;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: false });
+        };
 
-createScene().then(() => {
-    engine.runRenderLoop(() => {
-        if (gameActive && player) {
-            const dt = engine.getDeltaTime() / 1000;
-            player.position.z += 500 * dt;
-            distance -= 500 * dt;
-            triggerStory(distance);
+        const createScene = async () => {
+            scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
+            camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 60, -250), scene);
+            camera.setTarget(BABYLON.Vector3.Zero());
+            new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.8;
+            setupControls(scene);
 
-            // Warp Speed Effect
-            stars.forEach(s => {
-                s.position.z -= 3000 * dt;
-                if(s.position.z < player.position.z - 500) s.position.z = player.position.z + 9000;
+            player = BABYLON.MeshBuilder.CreateBox("player", {size: 12}, scene);
+            player.material = new BABYLON.StandardMaterial("pm", scene);
+            player.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
+
+            for (let i = 0; i < 400; i++) {
+                const star = BABYLON.MeshBuilder.CreateBox("star", { size: 1.5 }, scene);
+                star.position.set((Math.random()-0.5)*5000, (Math.random()-0.5)*3000, Math.random()*10000);
+                stars.push(star);
+            }
+
+            const lMat = new BABYLON.StandardMaterial("lm", scene);
+            lMat.emissiveColor = new BABYLON.Color3(1, 0, 1);
+            const lBox = BABYLON.MeshBuilder.CreateBox("lb", {width:2, height:2, depth:60}, scene);
+            lBox.material = lMat; lBox.setEnabled(false);
+            for(let i=0; i<30; i++) {
+                const l = lBox.createInstance("l"+i); l.setEnabled(false);
+                laserPool.push({ mesh: l, active: false });
+            }
+
+            document.getElementById("loading-screen").style.display = "none";
+            document.getElementById("overlay").style.display = "flex";
+            return scene;
+        };
+
+        const fireLaser = () => {
+            if (!gameActive || !canFire) return;
+            const l = laserPool.find(lp => !lp.active);
+            if (l) {
+                l.active = true; l.mesh.setEnabled(true);
+                l.mesh.position.copyFrom(player.position);
+                playSFX(400);
+                canFire = false; setTimeout(() => canFire = true, 150);
+            }
+        };
+
+        window.startGame = () => {
+            document.getElementById("overlay").style.display = "none";
+            gameActive = true;
+            audioCtx.resume();
+            canvas.focus();
+        };
+
+        createScene().then(() => {
+            engine.runRenderLoop(() => {
+                if (gameActive && scene && player) {
+                    const dt = engine.getDeltaTime() / 1000;
+                    player.position.z += 400 * dt;
+                    const moveAmt = 600 * dt;
+                    if (inputMap["w"]) player.position.y += moveAmt;
+                    if (inputMap["s"]) player.position.y -= moveAmt;
+                    if (inputMap["a"]) player.position.x -= moveAmt;
+                    if (inputMap["d"]) player.position.x += moveAmt;
+
+                    camera.position.set(player.position.x * 0.2, player.position.y + 60, player.position.z - 250);
+                    camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
+
+                    laserPool.forEach(l => {
+                        if (l.active) {
+                            l.mesh.position.z += 2500 * dt;
+                            if (l.mesh.position.z > player.position.z + 3000) { l.active = false; l.mesh.setEnabled(false); }
+                        }
+                    });
+                }
+                scene.render();
             });
-
-            // Modern Galaga Controls (WASD + Arrows)
-            const m = 800 * dt;
-            if (inputMap["w"] || inputMap["ArrowUp"]) player.position.y += m;
-            if (inputMap["s"] || inputMap["ArrowDown"]) player.position.y -= m;
-            if (inputMap["a"] || inputMap["ArrowLeft"]) player.position.x -= m;
-            if (inputMap["d"] || inputMap["ArrowRight"]) player.position.x += m;
-
-            // Update HUD
-            document.getElementById("score-val").innerText = Math.floor(player.position.z / 10);
-            document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
-        }
-        scene.render();
-    });
-});
-window.addEventListener("resize", () => engine.resize());
+        });
+        window.addEventListener("resize", () => engine.resize());
     </script>
 </body>
 </html>
