@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,92 +9,85 @@
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=JetBrains+Mono&display=swap');
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Orbitron'; }
         #renderCanvas { width: 100%; height: 100%; outline: none; }
-        #hud { position: absolute; top: 20px; width: 100%; color: #0ff; display: flex; justify-content: space-around; pointer-events: none; z-index: 10; font-family: 'JetBrains Mono'; text-shadow: 0 0 10px #0ff; }
-        #comms { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 450px; background: rgba(0, 15, 30, 0.9); border: 1px solid #0ff; padding: 15px; color: #0ff; font-size: 0.9rem; display: none; }
+        #hud { position: absolute; top: 20px; width: 100%; color: #0ff; display: flex; justify-content: space-around; pointer-events: none; z-index: 10; font-family: 'JetBrains Mono'; }
+        #mission-log { position: absolute; bottom: 20px; left: 20px; color: #f0f; width: 300px; font-size: 0.8rem; background: rgba(0,0,0,0.5); padding: 10px; border-left: 3px solid #f0f; }
+        #weapon-ui { position: absolute; bottom: 20px; right: 20px; color: #0f0; text-align: right; }
+        .active-weapon { text-decoration: underline; font-weight: bold; color: #fff; }
     </style>
 </head>
 <body>
     <div id="hud">
-        <div>SYNC: <span id="score-val">0</span>%</div>
-        <div id="weapon-name" style="color:#fff">SYSTEM: PULSE_CANNON</div>
+        <div>SCORE: <span id="score-val">0</span></div>
+        <div style="color:#fff">MISSION: <span id="mission-name">INITIALIZING...</span></div>
         <div>WARP: <span id="warp-val">1.0</span>x</div>
     </div>
-    <div id="comms"><b>WINGMAN:</b> <span id="comms-text">...</span></div>
+    <div id="mission-log">>> SYSTEM: Neural link established. <br>>> OBJECTIVE: Breach the Sector 1 defensive grid.</div>
+    <div id="weapon-ui">
+        WEAPON TYPE [1-3]<br>
+        <span id="w1" class="active-weapon">1: PULSE CANNON</span><br>
+        <span id="w2">2: SPREAD WAVE</span><br>
+        <span id="w3">3: SINGULARITY RAIL</span>
+    </div>
     <canvas id="renderCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true);
+let scene, player, warpStars = [], weaponType = 1;
+let score = 0, missionStep = 1, gameActive = false;
+let enemyPool = [], laserPool = [], inputMap = {};
 
-// --- Game Constants ---
-const CONFIG = {
-    starCount: 200,
-    enemyCount: 20,
-    laserCount: 30,
-    baseWarp: 1500,
-    playerSpeed: 450
-};
-
-let scene, player, wingman, stars = [];
-let enemyPool = [], laserPool = [];
-let inputMap = {}, score = 0, currentWarp = CONFIG.baseWarp, weapon = 1;
-
-// --- Sound Engine (Fixed) ---
+// Audio (Laser and Explosions)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const playSfx = (freq, duration, type = 'square') => {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+function sfx(freq, type = 'square', duration = 0.1) {
     const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type;
+    const g = audioCtx.createGain();
+    osc.type = type; osc.connect(g); g.connect(audioCtx.destination);
     osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
-    gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-    osc.connect(gain); gain.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.1, audioCtx.currentTime);
     osc.start(); osc.stop(audioCtx.currentTime + duration);
-};
+}
 
-const setupScene = () => {
+const createScene = () => {
     scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(0, 0, 0.02, 1);
-
-    const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 60, -220), scene);
+    scene.clearColor = new BABYLON.Color4(0, 0, 0.05, 1);
+    const camera = new BABYLON.FreeCamera("cam", new BABYLON.Vector3(0, 60, -200), scene);
     camera.setTarget(BABYLON.Vector3.Zero());
 
-    // --- Warp Stars (Line streaks) ---
-    const starMat = new BABYLON.StandardMaterial("sm", scene);
-    starMat.emissiveColor = new BABYLON.Color3(0.4, 0.7, 1);
-    for(let i=0; i < CONFIG.starCount; i++) {
-        const s = BABYLON.MeshBuilder.CreateBox("s", {width:0.5, height:0.5, depth:60}, scene);
-        s.position.set((Math.random()-0.5)*1200, (Math.random()-0.5)*800, Math.random()*5000);
-        s.material = starMat;
-        stars.push(s);
+    // --- WARP BACKGROUND ---
+    for(let i=0; i<200; i++) {
+        const star = BABYLON.MeshBuilder.CreateBox("s", {height: 0.5, width: 0.5, depth: 50}, scene);
+        star.position.set((Math.random()-0.5)*1000, (Math.random()-0.5)*800, Math.random()*5000);
+        const mat = new BABYLON.StandardMaterial("sm", scene);
+        mat.emissiveColor = new BABYLON.Color3(0.5, 0.8, 1);
+        star.material = mat;
+        warpStars.push(star);
     }
 
-    // --- Player & Wingman ---
+    // Player
     player = BABYLON.MeshBuilder.CreateBox("p", {size: 15}, scene);
     player.material = new BABYLON.StandardMaterial("pm", scene);
     player.material.emissiveColor = new BABYLON.Color3(0, 1, 1);
 
-    wingman = BABYLON.MeshBuilder.CreateBox("w", {size: 8}, scene);
-    wingman.material = new BABYLON.StandardMaterial("wm", scene);
-    wingman.material.emissiveColor = new BABYLON.Color3(1, 0.5, 0);
-
-    // --- Pools ---
-    const enemyMat = new BABYLON.StandardMaterial("em", scene);
-    enemyMat.emissiveColor = new BABYLON.Color3(1, 0, 0.2);
-    for(let i=0; i < CONFIG.enemyCount; i++) {
+    // Enemy Pool with Logic States
+    for(let i=0; i<20; i++) {
         const e = BABYLON.MeshBuilder.CreateSphere("e", {diameter: 12, segments: 4}, scene);
-        e.material = enemyMat;
         e.setEnabled(false);
-        enemyPool.push({ mesh: e, active: false, state: 'idle' });
+        enemyPool.push({ 
+            mesh: e, 
+            active: false, 
+            state: 'DIVE', // DIVE, CIRCLE, or ATTACK
+            health: 2
+        });
     }
 
-    const laserMat = new BABYLON.StandardMaterial("lm", scene);
-    laserMat.emissiveColor = new BABYLON.Color3(1, 1, 0);
-    for(let i=0; i < CONFIG.laserCount; i++) {
-        const l = BABYLON.MeshBuilder.CreateBox("l", {width:1, height:1, depth:25}, scene);
-        l.material = laserMat;
+    // Laser Pool
+    for(let i=0; i<40; i++) {
+        const l = BABYLON.MeshBuilder.CreateBox("l", {width:1, height:1, depth:20}, scene);
         l.setEnabled(false);
+        l.material = new BABYLON.StandardMaterial("lm", scene);
+        l.material.emissiveColor = new BABYLON.Color3(1, 1, 0);
         laserPool.push({ mesh: l, active: false, vx: 0 });
     }
 
@@ -101,107 +95,102 @@ const setupScene = () => {
 };
 
 const fire = () => {
-    const shoot = (vx, offX) => {
+    const spawn = (vx, offX=0) => {
         const l = laserPool.find(lp => !lp.active);
-        if(!l) return;
-        l.active = true;
-        l.mesh.setEnabled(true);
-        l.mesh.position.set(player.position.x + offX, player.position.y, player.position.z + 20);
-        l.vx = vx;
-        playSfx(weapon === 3 ? 800 : 400, 0.1);
+        if(l) {
+            l.active = true; l.mesh.setEnabled(true);
+            l.mesh.position.set(player.position.x + offX, player.position.y, player.position.z + 20);
+            l.vx = vx;
+            sfx(weaponType === 3 ? 800 : 400);
+        }
     };
 
-    if(weapon === 1) shoot(0, 0);
-    if(weapon === 2) { shoot(-15, -10); shoot(0, 0); shoot(15, 10); }
-    if(weapon === 3) shoot(0, 0);
+    if(weaponType === 1) spawn(0);
+    if(weaponType === 2) { spawn(-10, -5); spawn(0, 0); spawn(10, 5); }
+    if(weaponType === 3) spawn(0); // Rail is handled by speed in loop
 };
 
-const showComms = (msg) => {
-    const el = document.getElementById("comms");
-    document.getElementById("comms-text").innerText = msg;
-    el.style.display = "block";
-    setTimeout(() => el.style.display = "none", 4000);
+const updateMissions = () => {
+    if(score > 500 && missionStep === 1) {
+        missionStep = 2;
+        document.getElementById("mission-name").innerText = "SECTOR 2: DATA SPIRE";
+        document.getElementById("mission-log").innerHTML = ">> URGENT: Spire detected. <br>>> Logic: Avoid circular formations.";
+    }
 };
 
-// Input handling
 window.addEventListener("keydown", (e) => {
     inputMap[e.key.toLowerCase()] = true;
     if(e.code === "Space") fire();
-    if(["1","2","3"].includes(e.key)) {
-        weapon = parseInt(e.key);
-        const names = ["", "PULSE_CANNON", "SPREAD_WAVE", "SINGULARITY_RAIL"];
-        document.getElementById("weapon-name").innerText = "SYSTEM: " + names[weapon];
-    }
+    if(e.key === "1") { weaponType = 1; updateWeaponUI(); }
+    if(e.key === "2") { weaponType = 2; updateWeaponUI(); }
+    if(e.key === "3") { weaponType = 3; updateWeaponUI(); }
 });
 window.addEventListener("keyup", (e) => inputMap[e.key.toLowerCase()] = false);
 
-setupScene();
-engine.runRenderLoop(() => {
-    const dt = engine.getDeltaTime() / 1000;
-    if(!scene) return;
+function updateWeaponUI() {
+    [1,2,3].forEach(n => document.getElementById("w"+n).className = (weaponType === n ? "active-weapon" : ""));
+}
 
-    // 1. Warp Background
-    stars.forEach(s => {
-        s.position.z -= currentWarp * dt;
-        if(s.position.z < -200) s.position.z = 5000;
-    });
+createScene().then(() => {
+    engine.runRenderLoop(() => {
+        const dt = engine.getDeltaTime() / 1000;
+        
+        // Warp Speed Logic
+        warpStars.forEach(s => {
+            s.position.z -= 1500 * dt;
+            if(s.position.z < -200) s.position.z = 5000;
+        });
 
-    // 2. Movement & Wingman AI
-    if(inputMap["a"]) player.position.x -= CONFIG.playerSpeed * dt;
-    if(inputMap["d"]) player.position.x += CONFIG.playerSpeed * dt;
-    if(inputMap["w"]) player.position.y += CONFIG.playerSpeed * dt;
-    if(inputMap["s"]) player.position.y -= CONFIG.playerSpeed * dt;
-    
-    wingman.position.set(
-        player.position.x - 50 + Math.sin(Date.now()*0.002)*10,
-        player.position.y + Math.cos(Date.now()*0.002)*10,
-        player.position.z + 30
-    );
+        // Movement
+        const speed = 400 * dt;
+        if(inputMap["a"]) player.position.x -= speed;
+        if(inputMap["d"]) player.position.x += speed;
+        if(inputMap["w"]) player.position.y += speed;
+        if(inputMap["s"]) player.position.y -= speed;
 
-    // 3. Lasers
-    laserPool.forEach(l => {
-        if(l.active) {
-            l.mesh.position.z += (weapon === 3 ? 5000 : 2200) * dt;
-            l.mesh.position.x += l.vx * dt * 20;
-            if(l.mesh.position.z > 2500) { l.active = false; l.mesh.setEnabled(false); }
-        }
-    });
+        // Laser Movement
+        laserPool.forEach(l => {
+            if(l.active) {
+                l.mesh.position.z += (weaponType === 3 ? 4000 : 1500) * dt;
+                l.mesh.position.x += l.vx * dt * 20;
+                if(l.mesh.position.z > 2000) { l.active = false; l.mesh.setEnabled(false); }
+            }
+        });
 
-    // 4. Enemies
-    if(Math.random() < 0.03) {
-        const e = enemyPool.find(ep => !ep.active);
-        if(e) {
-            e.active = true; e.mesh.setEnabled(true);
-            e.mesh.position.set((Math.random()-0.5)*800, (Math.random()-0.5)*500, 3000);
-        }
-    }
+        // Enemy Logic (Formation AI)
+        enemyPool.forEach(e => {
+            if(!e.active && Math.random() < 0.02) {
+                e.active = true; e.mesh.setEnabled(true);
+                e.mesh.position.set((Math.random()-0.5)*600, (Math.random()-0.5)*400, 2000);
+                e.state = missionStep === 2 ? 'CIRCLE' : 'DIVE';
+            }
 
-    enemyPool.forEach(e => {
-        if(e.active) {
-            e.mesh.position.z -= 900 * dt;
-            // Collision
-            laserPool.forEach(l => {
-                if(l.active && l.mesh.intersectsMesh(e.mesh)) {
-                    e.active = false; e.mesh.setEnabled(false);
-                    l.active = false; l.mesh.setEnabled(false);
-                    score += 1;
-                    playSfx(100, 0.2, 'sawtooth');
-                    
-                    // Narrative Trigger
-                    if(score === 10) { showComms("Nice shooting! Warp speed increasing."); currentWarp = 3000; }
-                    if(score === 30) { showComms("Heads up! Scanners show a massive signature ahead."); currentWarp = 5000; }
+            if(e.active) {
+                if(e.state === 'DIVE') e.mesh.position.z -= 600 * dt;
+                if(e.state === 'CIRCLE') {
+                    e.mesh.position.z -= 300 * dt;
+                    e.mesh.position.x += Math.sin(Date.now() * 0.005) * 5;
                 }
-            });
-            if(e.mesh.position.z < -200) { e.active = false; e.mesh.setEnabled(false); }
-        }
+
+                // Hit Detection
+                laserPool.forEach(l => {
+                    if(l.active && l.mesh.intersectsMesh(e.mesh)) {
+                        e.active = false; e.mesh.setEnabled(false);
+                        l.active = false; l.mesh.setEnabled(false);
+                        score += 100;
+                        sfx(100, 'sawtooth', 0.2);
+                        updateMissions();
+                    }
+                });
+
+                if(e.mesh.position.z < -200) { e.active = false; e.mesh.setEnabled(false); }
+            }
+        });
+
+        document.getElementById("score-val").innerText = score;
+        scene.render();
     });
-
-    document.getElementById("score-val").innerText = score;
-    document.getElementById("warp-val").innerText = (currentWarp/1500).toFixed(1);
-    scene.render();
 });
-
-window.addEventListener("resize", () => engine.resize());
 </script>
 </body>
 </html>
