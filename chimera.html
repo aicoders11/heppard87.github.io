@@ -147,21 +147,57 @@
             setInterval(() => { if(gameActive) spawnEnemy(); }, 800);
         };
 
+   // --- TOUCH CONTROLS ---
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        canvas.addEventListener("touchstart", (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        canvas.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            if (!gameActive || !player) return;
+            
+            const touchX = e.touches[0].clientX;
+            const touchY = e.touches[0].clientY;
+            
+            // Sensitivity multiplier
+            const sensitivity = 0.5;
+            player.position.x += (touchX - touchStartX) * sensitivity;
+            player.position.y -= (touchY - touchStartY) * sensitivity; 
+
+            touchStartX = touchX;
+            touchStartY = touchY;
+        }, { passive: false });
+
+        canvas.addEventListener("touchend", () => {
+            fireLaser(); // Tap anywhere to fire on mobile
+        });
+
+        // --- GAME CONTROL & LOOP ---
+        window.startGame = () => {
+            document.getElementById("overlay").style.display = "none";
+            gameActive = true;
+            
+            // Enemy spawning logic
+            setInterval(() => { 
+                if(gameActive && !isBossActive) spawnEnemy(); 
+            }, 1000 / sector);
+        };
+
         createScene().then(() => {
             engine.runRenderLoop(() => {
                 if (gameActive && scene && player) {
                     const dt = engine.getDeltaTime() / 1000;
-                    const speed = (350 + (sector * 50)) * dt;
-                    player.position.z += speed;
-                    camera.position.set(player.position.x * 0.3, player.position.y + 60, player.position.z - 250);
-                    camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
+                    
+                    // Progression & Levels
+                    const currentSpeed = (350 + (sector * 50)) * dt;
+                    player.position.z += currentSpeed;
+                    distance -= currentSpeed;
 
-                    if (inputMap["w"]) player.position.y += 500 * dt;
-                    if (inputMap["s"]) player.position.y -= 500 * dt;
-                    if (inputMap["a"]) player.position.x -= 500 * dt;
-                    if (inputMap["d"]) player.position.x += 500 * dt;
-
-                    // Boss Logic
+                    // Trigger Boss Fight at 0m
                     if (distance <= 0 && !isBossActive) {
                         isBossActive = true;
                         bossMesh.setEnabled(true);
@@ -169,23 +205,38 @@
                         document.getElementById("boss-warning").style.display = "inline";
                     }
 
+                    // Camera follow
+                    camera.position.set(player.position.x * 0.3, player.position.y + 60, player.position.z - 250);
+                    camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
+
+                    // Keyboard Controls
+                    const moveSpeed = 500 * dt;
+                    if (inputMap["w"] || inputMap["arrowup"]) player.position.y += moveSpeed;
+                    if (inputMap["s"] || inputMap["arrowdown"]) player.position.y -= moveSpeed;
+                    if (inputMap["a"] || inputMap["arrowleft"]) player.position.x -= moveSpeed;
+                    if (inputMap["d"] || inputMap["arrowright"]) player.position.x += moveSpeed;
+
+                    // Combat & Boss Movement
                     if (isBossActive) {
                         bossMesh.position.set(Math.sin(score * 0.05) * 200, Math.cos(score * 0.05) * 100, player.position.z + 800);
                         bossMesh.rotate(BABYLON.Axis.Y, 0.02);
                     }
 
+                    // Projectile & Enemy Handling
                     laserPool.forEach(l => {
                         if (l.active) {
                             l.mesh.position.z += 2000 * dt;
+                            // Boss collision
                             if (isBossActive && BABYLON.Vector3.Distance(l.mesh.position, bossMesh.position) < 100) {
                                 bossHP -= 2; l.active = false; l.mesh.setEnabled(false);
                                 document.getElementById("boss-hp").style.width = bossHP + "%";
                                 if (bossHP <= 0) {
                                     gameActive = false;
-                                    document.getElementById("game-msg").innerText = "SINGULARITY NEUTRALIZED: VICTORY";
+                                    document.getElementById("game-msg").innerText = "GUARDIAN NEUTRALIZED: VICTORY";
                                     document.getElementById("overlay").style.display = "flex";
                                 }
                             }
+                            // Regular enemy collision
                             enemyPool.forEach(e => {
                                 if (e.active && BABYLON.Vector3.Distance(l.mesh.position, e.mesh.position) < 50) {
                                     e.active = false; e.mesh.setEnabled(false); l.active = false; l.mesh.setEnabled(false);
@@ -196,6 +247,7 @@
                         }
                     });
 
+                    // Collision with enemies
                     enemyPool.forEach(e => {
                         if (e.active) {
                             if (BABYLON.Vector3.Distance(player.position, e.mesh.position) < 45) location.reload();
@@ -203,8 +255,10 @@
                         }
                     });
 
+                    // Background & UI
                     stars.forEach(s => { if (s.position.z < player.position.z - 1000) s.position.z += 10000; });
-                    score += dt * 5; distance -= speed;
+                    score += dt * 5;
+                    
                     if (distance < 3500 && sector === 1) { sector = 2; document.getElementById("mission-name").innerText = "SECTOR 2: DATA SPIRE"; }
                     if (distance < 1500 && sector === 2) { sector = 3; document.getElementById("mission-name").innerText = "SECTOR 3: SINGULARITY"; }
                     
