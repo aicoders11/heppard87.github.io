@@ -23,9 +23,9 @@
     </div>
 
     <div id="hud">
-        <div id="left-hud">SYNC_RATE: <span id="score">0</span>%<br>HULL: <span id="shield-val">NOMINAL</span></div>
-        <div id="center-hud" style="text-align: center;">SECTOR: <span id="mission-name">THE RIM</span></div>
-        <div id="right-hud" style="text-align: right;">THREATS: <span id="kill-val">0</span><br>DIST: <span id="dist-val">5000</span>m</div>
+        <div>SYNC_RATE: <span id="score">0</span>%<br>HULL: <span id="shield-val">NOMINAL</span></div>
+        <div style="text-align: center;">SECTOR: <span id="mission-name">THE RIM</span></div>
+        <div style="text-align: right;">THREATS: <span id="kill-val">0</span><br>DIST: <span id="dist-val">5000</span>m</div>
     </div>
 
     <div id="overlay" style="display:none">
@@ -39,35 +39,34 @@
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
         let scene, player, gameActive = false;
-        let score = 0, kills = 0, dist = 5000;
-
-        // Assets Configuration - Update these filenames to match your GitHub uploads
-        const ASSETS = {
-            player: "Spaceship_RaeTheRedPanda.gltf",
-            enemy: "Spaceship_BarbaraTheBee.gltf",
-            planets: ["Planet_2.gltf", "Planet_3.gltf", "Planet_4.gltf"]
-        };
+        let score = 0;
 
         const createScene = async () => {
             scene = new BABYLON.Scene(engine);
             scene.clearColor = new BABYLON.Color4(0, 0, 0, 1);
 
-            const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 150, -450), scene);
+            const camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 50, -200), scene);
             camera.setTarget(BABYLON.Vector3.Zero());
 
-            new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.7;
+            new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene).intensity = 0.8;
 
             const manager = new BABYLON.AssetsManager(scene);
 
-            // Load Player
-            const playerTask = manager.addMeshTask("playerTask", "", "./", ASSETS.player);
+            // Loading your uploaded assets
+            const playerTask = manager.addMeshTask("playerTask", "", "./", "Spaceship_RaeTheRedPanda.gltf");
+            const enemyTask = manager.addMeshTask("enemyTask", "", "./", "Spaceship_BarbaraTheBee.gltf");
+            const planetTask = manager.addMeshTask("planetTask", "", "./", "Planet_1.gltf");
+
             playerTask.onSuccess = (task) => {
                 player = task.loadedMeshes[0];
-                player.scaling = new BABYLON.Vector3(15, 15, 15);
-                document.getElementById("load-status").innerText = "Pilot Synchronized...";
+                player.scaling = new BABYLON.Vector3(10, 10, 10);
+                document.getElementById("load-status").innerText = "Pilot Link Established...";
             };
 
-            // Standard Fallback if assets fail
+            enemyTask.onSuccess = (task) => {
+                task.loadedMeshes.forEach(m => m.setEnabled(false)); // Hide master copy
+            };
+
             manager.onFinish = () => {
                 document.getElementById("loading-screen").style.display = "none";
                 document.getElementById("overlay").style.display = "flex";
@@ -85,9 +84,8 @@
         createScene().then(() => {
             engine.runRenderLoop(() => {
                 if (gameActive && scene) {
-                    // Game Loop Logic
-                    score += 1;
-                    document.getElementById("score").innerText = score;
+                    score += 0.1;
+                    document.getElementById("score").innerText = Math.floor(score);
                 }
                 scene.render();
             });
