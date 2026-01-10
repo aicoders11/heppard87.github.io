@@ -6,13 +6,15 @@
     <title>CyberSolutionsOhio | Ultimate Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Modernized Cyberpunk UI Layout */
+        /* Restored Side-by-Side Cyberpunk Layout */
         body { 
             background-color: #020205; 
             color: #e0e0e0; 
             font-family: 'Segoe UI', sans-serif; 
             margin: 0;
-            padding: 0;
+            background-image: linear-gradient(rgba(0, 245, 212, 0.05) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 245, 212, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px; /* Restores the grid look from your screenshot */
         }
 
         .dashboard-content {
@@ -21,16 +23,8 @@
             margin: 0 auto;
         }
 
-        .terminal-card { 
-            background: #000; 
-            border: 1px solid #1a1a1a; 
-            padding: 1.5rem; 
-            border-radius: 4px; 
-            margin-bottom: 3rem; 
-        }
-
         .section-divider { 
-            border-bottom: 2px solid #333; 
+            border-bottom: 1px solid #333; 
             margin: 3rem 0 1.5rem 0; 
             padding-bottom: 0.5rem; 
         }
@@ -39,47 +33,48 @@
             font-family: 'Orbitron', sans-serif; 
             color: #ff00f5; 
             text-transform: uppercase; 
-            margin: 0;
-            font-size: 1.5rem;
-            letter-spacing: 2px;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
         }
 
-        /* Fixed Grid Layout */
+        /* Fixed Side-by-Side Grid */
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Force side-by-side when space allows */
+            gap: 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .feature-item { 
             display: flex;
             flex-direction: column;
-            background: #0a0a0f;
-            min-height: 180px;
-            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s; 
-            border: 1px solid #111; 
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(5px);
+            border: 1px solid #1a1a1a; 
             text-decoration: none;
             padding: 1.5rem;
-            border-radius: 4px;
+            min-height: 160px;
+            transition: all 0.3s ease;
         }
 
         .feature-item:hover { 
-            transform: translateY(-8px); 
-            box-shadow: 0 10px 20px rgba(0, 245, 212, 0.15); 
             border-color: #00f5d4; 
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+            transform: scale(1.02);
         }
 
         .feature-item h3 { 
-            color: #fff; 
-            margin: 0 0 0.5rem 0; 
+            color: #00f5d4; 
+            margin: 0 0 0.8rem 0; 
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1rem;
+            text-transform: uppercase;
         }
 
         .feature-item p { 
             color: #888; 
-            font-size: 0.9rem; 
+            font-size: 0.85rem; 
+            line-height: 1.5;
             margin-bottom: 1.5rem;
             flex-grow: 1;
         }
@@ -88,26 +83,18 @@
             color: #00f5d4; 
             font-family: monospace; 
             font-weight: bold; 
-            letter-spacing: 1px;
-            border-top: 1px solid #222;
-            padding-top: 1rem;
+            font-size: 0.8rem;
             text-align: right;
+            border: 1px solid #00f5d4;
+            padding: 5px 15px;
+            align-self: flex-end;
         }
 
         .credits-footer { 
             text-align: center; 
             padding: 4rem 1rem; 
-            border-top: 1px solid #111; 
-            margin-top: 5rem; 
             background: #000;
-        }
-
-        .credits-footer p { 
-            font-family: monospace; 
-            font-size: 0.8rem; 
-            letter-spacing: 2px; 
-            color: #555; 
-            margin: 0.5rem 0;
+            border-top: 1px solid #111;
         }
 
         .credits-name { color: #00f5d4; font-weight: bold; }
@@ -127,13 +114,6 @@
 
     <main class="dashboard-main">
         <section class="dashboard-content">
-            <div class="terminal-card">
-                <h2 style="color: #00f5d4; font-family: monospace;">> SYSTEM_SECURITY_MODULE_ALPHA</h2>
-                <p style="color: #666; font-size: 0.9rem;">Evaluate local entropy and decryption difficulty.</p>
-                <input type="text" id="passwordInput" placeholder="Test data fragment..." style="background:transparent; border:none; border-bottom:1px solid #333; color:#fff; width:100%; padding:10px 0; outline:none; font-family:monospace;">
-                <div id="strength-bar-container" style="height:4px; background:#111; margin-top:15px;"><div id="strength-bar" style="height:100%; width:0%; background:#ff00f5; transition:0.3s;"></div></div>
-            </div>
-
             <div class="section-divider"><h2>Action Protocols</h2></div>
             <div class="features-grid">
                 <a href="momentum-runner.html" class="feature-item">
@@ -145,24 +125,18 @@
                 <a href="TrippyRun.html" class="feature-item">
                     <h3>TRIPPY RUN</h3><p>High-speed psychedelic data traversal.</p><span class="read-more-btn">PLAY</span>
                 </a>
-                <a href="Cosmic Billiards.html" class="feature-item">
-                    <h3>COSMIC BILLIARDS</h3><p>Physics-based deep space arcade action.</p><span class="read-more-btn">PLAY</span>
-                </a>
             </div>
 
             <div class="section-divider"><h2>Creative Simulations</h2></div>
             <div class="features-grid">
-                <a href="3D Voxel Painter Ultra.html" class="feature-item">
-                    <h3>VOXEL PAINTER</h3><p>Construct 3D voxel-based cyber-worlds.</p><span class="read-more-btn">LAUNCH</span>
-                </a>
-                <a href="Virtual Room Planner.html" class="feature-item">
-                    <h3>ROOM PLANNER</h3><p>Precision virtual architectural design.</p><span class="read-more-btn">LAUNCH</span>
-                </a>
                 <a href="3D DNA Visualizer.html" class="feature-item">
                     <h3>DNA VISUALIZER</h3><p>Interactive mapping of biomedical structures.</p><span class="read-more-btn">VIEW</span>
                 </a>
                 <a href="3D Molecule Viewer.html" class="feature-item">
                     <h3>MOLECULE VIEWER</h3><p>Real-time molecular structure simulator.</p><span class="read-more-btn">VIEW</span>
+                </a>
+                <a href="Virtual Room Planner.html" class="feature-item">
+                    <h3>ROOM PLANNER</h3><p>Precision virtual architectural design.</p><span class="read-more-btn">LAUNCH</span>
                 </a>
             </div>
 
@@ -171,22 +145,21 @@
                 <a href="3D Chess.html" class="feature-item">
                     <h3>3D CHESS</h3><p>Advanced tactical logic simulator v4.2.</p><span class="read-more-btn">PLAY</span>
                 </a>
-                <a href="3D Solitaire.html" class="feature-item">
-                    <h3>3D SOLITAIRE</h3><p>Classic card logic in an immersive space.</p><span class="read-more-btn">DEAL</span>
-                </a>
                 <a href="memory-game.html" class="feature-item">
                     <h3>MEMORY GAME</h3><p>Pattern recognition and recall test.</p><span class="read-more-btn">PLAY</span>
                 </a>
-                <a href="3D Data Visualizer.html" class="feature-item">
-                    <h3>DATA VISUALIZER</h3><p>Real-time data stream analytics engine.</p><span class="read-more-btn">RUN</span>
+                <a href="solitaire.html" class="feature-item">
+                    <h3>SOLITAIRE</h3><p>Classic card logic in an immersive space.</p><span class="read-more-btn">DEAL</span>
                 </a>
             </div>
         </section>
     </main>
 
     <footer class="credits-footer">
-        <p>A GAME DEVELOPED AND CODED BY <span class="credits-name">CHRIS HEPPARD</span></p>
-        <p>&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
+        <p style="font-family: monospace; font-size: 0.8rem; color: #444; letter-spacing: 2px;">
+            A GAME DEVELOPED AND CODED BY <span class="credits-name">CHRIS HEPPARD</span>
+        </p>
+        <p style="font-family: monospace; font-size: 0.7rem; color: #444;">&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
     </footer>
 </body>
 </html>
