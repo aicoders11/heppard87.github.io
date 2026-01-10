@@ -205,73 +205,85 @@ const spawnEnemy = () => {
 
 createScene().then(() => {
     engine.runRenderLoop(() => {
-        if (gameActive && player) {
-            const dt = engine.getDeltaTime() / 1000;
-            player.position.z += 500 * dt; distance -= 500 * dt;
-            
-            // Shield Follow
-            if(isShielded) shieldMesh.position.copyFrom(player.position);
+    if (gameActive && player) {
+        const dt = engine.getDeltaTime() / 1000;
+        
+        // 1. DYNAMIC CAMERA FOLLOW (FIXED)
+        // This calculates a 'Target Position' slightly behind and above the player
+        let targetCameraPos = new BABYLON.Vector3(
+            player.position.x * 0.3, 
+            player.position.y + 75, 
+            player.position.z - 300
+        );
+        
+        // Smoothly slide the camera toward that target (Lerp)
+        camera.position = BABYLON.Vector3.Lerp(camera.position, targetCameraPos, 0.1);
+        camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 600));
 
-            // Camera follow
-            camera.position.set(player.position.x * 0.2, player.position.y + 70, player.position.z - 280);
-            camera.setTarget(new BABYLON.Vector3(player.position.x, player.position.y, player.position.z + 500));
+        // 2. MOVEMENT & WARP SPEED
+        player.position.z += 550 * dt; 
+        distance -= 550 * dt;
+        
+        // Stars warp effect
+        stars.forEach(s => {
+            s.position.z -= 3500 * dt;
+            if(s.position.z < player.position.z - 500) s.position.z = player.position.z + 8500;
+        });
 
-            // Movement
-            const m = 800 * dt;
-            if (inputMap["up"]) player.position.y += m;
-            if (inputMap["down"]) player.position.y -= m;
-            if (inputMap["left"]) player.position.x -= m;
-            if (inputMap["right"]) player.position.x += m;
+        // Controls (Arrow Keys + WASD)
+        const m = 850 * dt;
+        if (inputMap["up"]) player.position.y += m;
+        if (inputMap["down"]) player.position.y -= m;
+        if (inputMap["left"]) { player.position.x -= m; player.rotation.z = 0.35; }
+        else if (inputMap["right"]) { player.position.x += m; player.rotation.z = -0.35; }
+        else { player.rotation.z = 0; }
 
-            // Combat & Collision Logic
-            enemyPool.forEach(e => {
-                if (e.active) {
-                    e.mesh.position.z -= 900 * dt;
-                    if (Date.now() - e.lastFire > 2000) {
-                        const el = enemyLaserPool.find(lp => !lp.active);
-                        if(el){ el.active = true; el.mesh.setEnabled(true); el.mesh.position.copyFrom(e.mesh.position); playSFX(200); }
-                        e.lastFire = Date.now();
+        // 3. COMBAT & SHIELD COLLISION
+        if(isShielded) shieldMesh.position.copyFrom(player.position);
+
+        enemyPool.forEach(e => {
+            if (e.active) {
+                e.mesh.position.z -= 950 * dt;
+                
+                // Enemy firing logic
+                if (Date.now() - e.lastFire > 1800) {
+                    const el = enemyLaserPool.find(lp => !lp.active);
+                    if(el) { 
+                        el.active = true; el.mesh.setEnabled(true); 
+                        el.mesh.position.copyFrom(e.mesh.position); 
+                        playSFX(250); 
                     }
-                    if (BABYLON.Vector3.Distance(player.position, e.mesh.position) < 45 && !isShielded) location.reload();
-                    if (e.mesh.position.z < player.position.z - 300) { e.active = false; e.mesh.setEnabled(false); }
+                    e.lastFire = Date.now();
                 }
-            });
 
-            pickups.forEach(p => {
-                if(p.active) {
-                    p.mesh.rotate(BABYLON.Axis.Y, 0.05);
-                    if(BABYLON.Vector3.Distance(player.position, p.mesh.position) < 40) {
-                        p.active = false; p.mesh.setEnabled(false); activateShield();
-                    }
+                // Crash Collision (Bypassed by Shield)
+                if (BABYLON.Vector3.Distance(player.position, e.mesh.position) < 45 && !isShielded) {
+                    location.reload(); 
                 }
-            });
+            }
+        });
 
-            enemyLaserPool.forEach(l => {
-                if (l.active) {
-                    l.mesh.position.z -= 1500 * dt;
-                    if (BABYLON.Vector3.Distance(player.position, l.mesh.position) < 30 && !isShielded) location.reload();
-                    if (l.mesh.position.z < player.position.z - 300) { l.active = false; l.mesh.setEnabled(false); }
-                }
-            });
+        // Pickup Collision (Thunder Shield)
+        pickups.forEach(p => {
+            if(p.active && BABYLON.Vector3.Distance(player.position, p.mesh.position) < 45) {
+                p.active = false; p.mesh.setEnabled(false);
+                activateShield(); // Gives you 8 seconds of safety
+            }
+        });
 
-            laserPool.forEach(l => {
-                if (l.active) {
-                    l.mesh.position.z += 2500 * dt;
-                    enemyPool.forEach(e => {
-                        if (e.active && l.mesh.intersectsMesh(e.mesh)) {
-                            e.active = false; e.mesh.setEnabled(false); l.active = false; l.mesh.setEnabled(false);
-                            kills++; playSFX(150);
-                        }
-                    });
-                }
-            });
-
-            document.getElementById("score-val").innerText = Math.floor(player.position.z / 10);
-            document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance));
-            document.getElementById("kill-val").innerText = kills;
+        // 4. PLANET BACKGROUND UPDATES
+        const currentPlanet = Math.floor((5000 - distance) / 450);
+        if(planets[currentPlanet]) {
+            planets[currentPlanet].setEnabled(true);
+            planets[currentPlanet].position.set(1200, -300, player.position.z + 3000);
+            planets[currentPlanet].rotate(BABYLON.Axis.Y, 0.005);
         }
-        scene.render();
-    });
+
+        // UI Updates
+        document.getElementById("score-val").innerText = Math.floor(player.position.z / 10);
+        document.getElementById("dist-val").innerText = Math.max(0, Math.floor(distance)) + "m";
+    }
+    scene.render();
 });
 window.addEventListener("resize", () => engine.resize());
     </script>
