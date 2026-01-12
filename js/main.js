@@ -32,7 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
         filterButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const filterValue = button.getAttribute('data-filter');
-
+paypal.Buttons({
+  style: {
+    layout: 'vertical',
+    color:  'blue',
+    shape:  'rect',
+    label:  'paypal'
+  }
+}).render('#paypal-button-container');
                 // Update active button style
                 filterButtons.forEach(btn => btn.classList.remove('active'));
                 button.classList.add('active');
