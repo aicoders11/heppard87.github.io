@@ -1,0 +1,7 @@
+{
+  "name": "Heppards App of Useless Crap",
+  "description": "An interactive AI friend from a bioluminescent dimension. Chat, play surreal games like Doodle-Fight, and explore a tech-organic world with your chaotic companion, Lumina.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
