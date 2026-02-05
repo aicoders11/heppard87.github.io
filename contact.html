@@ -3,40 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONTACT | CYBERCHRIS</title>
+    <title>Contact | CyberSolutionsOhio</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        /* Specific styles for your original form to work with the theme */
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; font-family: var(--font-mono); color: var(--neon-cyan); margin-bottom: 5px; text-transform: uppercase; font-size: 0.8rem; }
+        input, textarea { 
+            width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); 
+            border: 1px solid var(--border-color); color: white; font-family: var(--font-main);
+            border-radius: 4px; outline: none; transition: 0.3s;
+        }
+        input:focus, textarea:focus { border-color: var(--neon-magenta); box-shadow: 0 0 10px rgba(255, 0, 245, 0.2); }
+    </style>
 </head>
 <body>
     <div class="scanlines"></div>
     <div class="grid-bg"></div>
     <div class="particles"></div>
 
-    <nav class="cyber-nav">
-        <a href="index.html" class="cyber-logo">CYBERCHRIS</a>
-        <div class="cyber-nav-links">
-            <a href="index.html">Home</a>
-            <a href="about.html">About</a>
-            <a href="services.html">Services</a>
-            <a href="contact.html" class="active">Contact</a>
-        </div>
-    </nav>
+    <header>
+        <nav class="cyber-nav">
+            <a href="index.html" class="cyber-logo">CyberSolutionsOhio</a>
+            <div class="cyber-nav-links">
+                <a href="index.html">Home</a>
+                <a href="about.html">About Us</a>
+                <a href="services.html">Services</a>
+                <a href="games.html">Games</a>
+                <a href="apps.html">Apps</a>
+                <a href="contact.html" class="active">Contact</a>
+            </div>
+        </nav>
+    </header>
 
-    <main style="position: relative; z-index: 2; padding-top: 120px; max-width: 600px; margin: 0 auto; padding-inline: 20px;">
-        <div class="glass-panel" style="text-align: center; padding: 50px;">
-            <h1 class="glitch font-orbitron" data-text="SIGNAL BROADCAST" style="color: var(--neon-magenta); margin-bottom: 30px;">SIGNAL BROADCAST</h1>
-            <p class="font-mono" style="margin-bottom: 30px;">ESTABLISHING ENCRYPTED UPLINK...</p>
+    <main style="position: relative; z-index: 2; padding-top: 120px; max-width: 700px; margin: 0 auto; padding-inline: 20px;">
+        <section class="glass-panel" style="padding: 40px; text-align: center;">
+            <h1 class="glitch font-orbitron" data-text="CONTACT US" style="color: var(--neon-magenta); margin-bottom: 15px;">CONTACT US</h1>
+            <p class="font-mono" style="margin-bottom: 30px; font-size: 0.9rem;">Have a project in mind? Fill out the form below to establish an uplink.</p>
             
-            <div style="margin-bottom: 20px;">
-                <p class="font-orbitron" style="font-size: 0.8rem; color: var(--neon-cyan);">GITHUB</p>
-                <a href="https://github.com/heppard87" class="font-mono" style="color: white; text-decoration: none;">github.com/heppard87</a>
-            </div>
-
-            <div style="margin-top: 40px;">
-                <a href="mailto:your-email@example.com" class="cyber-btn">Send Transmission</a>
-            </div>
-        </div>
+            <form class="contact-form">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="details">Project Details</label>
+                    <textarea id="details" name="details" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="cyber-btn" style="width: 100%;">Send Message</button>
+            </form>
+        </section>
     </main>
+
+    <footer class="cyber-footer" style="margin-top: 60px;">
+        <div class="cyber-footer-logo">CyberSolutionsOhio</div>
+        <p class="cyber-footer-text">&copy; 2024 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
+        <div class="cyber-footer-links">
+            <a href="#">LinkedIn</a>
+            <a href="#">Twitter</a>
+            <a href="#">GitHub</a>
+        </div>
+    </footer>
 
     <script>
         function createParticles() {
