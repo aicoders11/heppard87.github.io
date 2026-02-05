@@ -18,36 +18,54 @@
     <div class="particles"></div>
 
     <nav class="cyber-nav">
-        <a href="#" class="cyber-logo">CYBERCHRIS</a>
+        <a href="index.html" class="cyber-logo">CYBERCHRIS</a>
         <div class="cyber-nav-links">
-            <button id="sound-toggle" class="cyber-btn" style="padding: 2px 10px; font-size: 0.6rem;">AUDIO: OFF</button>
-            <a href="#">Games</a>
-            <a href="https://github.com/heppard87" target="_blank">Source</a>
+            <button id="sound-toggle" class="cyber-btn" style="padding: 2px 10px; font-size: 0.6rem; margin-right:15px;">AUDIO: OFF</button>
+            <a href="index.html" class="active">Home</a>
+            <a href="about.html">About</a>
+            <a href="services.html">Services</a>
+            <a href="contact.html">Contact</a>
         </div>
     </nav>
 
     <main style="position: relative; z-index: 2; padding-top: 120px; max-width: 1200px; margin: 0 auto; padding-inline: 20px;">
         <header style="margin-bottom: 50px; text-align: center;">
             <h1 class="glitch" data-text="SYSTEM READY" style="font-family: 'Orbitron'; font-size: 3.5rem; color: var(--neon-cyan); text-shadow: var(--glow-cyan);">SYSTEM READY</h1>
-            <p style="font-family: 'Share Tech Mono'; color: var(--neon-magenta);">CONNECTION STABLE // PORTAL ACTIVE</p>
+            <p style="font-family: 'Share Tech Mono'; color: var(--neon-magenta);">ACCESSING LOCAL GAME REPOSITORY...</p>
         </header>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            
             <div class="glass-panel">
                 <h3 style="font-family: 'Orbitron'; color: var(--neon-cyan);">3D CHESS</h3>
-                <p style="font-size: 0.9rem; margin: 15px 0;">Strategic simulation in a virtual vacuum.</p>
-                <a href="chess3d.html" class="cyber-btn">Execute</a>
+                <p style="font-size: 0.8rem; margin: 10px 0;">Tactical simulation.</p>
+                <a href="chess3d.html" class="cyber-btn" style="width:100%; text-align:center;">Execute</a>
             </div>
+
             <div class="glass-panel">
                 <h3 style="font-family: 'Orbitron'; color: var(--neon-magenta);">BILLIARDS</h3>
-                <p style="font-size: 0.9rem; margin: 15px 0;">Physics-based kinetic interaction module.</p>
-                <a href="billiards.html" class="cyber-btn">Execute</a>
+                <p style="font-size: 0.8rem; margin: 10px 0;">Kinetic physics module.</p>
+                <a href="billiards.html" class="cyber-btn" style="width:100%; text-align:center;">Execute</a>
             </div>
+
             <div class="glass-panel">
                 <h3 style="font-family: 'Orbitron'; color: var(--neon-amber);">3D PONG</h3>
-                <p style="font-size: 0.9rem; margin: 15px 0;">Retro-reflex testing protocol.</p>
-                <a href="3d-pong.html" class="cyber-btn">Execute</a>
+                <p style="font-size: 0.8rem; margin: 10px 0;">Reflex testing protocol.</p>
+                <a href="3d-pong.html" class="cyber-btn" style="width:100%; text-align:center;">Execute</a>
             </div>
+
+            <div class="glass-panel">
+                <h3 style="font-family: 'Orbitron'; color: var(--neon-cyan);">BRICK BREAK</h3>
+                <p style="font-size: 0.8rem; margin: 10px 0;">Destruction sequence.</p>
+                <a href="brick-dark.html" class="cyber-btn" style="width:100%; text-align:center;">Execute</a>
+            </div>
+
+            <div class="glass-panel">
+                <h3 style="font-family: 'Orbitron'; color: var(--neon-magenta);">SOLITAIRE</h3>
+                <p style="font-size: 0.8rem; margin: 10px 0;">Logic pattern sorting.</p>
+                <a href="solitaire.html" class="cyber-btn" style="width:100%; text-align:center;">Execute</a>
+            </div>
+
         </div>
     </main>
 
@@ -55,7 +73,6 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let audioEnabled = false;
 
-        // Sound Toggle
         document.getElementById('sound-toggle').addEventListener('click', (e) => {
             audioEnabled = !audioEnabled;
             e.target.textContent = `AUDIO: ${audioEnabled ? 'ON' : 'OFF'}`;
@@ -73,8 +90,7 @@
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // Terminal & Particles Logic
-        const lines = ["> BOOTING...", "> LOADING ASSETS...", "> BYPASSING FIREWALL...", "> ACCESS GRANTED."];
+        const lines = ["> BOOTING...", "> RECOVERING ABOUT PAGE...", "> RECOVERING SERVICES...", "> ESTABLISHING LINKS...", "> ACCESS GRANTED."];
         async function init() {
             const content = document.getElementById('terminal-content');
             for(let line of lines) {
@@ -103,7 +119,7 @@
         }
 
         function attachHoverSounds() {
-            document.querySelectorAll('.cyber-btn, .glass-panel').forEach(el => {
+            document.querySelectorAll('.cyber-btn, .glass-panel, .cyber-nav-links a').forEach(el => {
                 el.addEventListener('mouseenter', () => playBeep(880));
             });
         }
