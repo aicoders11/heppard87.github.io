@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSolutionsOhio | Chris Heppard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap');
+
+        :root {
+            --cyan: #00f5d4;
+            --magenta: #ff00f5;
+            --dark: #0a0a0f;
+            --panel: rgba(10, 10, 15, 0.95);
+            --border: rgba(0, 245, 212, 0.3);
+            --font-main: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+        }
+
+        /* RESET & CORE */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-main);
+            background-color: var(--dark);
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        /* UTILITIES */
+        .btn {
+            background: transparent;
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            padding: 10px 25px;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        .btn:hover {
+            background: var(--cyan);
+            color: var(--dark);
+            box-shadow: 0 0 15px var(--cyan);
+        }
+
+        /* BACKGROUND */
+        #bgCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+
+        /* HEADER */
+        header {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            background: var(--panel); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 40px; z-index: 1000; backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-family: 'Orbitron'; font-size: 1.5rem; font-weight: 900;
+            background: linear-gradient(45deg, var(--cyan), var(--magenta));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* HERO SECTION */
+        .hero {
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding-top: 70px;
+        }
+        .hero h1 {
+            font-family: 'Orbitron'; font-size: 4rem; margin-bottom: 10px;
+            text-transform: uppercase; letter-spacing: 5px;
+            text-shadow: 2px 2px 0px var(--magenta);
+        }
+        .hero p { font-family: var(--font-mono); color: var(--cyan); margin-bottom: 30px; font-size: 1.2rem; }
+
+        /* PORTFOLIO GRID */
+        section { padding: 80px 20px; max-width: 1200px; margin: 0 auto; }
+        .section-title {
+            font-family: 'Orbitron'; font-size: 2.5rem; color: var(--cyan);
+            margin-bottom: 40px; border-left: 5px solid var(--magenta);
+            padding-left: 20px;
+        }
+
+        .filter-buttons { margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-btn {
+            border: 1px solid var(--border); background: transparent; color: #888;
+            padding: 5px 15px; cursor: pointer; font-family: var(--font-mono);
+        }
+        .filter-btn.active, .filter-btn:hover { color: var(--cyan); border-color: var(--cyan); }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
+        }
+        .card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            position: relative; overflow: hidden; transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); border-color: var(--cyan); }
+        .card-img {
+            height: 180px; display: flex; align-items: center; justify-content: center;
+            font-size: 4rem; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border);
+        }
+        .card-body { padding: 20px; }
+        .card h3 { font-family: 'Orbitron'; color: #fff; margin-bottom: 5px; }
+        .card p { font-size: 0.8rem; color: #888; margin-bottom: 15px; font-family: var(--font-mono); }
+
+        /* GAME STAGE MODAL */
+        #gameModal {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.95); flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        #canvasContainer {
+            position: relative; width: 800px; height: 500px;
+            border: 2px solid var(--cyan); background: #000;
+            box-shadow: 0 0 50px rgba(0, 245, 212, 0.2);
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+        .modal-ui {
+            width: 800px; display: flex; justify-content: space-between;
+            margin-bottom: 15px; align-items: center;
+        }
+        .status-text { color: var(--cyan); font-family: var(--font-mono); }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="bgCanvas"></canvas>
+
+    <header>
+        <div class="logo">CYBERSOLUTIONSOHIO</div>
+        <nav>
+            <a href="#portfolio" class="btn">View Games</a>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h1>Chris Heppard</h1>
+        <p>System Architect // Game Developer</p>
+        <div style="display: flex; gap: 20px;">
+            <button class="btn" onclick="document.getElementById('portfolio').scrollIntoView()">Access Portfolio</button>
+            <button class="btn" style="border-color: var(--magenta); color: var(--magenta);">Hacker Mode</button>
+        </div>
+    </div>
+
+    <section id="portfolio">
+        <h2 class="section-title">Digital Arsenal</h2>
+        
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filter('all')">All Units</button>
+            <button class="filter-btn" onclick="filter('app')">System Apps</button>
+            <button class="filter-btn" onclick="filter('game')">Game Suite</button>
+            <button class="filter-btn" onclick="filter('restricted')">Restricted [13+]</button>
+        </div>
+
+        <div class="grid">
+            <div class="card" data-cat="app">
+                <div class="card-img" style="color: var(--cyan);">⌨️</div>
+                <div class="card-body">
+                    <h3>Terminal OS</h3>
+                    <p>Command Line Interface Simulator</p>
+                    <button class="btn" onclick="launchGame('terminal')">Launch App</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="app">
+                <div class="card-img" style="color: var(--cyan);">🌧️</div>
+                <div class="card-body">
+                    <h3>Matrix Stream</h3>
+                    <p>Digital Rain Generator</p>
+                    <button class="btn" onclick="launchGame('matrix')">Launch App</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--magenta);">🏎️</div>
+                <div class="card-body">
+                    <h3>Cyber Racer</h3>
+                    <p>High-speed dodge arcade</p>
+                    <button class="btn" onclick="launchGame('racer')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--magenta);">🐍</div>
+                <div class="card-body">
+                    <h3>Neon Snake</h3>
+                    <p>Classic grid consumption</p>
+                    <button class="btn" onclick="launchGame('snake')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="restricted" style="border-color: var(--magenta);">
+                <div class="card-img" style="color: var(--magenta); background: #1a0505;">💀</div>
+                <div class="card-body">
+                    <h3 style="color: var(--magenta);">System Breach</h3>
+                    <p>Hacking Simulation [13+]</p>
+                    <button class="btn" style="border-color: var(--magenta); color: var(--magenta);" onclick="launchGame('breach')">Infiltrate</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="app">
+                <div class="card-img" style="color: #fff;">📺</div>
+                <div class="card-body">
+                    <h3>Glitch Studio</h3>
+                    <p>Visual Corruption Engine</p>
+                    <button class="btn" onclick="launchGame('glitch')">Launch App</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="gameModal">
+        <div class="modal-ui">
+            <div class="status-text">SYSTEM_STATUS: <span id="gameStatus" style="color:#fff">ACTIVE</span></div>
+            <button class="btn" style="border-color: var(--magenta); color: var(--magenta);" onclick="closeGame()">TERMINATE SESSION</button>
+        </div>
+        <div id="canvasContainer">
+            <canvas id="gameCanvas" width="800" height="500"></canvas>
+        </div>
+        <div style="margin-top: 10px; color: #888; font-family: var(--font-mono);">
+            Controls: Arrow Keys / Click to Interact
+        </div>
+    </div>
+
+    <script>
+        // --- BACKGROUND PARTICLES ---
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        
+        let particles = [];
+        for(let i=0; i<50; i++) particles.push({
+            x: Math.random()*bgCanvas.width, 
+            y: Math.random()*bgCanvas.height, 
+            vy: Math.random()*0.5 + 0.1
+        });
+
+        function animateBg() {
+            bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+            bgCtx.fillStyle = 'rgba(0, 245, 212, 0.3)';
+            particles.forEach(p => {
+                p.y += p.vy;
+                if(p.y > bgCanvas.height) p.y = 0;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, 1, 0, Math.PI*2);
+                bgCtx.fill();
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // --- FILTERING ---
+        function filter(cat) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.card').forEach(c => {
+                c.style.display = (cat === 'all' || c.dataset.cat === cat) ? 'block' : 'none';
+            });
+        }
+
+        // --- GAME ENGINE ---
+        const modal = document.getElementById('gameModal');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameLoop;
+        let activeGame = '';
+        
+        // Game Variables
+        let player = {x: 380, y: 430, w: 40, h: 40};
+        let obstacles = [];
+        let score = 0;
+        let snake = [{x:10, y:10}];
+        let food = {x:15, y:15};
+        let dir = {x:1, y:0};
+        
+        function launchGame(id) {
+            modal.style.display = 'flex';
+            activeGame = id;
+            score = 0;
+            
+            // Reset States
+            if(id === 'racer') { obstacles = []; player.x = 380; }
+            if(id === 'snake') { snake = [{x:10, y:10}]; dir = {x:1, y:0}; }
+
+            // Input Listeners
+            window.onkeydown = (e) => handleInput(e);
+            
+            loop();
+        }
+
+        function closeGame() {
+            modal.style.display = 'none';
+            activeGame = '';
+            cancelAnimationFrame(gameLoop);
+        }
+
+        function handleInput(e) {
+            if(activeGame === 'racer') {
+                if(e.key === 'ArrowLeft') player.x -= 40;
+                if(e.key === 'ArrowRight') player.x += 40;
+            }
+            if(activeGame === 'snake') {
+                if(e.key === 'ArrowUp' && dir.y===0) dir = {x:0, y:-1};
+                if(e.key === 'ArrowDown' && dir.y===0) dir = {x:0, y:1};
+                if(e.key === 'ArrowLeft' && dir.x===0) dir = {x:-1, y:0};
+                if(e.key === 'ArrowRight' && dir.x===0) dir = {x:1, y:0};
+            }
+        }
+
+        function loop() {
+            if(!activeGame) return;
+            
+            ctx.clearRect(0,0,800,500);
+            
+            if(activeGame === 'terminal') updateTerminal();
+            else if(activeGame === 'matrix') updateMatrix();
+            else if(activeGame === 'racer') updateRacer();
+            else if(activeGame === 'snake') updateSnake();
+            else if(activeGame === 'breach') updateBreach();
+            else if(activeGame === 'glitch') updateGlitch();
+            
+            gameLoop = requestAnimationFrame(loop);
+        }
+
+        // --- LOGIC MODULES ---
+        
+        // 1. Terminal
+        let termLines = ["> SYSTEM INITIALIZED", "> USER: CHRIS HEPPARD", "> WAITING FOR INPUT..."];
+        function updateTerminal() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,800,500);
+            ctx.fillStyle = "#00f5d4"; ctx.font = "16px monospace";
+            if(Math.random() > 0.98) termLines.push("> LOG: " + Math.random().toString(16).substring(2));
+            if(termLines.length > 20) termLines.shift();
+            termLines.forEach((l,i) => ctx.fillText(l, 20, 40+i*20));
+        }
+
+        // 2. Matrix
+        let drops = Array(40).fill(0);
+        function updateMatrix() {
+            ctx.fillStyle = "rgba(0,0,0,0.1)"; ctx.fillRect(0,0,800,500);
+            ctx.fillStyle = "#0f0"; ctx.font = "20px monospace";
+            drops.forEach((y, i) => {
+                let text = String.fromCharCode(0x30A0 + Math.random() * 96);
+                ctx.fillText(text, i*20, y);
+                if(y > 500 && Math.random() > 0.975) drops[i] = 0;
+                drops[i] += 20;
+            });
+        }
+
+        // 3. Cyber Racer
+        function updateRacer() {
+            ctx.fillStyle = "#111"; ctx.fillRect(0,0,800,500);
+            
+            // Player
+            ctx.fillStyle = "#00f5d4"; ctx.shadowBlur = 10; ctx.shadowColor = "#00f5d4";
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+            
+            // Obstacles
+            if(Math.random() < 0.05) obstacles.push({x: Math.random()*760, y: -50});
+            obstacles.forEach(o => {
+                o.y += 5;
+                ctx.fillStyle = "#ff00f5"; ctx.shadowColor = "#ff00f5";
+                ctx.fillRect(o.x, o.y, 40, 40);
+            });
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.fillText("SCORE: " + score++, 20, 30);
+        }
+
+        // 4. Snake
+        let frame = 0;
+        function updateSnake() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,800,500);
+            if(frame++ % 5 !== 0) return; // Slow down
+
+            let head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+            snake.unshift(head);
+            
+            // Eat Food
+            if(head.x === food.x && head.y === food.y) {
+                food = {x: Math.floor(Math.random()*40), y: Math.floor(Math.random()*25)};
+            } else {
+                snake.pop();
+            }
+
+            // Draw
+            ctx.fillStyle = "#ff00f5"; ctx.fillRect(food.x*20, food.y*20, 18, 18);
+            ctx.fillStyle = "#00f5d4"; 
+            snake.forEach(s => ctx.fillRect(s.x*20, s.y*20, 18, 18));
+        }
+
+        // 5. System Breach (13+)
+        let nodes = [];
+        if(nodes.length === 0) for(let i=0; i<5; i++) nodes.push({x: Math.random()*700, y: Math.random()*400, active: true});
+        function updateBreach() {
+            ctx.fillStyle = "#1a0000"; ctx.fillRect(0,0,800,500);
+            
+            // Draw connections
+            ctx.beginPath(); ctx.strokeStyle = "#500";
+            nodes.forEach(n => { ctx.lineTo(n.x+20, n.y+20); });
+            ctx.stroke();
+
+            // Draw Nodes
+            nodes.forEach(n => {
+                ctx.fillStyle = n.active ? "#ff0000" : "#00ff00";
+                ctx.fillRect(n.x, n.y, 40, 40);
+                if(n.active) ctx.strokeRect(n.x-5, n.y-5, 50, 50);
+            });
+
+            ctx.fillStyle = "#fff"; ctx.fillText("CLICK RED NODES TO BYPASS SECURITY", 20, 30);
+        }
+        canvas.addEventListener('click', (e) => {
+            if(activeGame !== 'breach') return;
+            let rect = canvas.getBoundingClientRect();
+            let mx = e.clientX - rect.left;
+            let my = e.clientY - rect.top;
+            nodes.forEach(n => {
+                if(mx > n.x && mx < n.x+40 && my > n.y && my < n.y+40) n.active = false;
+            });
+        });
+
+        // 6. Glitch
+        function updateGlitch() {
+            ctx.fillStyle = `rgba(${Math.random()*255},0,${Math.random()*255}, 0.1)`;
+            ctx.fillRect(Math.random()*800, Math.random()*500, Math.random()*200, 5);
+            ctx.fillStyle = "#fff";
+            ctx.fillText("CORRUPTION DETECTED...", Math.random()*800, Math.random()*500);
+        }
+
+    </script>
+</body>
+</html>

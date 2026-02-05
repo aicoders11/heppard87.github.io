@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Zen Garden | Cyberpunk Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f5d4;
+            --neon-magenta: #ff00f5;
+            --neon-amber: #ffaa00;
+            --neon-lime: #ccff00;
+            --dark-bg: #0a0a0f;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+        
+        .neon-btn {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .neon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 212, 0.5);
+        }
+        
+        .tool-btn {
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            background: rgba(0, 245, 212, 0.1);
+            color: var(--neon-cyan);
+            transition: all 0.3s;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .tool-btn:hover, .tool-btn.active {
+            background: rgba(0, 245, 212, 0.3);
+            box-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
+        }
+        
+        #gardenCanvas {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            z-index: 5;
+            cursor: crosshair;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            z-index: 10;
+            max-width: 280px;
+        }
+        
+        .rock-indicator {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #666, #222);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.5);
+            pointer-events: none;
+        }
+    
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #00f5d4;
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover {
+            color: #00f5d4;
+            padding-left: 10px;
+        }
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            border-top: 1px solid rgba(0, 245, 212, 0.3);
+            text-align: center;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: #00f5d4; }
+        .cyber-footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <nav class="fixed top-0 left-0 w-full z-50 glass-panel border-b border-cyan-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="font-orbitron text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">
+                    CYBER<span class="text-cyan-400">MATRIX</span>
+                </a>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="nav-link text-gray-300 font-mono text-sm">[HOME]</a>
+                    <a href="portfolio.html" class="nav-link text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                    <a href="solar.html" class="nav-link text-gray-300 font-mono text-sm">[SOLAR]</a>
+                    <a href="billiards.html" class="nav-link text-gray-300 font-mono text-sm">[BILLIARDS]</a>
+                    <a href="zengarden.html" class="nav-link text-cyan-400 font-mono text-sm">[ZEN]</a>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-cyan-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden glass-panel border-t border-cyan-500/30">
+            <div class="px-4 py-2 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-300 font-mono text-sm">[HOME]</a>
+                <a href="portfolio.html" class="block py-2 text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                <a href="solar.html" class="block py-2 text-gray-300 font-mono text-sm">[SOLAR]</a>
+                <a href="billiards.html" class="block py-2 text-gray-300 font-mono text-sm">[BILLIARDS]</a>
+                <a href="zengarden.html" class="block py-2 text-cyan-400 font-mono text-sm">[ZEN]</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="ui-overlay glass-panel rounded-lg p-4">
+        <h2 class="font-orbitron text-xl text-cyan-400 mb-2">ZEN GARDEN</h2>
+        <p class="text-gray-400 text-xs mb-4 font-mono">Digital Sand Raking</p>
+        
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs font-mono mb-2">TOOLS</p>
+            <div class="grid grid-cols-2 gap-2">
+                <button id="toolRake" class="tool-btn active font-mono">RAKE</button>
+                <button id="toolSmooth" class="tool-btn font-mono">SMOOTH</button>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs font-mono mb-2">RAKE SIZE</p>
+            <input type="range" id="rakeSize" class="w-full" min="10" max="100" value="40">
+        </div>
+        
+        <div class="space-y-2">
+            <button id="addRock" class="w-full py-2 rounded text-sm font-mono border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20 transition-all">ADD ROCK</button>
+            <button id="clearGarden" class="w-full py-2 rounded text-sm font-mono border border-red-500/50 text-red-400 hover:bg-red-500/20 transition-all">CLEAR GARDEN</button>
+        </div>
+        
+        <div class="mt-4 text-xs text-gray-500 font-mono">
+            <p>Drag to rake sand</p>
+            <p>Create peaceful patterns</p>
+            <p>Add rocks for zen</p>
+        </div>
+    </div>
+    
+    <canvas id="gardenCanvas"></canvas>
+
+    <script>
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+        
+        // Zen Garden Canvas
+        const canvas = document.getElementById('gardenCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight - 80;
+            initSand();
+        }
+        
+        window.addEventListener('resize', resize);
+        
+        // Sand grid
+        const gridSize = 4;
+        let sandGrid = [];
+        let rocks = [];
+        let currentTool = 'rake';
+        let rakeSize = 40;
+        let isDrawing = false;
+        let lastPos = null;
+        
+        function initSand() {
+            const cols = Math.ceil(canvas.width / gridSize);
+            const rows = Math.ceil(canvas.height / gridSize);
+            sandGrid = new Float32Array(cols * rows);
+            
+            // Initialize with subtle noise
+            for (let i = 0; i < sandGrid.length; i++) {
+                sandGrid[i] = Math.random() * 0.1;
+            }
+            
+            drawSand();
+        }
+        
+        function getSandHeight(x, y) {
+            const col = Math.floor(x / gridSize);
+            const row = Math.floor(y / gridSize);
+            const cols = Math.ceil(canvas.width / gridSize);
+            
+            if (col < 0 || col >= cols || row < 0 || row >= Math.ceil(canvas.height / gridSize)) {
+                return 0;
+            }
+            
+            return sandGrid[row * cols + col];
+        }
+        
+        function setSandHeight(x, y, height) {
+            const col = Math.floor(x / gridSize);
+            const row = Math.floor(y / gridSize);
+            const cols = Math.ceil(canvas.width / gridSize);
+            
+            if (col < 0 || col >= cols || row < 0 || row >= Math.ceil(canvas.height / gridSize)) {
+                return;
+            }
+            
+            sandGrid[row * cols + col] = Math.max(-2, Math.min(2, height));
+        }
+        
+        function rake(x, y, dx, dy) {
+            const radius = rakeSize / 2;
+            const strength = currentTool === 'rake' ? 0.3 : -0.1;
+            
+            for (let offsetX = -radius; offsetX <= radius; offsetX += gridSize) {
+                for (let offsetY = -radius; offsetY <= radius; offsetY += gridSize) {
+                    const dist = Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+                    if (dist > radius) continue;
+                    
+                    const px = x + offsetX;
+                    const py = y + offsetY;
+                    
+                    // Check collision with rocks
+                    let blocked = false;
+                    for (let rock of rocks) {
+                        const rdist = Math.sqrt((px - rock.x) ** 2 + (py - rock.y) ** 2);
+                        if (rdist < rock.radius + 5) {
+                            blocked = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!blocked) {
+                        const currentHeight = getSandHeight(px, py);
+                        const displacement = (dx * offsetX + dy * offsetY) / radius * strength;
+                        setSandHeight(px, py, currentHeight + displacement);
+                    }
+                }
+            }
+        }
+        
+        function smoothSand() {
+            const cols = Math.ceil(canvas.width / gridSize);
+            const rows = Math.ceil(canvas.height / gridSize);
+            const newGrid = new Float32Array(sandGrid);
+            
+            for (let row = 1; row < rows - 1; row++) {
+                for (let col = 1; col < cols - 1; col++) {
+                    let sum = 0;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            sum += sandGrid[(row + dy) * cols + (col + dx)];
+                        }
+                    }
+                    newGrid[row * cols + col] = sum / 9;
+                }
+            }
+            
+            sandGrid = newGrid;
+        }
+        
+        function drawSand() {
+            const cols = Math.ceil(canvas.width / gridSize);
+            const rows = Math.ceil(canvas.height / gridSize);
+            
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw sand
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const height = sandGrid[row * cols + col];
+                    
+                    // Calculate lighting
+                    let light = 0;
+                    if (col < cols - 1) {
+                        const nextHeight = sandGrid[row * cols + col + 1];
+                        light = (nextHeight - height) * 50;
+                    }
+                    
+                    const baseColor = 20 + height * 10;
+                    const r = Math.max(0, Math.min(255, baseColor + light));
+                    const g = Math.max(0, Math.min(255, baseColor + light * 0.9));
+                    const b = Math.max(0, Math.min(255, baseColor + light * 0.8 + 10));
+                    
+                    // Fill grid cell
+                    for (let py = row * gridSize; py < Math.min((row + 1) * gridSize, canvas.height); py++) {
+                        for (let px = col * gridSize; px < Math.min((col + 1) * gridSize, canvas.width); px++) {
+                            const idx = (py * canvas.width + px) * 4;
+                            data[idx] = r;
+                            data[idx + 1] = g;
+                            data[idx + 2] = b;
+                            data[idx + 3] = 255;
+                        }
+                    }
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Draw rocks
+            rocks.forEach(rock => {
+                const gradient = ctx.createRadialGradient(
+                    rock.x - rock.radius * 0.3, rock.y - rock.radius * 0.3, 0,
+                    rock.x, rock.y, rock.radius
+                );
+                gradient.addColorStop(0, '#666');
+                gradient.addColorStop(0.5, '#333');
+                gradient.addColorStop(1, '#111');
+                
+                ctx.beginPath();
+                ctx.arc(rock.x, rock.y, rock.radius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                // Glow
+                ctx.shadowColor = '#00f5d4';
+                ctx.shadowBlur = 15;
+                ctx.strokeStyle = 'rgba(0, 245, 212, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            });
+        }
+        
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            lastPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing || !lastPos) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const dx = x - lastPos.x;
+            const dy = y - lastPos.y;
+            
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                rake(x, y, dx, dy);
+                lastPos = { x, y };
+                drawSand();
+            }
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+            lastPos = null;
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            isDrawing = false;
+            lastPos = null;
+        });
+        
+        // UI handlers
+        document.getElementById('toolRake').addEventListener('click', function() {
+            currentTool = 'rake';
+            document.getElementById('toolRake').classList.add('active');
+            document.getElementById('toolSmooth').classList.remove('active');
+        });
+        
+        document.getElementById('toolSmooth').addEventListener('click', function() {
+            currentTool = 'smooth';
+            document.getElementById('toolSmooth').classList.add('active');
+            document.getElementById('toolRake').classList.remove('active');
+        });
+        
+        document.getElementById('rakeSize').addEventListener('input', (e) => {
+            rakeSize = parseInt(e.target.value);
+        });
+        
+        document.getElementById('addRock').addEventListener('click', () => {
+            const x = Math.random() * (canvas.width - 100) + 50;
+            const y = Math.random() * (canvas.height - 100) + 50;
+            const radius = 20 + Math.random() * 30;
+            rocks.push({ x, y, radius });
+            drawSand();
+        });
+        
+        document.getElementById('clearGarden').addEventListener('click', () => {
+            rocks = [];
+            initSand();
+        });
+        
+        // Initialize
+        resize();
+        
+        // Animation loop for smooth sand settling
+        function animate() {
+            requestAnimationFrame(animate);
+            smoothSand();
+            drawSand();
+        }
+        
+        // Run animation at lower frequency
+        setInterval(() => {
+            smoothSand();
+            drawSand();
+        }, 100);
+    
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>

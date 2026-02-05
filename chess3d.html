@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Chess | Cyberpunk Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f5d4;
+            --neon-magenta: #ff00f5;
+            --neon-amber: #ffaa00;
+            --neon-lime: #ccff00;
+            --dark-bg: #0a0a0f;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        /* Animated Grid Background */
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .particle {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            animation: float 15s infinite;
+            opacity: 0.6;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Navigation */
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        
+        /* Glass Panel */
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+        
+        /* Neon Button */
+        .neon-btn {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .neon-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        .neon-btn:hover::before { left: 100%; }
+        .neon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 212, 0.5), 0 5px 20px rgba(255, 0, 245, 0.3);
+        }
+        
+        /* Game Canvas */
+        #gameCanvas {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            z-index: 5;
+        }
+        
+        /* UI Overlay */
+        .ui-overlay {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            z-index: 10;
+            max-width: 300px;
+        }
+        
+        /* Turn Indicator */
+        .turn-indicator {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .turn-cyan {
+            background: rgba(0, 245, 212, 0.2);
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
+        }
+        .turn-magenta {
+            background: rgba(255, 0, 245, 0.2);
+            border: 1px solid var(--neon-magenta);
+            color: var(--neon-magenta);
+            box-shadow: 0 0 10px rgba(255, 0, 245, 0.3);
+        }
+        
+        /* Move History */
+        .move-history {
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+        }
+        .move-history::-webkit-scrollbar {
+            width: 4px;
+        }
+        .move-history::-webkit-scrollbar-track {
+            background: rgba(0, 245, 212, 0.1);
+        }
+        .move-history::-webkit-scrollbar-thumb {
+            background: var(--neon-cyan);
+        }
+        
+        /* Captured Pieces */
+        .captured-pieces {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: 30px;
+        }
+        .captured-piece {
+            font-size: 20px;
+        }
+        
+        /* Status Message */
+        .status-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #00f5d4;
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover {
+            color: #00f5d4;
+            padding-left: 10px;
+        }
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            border-top: 1px solid rgba(0, 245, 212, 0.3);
+            text-align: center;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: #00f5d4; }
+        .cyber-footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Grid Background -->
+    <div class="grid-bg"></div>
+    
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-50 glass-panel border-b border-cyan-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="font-orbitron text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">
+                    CYBER<span class="text-cyan-400">MATRIX</span>
+                </a>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="nav-link text-gray-300 font-mono text-sm">[HOME]</a>
+                    <a href="portfolio.html" class="nav-link text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                    <a href="arcade.html" class="nav-link text-gray-300 font-mono text-sm">[ARCADE]</a>
+                    <a href="chess3d.html" class="nav-link text-cyan-400 font-mono text-sm">[3D_CHESS]</a>
+                    <a href="voxel.html" class="nav-link text-gray-300 font-mono text-sm">[VOXEL]</a>
+                    <a href="physics.html" class="nav-link text-gray-300 font-mono text-sm">[PHYSICS]</a>
+                    <a href="solar.html" class="nav-link text-gray-300 font-mono text-sm">[SOLAR]</a>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-cyan-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden md:hidden glass-panel border-t border-cyan-500/30">
+            <div class="px-4 py-2 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-300 font-mono text-sm">[HOME]</a>
+                <a href="portfolio.html" class="block py-2 text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                <a href="arcade.html" class="block py-2 text-gray-300 font-mono text-sm">[ARCADE]</a>
+                <a href="chess3d.html" class="block py-2 text-cyan-400 font-mono text-sm">[3D_CHESS]</a>
+                <a href="voxel.html" class="block py-2 text-gray-300 font-mono text-sm">[VOXEL]</a>
+                <a href="physics.html" class="block py-2 text-gray-300 font-mono text-sm">[PHYSICS]</a>
+                <a href="solar.html" class="block py-2 text-gray-300 font-mono text-sm">[SOLAR]</a>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- UI Overlay -->
+    <div class="ui-overlay glass-panel rounded-lg p-4">
+        <h2 class="font-orbitron text-xl text-cyan-400 mb-4">3D CHESS</h2>
+        
+        <!-- Turn Indicator -->
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs mb-1 font-mono">CURRENT TURN</p>
+            <div id="turnIndicator" class="turn-indicator turn-cyan">CYAN'S TURN</div>
+        </div>
+        
+        <!-- Game Controls -->
+        <div class="mb-4 space-y-2">
+            <button id="resetBtn" class="neon-btn w-full py-2 rounded text-sm font-mono">NEW GAME</button>
+            <button id="undoBtn" class="w-full py-2 rounded text-sm font-mono border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20 transition-all">UNDO MOVE</button>
+        </div>
+        
+        <!-- Captured Pieces -->
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs mb-1 font-mono">CAPTURED BY CYAN</p>
+            <div id="capturedByCyan" class="captured-pieces text-fuchsia-400"></div>
+        </div>
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs mb-1 font-mono">CAPTURED BY MAGENTA</p>
+            <div id="capturedByMagenta" class="captured-pieces text-cyan-400"></div>
+        </div>
+        
+        <!-- Move History -->
+        <div>
+            <p class="text-gray-400 text-xs mb-1 font-mono">MOVE HISTORY</p>
+            <div id="moveHistory" class="move-history glass-panel rounded p-2"></div>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="mt-4 text-xs text-gray-500 font-mono">
+            <p>Click piece to select</p>
+            <p>Green dots = valid moves</p>
+            <p>Drag to rotate view</p>
+        </div>
+    </div>
+    
+    <!-- Status Message -->
+    <div id="statusMessage" class="status-message glass-panel hidden"></div>
+    
+    <!-- 3D Canvas -->
+    <div id="gameCanvas"></div>
+
+    <script>
+        // Create particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+        
+        // Mobile menu toggle
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+        
+        // THREE.JS 3D CHESS
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        scene.fog = new THREE.Fog(0x0a0a0f, 10, 50);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 12, 12);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('gameCanvas').appendChild(renderer.domElement);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2.2;
+        controls.minDistance = 5;
+        controls.maxDistance = 25;
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 10, 5);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+        
+        // Neon point lights
+        const cyanLight = new THREE.PointLight(0x00f5d4, 0.5, 20);
+        cyanLight.position.set(-5, 5, -5);
+        scene.add(cyanLight);
+        
+        const magentaLight = new THREE.PointLight(0xff00f5, 0.5, 20);
+        magentaLight.position.set(5, 5, 5);
+        scene.add(magentaLight);
+        
+        // Chess board
+        const boardSize = 8;
+        const tileSize = 1;
+        const boardGroup = new THREE.Group();
+        scene.add(boardGroup);
+        
+        const tiles = [];
+        const tileA = new THREE.MeshStandardMaterial({ color: 0x1a1a2e, roughness: 0.8 });
+        const tileB = new THREE.MeshStandardMaterial({ color: 0x16213e, roughness: 0.8 });
+        const highlightMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.4 });
+        const selectMat = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.4 });
+        
+        for (let x = 0; x < boardSize; x++) {
+            tiles[x] = [];
+            for (let z = 0; z < boardSize; z++) {
+                const geometry = new THREE.BoxGeometry(tileSize, 0.2, tileSize);
+                const material = (x + z) % 2 === 0 ? tileA : tileB;
+                const tile = new THREE.Mesh(geometry, material);
+                tile.position.set(x - 3.5, 0, z - 3.5);
+                tile.receiveShadow = true;
+                tile.userData = { x, z, isTile: true };
+                boardGroup.add(tile);
+                tiles[x][z] = tile;
+            }
+        }
+        
+        // Board border
+        const borderGeo = new THREE.BoxGeometry(9, 0.3, 9);
+        const borderMat = new THREE.MeshStandardMaterial({ color: 0x0f3460, roughness: 0.5 });
+        const border = new THREE.Mesh(borderGeo, borderMat);
+        border.position.y = -0.1;
+        border.receiveShadow = true;
+        boardGroup.add(border);
+        
+        // Piece definitions
+        const pieceShapes = {
+            pawn: [[0,1,0],[1,1,1],[0,1,0]],
+            rook: [[1,0,1],[1,1,1],[1,0,1]],
+            knight: [[0,1,0],[1,1,1],[0,1,0]],
+            bishop: [[0,1,0],[1,1,1],[1,0,1]],
+            queen: [[1,0,1],[1,1,1],[0,1,0]],
+            king: [[1,1,1],[1,1,1],[1,1,1]]
+        };
+        
+        const pieceHeights = { pawn: 0.6, rook: 0.9, knight: 0.9, bishop: 0.9, queen: 1.1, king: 1.2 };
+        
+        function createPiece(type, color, x, z) {
+            const group = new THREE.Group();
+            const height = pieceHeights[type];
+            const isCyan = color === 'cyan';
+            const mainColor = isCyan ? 0x00f5d4 : 0xff00f5;
+            const glowColor = isCyan ? 0x00ffff : 0xff00ff;
+            
+            // Base
+            const baseGeo = new THREE.CylinderGeometry(0.35, 0.4, 0.15, 16);
+            const baseMat = new THREE.MeshStandardMaterial({ 
+                color: mainColor, 
+                emissive: glowColor,
+                emissiveIntensity: 0.3,
+                roughness: 0.3,
+                metalness: 0.7
+            });
+            const base = new THREE.Mesh(baseGeo, baseMat);
+            base.position.y = 0.075;
+            base.castShadow = true;
+            group.add(base);
+            
+            // Body
+            const bodyGeo = new THREE.CylinderGeometry(0.25, 0.3, height * 0.6, 16);
+            const bodyMat = new THREE.MeshStandardMaterial({ 
+                color: mainColor,
+                emissive: glowColor,
+                emissiveIntensity: 0.2,
+                roughness: 0.3,
+                metalness: 0.7
+            });
+            const body = new THREE.Mesh(bodyGeo, bodyMat);
+            body.position.y = 0.15 + height * 0.3;
+            body.castShadow = true;
+            group.add(body);
+            
+            // Top
+            let topGeo;
+            switch(type) {
+                case 'pawn': topGeo = new THREE.SphereGeometry(0.2, 16, 16); break;
+                case 'rook': topGeo = new THREE.CylinderGeometry(0.3, 0.25, 0.2, 4); break;
+                case 'knight': topGeo = new THREE.ConeGeometry(0.2, 0.4, 16); break;
+                case 'bishop': topGeo = new THREE.ConeGeometry(0.25, 0.5, 16); break;
+                case 'queen': topGeo = new THREE.SphereGeometry(0.25, 16, 16); break;
+                case 'king': topGeo = new THREE.CylinderGeometry(0.15, 0.2, 0.3, 8); break;
+            }
+            const topMat = new THREE.MeshStandardMaterial({ 
+                color: mainColor,
+                emissive: glowColor,
+                emissiveIntensity: 0.4,
+                roughness: 0.2,
+                metalness: 0.8
+            });
+            const top = new THREE.Mesh(topGeo, topMat);
+            top.position.y = 0.15 + height * 0.6 + (type === 'king' ? 0.15 : 0.2);
+            top.castShadow = true;
+            group.add(top);
+            
+            // Crown for king
+            if (type === 'king') {
+                const crownGeo = new THREE.TorusGeometry(0.15, 0.03, 8, 16);
+                const crownMat = new THREE.MeshStandardMaterial({ 
+                    color: 0xffaa00,
+                    emissive: 0xffaa00,
+                    emissiveIntensity: 0.5
+                });
+                const crown = new THREE.Mesh(crownGeo, crownMat);
+                crown.position.y = 0.15 + height * 0.6 + 0.35;
+                crown.rotation.x = Math.PI / 2;
+                group.add(crown);
+            }
+            
+            group.position.set(x - 3.5, 0.1, z - 3.5);
+            group.userData = { type, color, x, z, isPiece: true };
+            return group;
+        }
+        
+        // Initialize pieces
+        const pieces = [];
+        const initialSetup = [
+            ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'],
+            ['pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn']
+        ];
+        
+        function initPieces() {
+            // Clear existing pieces
+            pieces.forEach(p => boardGroup.remove(p));
+            pieces.length = 0;
+            
+            // Cyan pieces (bottom)
+            for (let i = 0; i < 2; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const piece = createPiece(initialSetup[i][j], 'cyan', j, 6 + i);
+                    boardGroup.add(piece);
+                    pieces.push(piece);
+                }
+            }
+            
+            // Magenta pieces (top)
+            for (let i = 0; i < 2; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const piece = createPiece(initialSetup[1-i][j], 'magenta', j, 1 - i);
+                    boardGroup.add(piece);
+                    pieces.push(piece);
+                }
+            }
+        }
+        
+        initPieces();
+        
+        // Game state
+        let currentTurn = 'cyan';
+        let selectedPiece = null;
+        let validMoves = [];
+        let moveHistory = [];
+        let capturedByCyan = [];
+        let capturedByMagenta = [];
+        let highlightMeshes = [];
+        
+        // Raycaster
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        function getValidMoves(piece) {
+            const moves = [];
+            const { type, color, x, z } = piece.userData;
+            const direction = color === 'cyan' ? -1 : 1;
+            
+            function isOccupied(px, pz, byColor = null) {
+                const p = pieces.find(p => p.userData.x === px && p.userData.z === pz);
+                if (!p) return false;
+                if (byColor) return p.userData.color === byColor;
+                return true;
+            }
+            
+            function addMove(px, pz, captureOnly = false) {
+                if (px < 0 || px > 7 || pz < 0 || pz > 7) return false;
+                const occupied = isOccupied(px, pz);
+                const enemy = pieces.find(p => p.userData.x === px && p.userData.z === pz && p.userData.color !== color);
+                
+                if (!captureOnly && !occupied) {
+                    moves.push({ x: px, z: pz });
+                    return true;
+                }
+                if (enemy) {
+                    moves.push({ x: px, z: pz, capture: true });
+                    return false;
+                }
+                return false;
+            }
+            
+            switch(type) {
+                case 'pawn':
+                    if (!isOccupied(x, z + direction)) {
+                        moves.push({ x, z: z + direction });
+                        const startRow = color === 'cyan' ? 6 : 1;
+                        if (z === startRow && !isOccupied(x, z + 2 * direction)) {
+                            moves.push({ x, z: z + 2 * direction });
+                        }
+                    }
+                    [-1, 1].forEach(dx => {
+                        const enemy = pieces.find(p => p.userData.x === x + dx && p.userData.z === z + direction && p.userData.color !== color);
+                        if (enemy) moves.push({ x: x + dx, z: z + direction, capture: true });
+                    });
+                    break;
+                    
+                case 'rook':
+                    for (let i = 1; i < 8; i++) { if (!addMove(x + i, z)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x - i, z)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x, z + i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x, z - i)) break; }
+                    break;
+                    
+                case 'knight':
+                    [[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2]].forEach(([dx, dz]) => {
+                        addMove(x + dx, z + dz);
+                    });
+                    break;
+                    
+                case 'bishop':
+                    for (let i = 1; i < 8; i++) { if (!addMove(x + i, z + i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x + i, z - i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x - i, z + i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x - i, z - i)) break; }
+                    break;
+                    
+                case 'queen':
+                    for (let i = 1; i < 8; i++) { if (!addMove(x + i, z)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x - i, z)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x, z + i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x, z - i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x + i, z + i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x + i, z - i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x - i, z + i)) break; }
+                    for (let i = 1; i < 8; i++) { if (!addMove(x - i, z - i)) break; }
+                    break;
+                    
+                case 'king':
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dz = -1; dz <= 1; dz++) {
+                            if (dx !== 0 || dz !== 0) addMove(x + dx, z + dz);
+                        }
+                    }
+                    break;
+            }
+            
+            return moves;
+        }
+        
+        function showValidMoves(moves) {
+            clearHighlights();
+            moves.forEach(move => {
+                const geometry = new THREE.CircleGeometry(0.25, 16);
+                const material = move.capture ? 
+                    new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.5 }) :
+                    new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.4 });
+                const marker = new THREE.Mesh(geometry, material);
+                marker.rotation.x = -Math.PI / 2;
+                marker.position.set(move.x - 3.5, 0.11, move.z - 3.5);
+                boardGroup.add(marker);
+                highlightMeshes.push(marker);
+            });
+        }
+        
+        function clearHighlights() {
+            highlightMeshes.forEach(h => boardGroup.remove(h));
+            highlightMeshes = [];
+        }
+        
+        function selectPiece(piece) {
+            if (selectedPiece) {
+                selectedPiece.position.y = 0.1;
+            }
+            selectedPiece = piece;
+            piece.position.y = 0.3;
+            validMoves = getValidMoves(piece);
+            showValidMoves(validMoves);
+        }
+        
+        function movePiece(piece, targetX, targetZ) {
+            const oldX = piece.userData.x;
+            const oldZ = piece.userData.z;
+            
+            // Check for capture
+            const captured = pieces.find(p => p.userData.x === targetX && p.userData.z === targetZ && p.userData.color !== piece.userData.color);
+            if (captured) {
+                boardGroup.remove(captured);
+                pieces.splice(pieces.indexOf(captured), 1);
+                
+                if (piece.userData.color === 'cyan') {
+                    capturedByCyan.push(captured.userData.type);
+                } else {
+                    capturedByMagenta.push(captured.userData.type);
+                }
+                updateCapturedDisplay();
+            }
+            
+            // Move piece
+            piece.userData.x = targetX;
+            piece.userData.z = targetZ;
+            piece.position.set(targetX - 3.5, 0.1, targetZ - 3.5);
+            
+            // Record move
+            const moveNotation = `${piece.userData.type.toUpperCase()}: ${String.fromCharCode(97 + oldX)}${8 - oldZ} → ${String.fromCharCode(97 + targetX)}${8 - targetZ}${captured ? ' x' : ''}`;
+            moveHistory.push({ notation: moveNotation, color: piece.userData.color });
+            updateMoveHistory();
+            
+            // Check for pawn promotion
+            if (piece.userData.type === 'pawn') {
+                const promotionRow = piece.userData.color === 'cyan' ? 0 : 7;
+                if (targetZ === promotionRow) {
+                    piece.userData.type = 'queen';
+                    // Recreate piece as queen
+                    const newPiece = createPiece('queen', piece.userData.color, targetX, targetZ);
+                    boardGroup.remove(piece);
+                    pieces.splice(pieces.indexOf(piece), 1);
+                    boardGroup.add(newPiece);
+                    pieces.push(newPiece);
+                    showStatus(`${piece.userData.color.toUpperCase()} PAWN PROMOTED TO QUEEN!`);
+                }
+            }
+            
+            // Switch turn
+            currentTurn = currentTurn === 'cyan' ? 'magenta' : 'cyan';
+            updateTurnIndicator();
+            
+            // Clear selection
+            selectedPiece = null;
+            validMoves = [];
+            clearHighlights();
+            
+            // Check for checkmate (simplified)
+            checkGameEnd();
+        }
+        
+        function checkGameEnd() {
+            const kings = pieces.filter(p => p.userData.type === 'king');
+            if (kings.length < 2) {
+                const winner = kings[0]?.userData.color || 'cyan';
+                showStatus(`CHECKMATE! ${winner.toUpperCase()} WINS!`);
+            }
+        }
+        
+        function showStatus(message) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.classList.remove('hidden');
+            setTimeout(() => statusEl.classList.add('hidden'), 5000);
+        }
+        
+        function updateTurnIndicator() {
+            const indicator = document.getElementById('turnIndicator');
+            indicator.textContent = currentTurn === 'cyan' ? "CYAN'S TURN" : "MAGENTA'S TURN";
+            indicator.className = `turn-indicator ${currentTurn === 'cyan' ? 'turn-cyan' : 'turn-magenta'}`;
+        }
+        
+        function updateMoveHistory() {
+            const historyEl = document.getElementById('moveHistory');
+            historyEl.innerHTML = moveHistory.map((m, i) => 
+                `<div style="color: ${m.color === 'cyan' ? '#00f5d4' : '#ff00f5'}">${i + 1}. ${m.notation}</div>`
+            ).join('');
+            historyEl.scrollTop = historyEl.scrollHeight;
+        }
+        
+        function updateCapturedDisplay() {
+            const pieceIcons = { pawn: '♟', rook: '♜', knight: '♞', bishop: '♝', queen: '♛', king: '♚' };
+            document.getElementById('capturedByCyan').innerHTML = capturedByCyan.map(p => 
+                `<span class="captured-piece">${pieceIcons[p]}</span>`
+            ).join('');
+            document.getElementById('capturedByMagenta').innerHTML = capturedByMagenta.map(p => 
+                `<span class="captured-piece">${pieceIcons[p]}</span>`
+            ).join('');
+        }
+        
+        // Mouse events
+        renderer.domElement.addEventListener('click', (event) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(boardGroup.children, true);
+            
+            if (intersects.length > 0) {
+                // Find clicked object
+                let obj = intersects[0].object;
+                while (obj.parent && obj.parent !== boardGroup) {
+                    obj = obj.parent;
+                }
+                
+                if (obj.userData.isPiece && obj.userData.color === currentTurn) {
+                    selectPiece(obj);
+                } else if (selectedPiece && obj.userData.isTile) {
+                    const move = validMoves.find(m => m.x === obj.userData.x && m.z === obj.userData.z);
+                    if (move) {
+                        movePiece(selectedPiece, obj.userData.x, obj.userData.z);
+                    }
+                }
+            }
+        });
+        
+        // Button handlers
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            initPieces();
+            currentTurn = 'cyan';
+            selectedPiece = null;
+            validMoves = [];
+            moveHistory = [];
+            capturedByCyan = [];
+            capturedByMagenta = [];
+            clearHighlights();
+            updateTurnIndicator();
+            updateMoveHistory();
+            updateCapturedDisplay();
+            showStatus('NEW GAME STARTED');
+        });
+        
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            showStatus('UNDO NOT IMPLEMENTED');
+        });
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            
+            // Animate pieces
+            pieces.forEach(piece => {
+                if (piece !== selectedPiece) {
+                    piece.rotation.y += 0.002;
+                }
+            });
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight - 80);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        });
+    
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>

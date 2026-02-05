@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Arsenal | Chris Heppard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan: #00f5d4; --magenta: #ff00f5; --blue: #3b82f6; --purple: #8b5cf6;
+            --dark: #0a0a0f; --darker: #050508; --panel: rgba(10, 10, 15, 0.95);
+            --border: rgba(0, 245, 212, 0.3); --glow-cyan: 0 0 20px rgba(0, 245, 212, 0.5);
+            --glow-magenta: 0 0 20px rgba(255, 0, 245, 0.5);
+            --font-main: 'Rajdhani', sans-serif; --font-mono: 'Share Tech Mono', monospace;
+            --font-display: 'Orbitron', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-main); background-color: var(--dark);
+            color: #e0e0e0; overflow-x: hidden; line-height: 1.6;
+        }
+        #bgCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(to right, rgba(0,245,212,0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,245,212,0.03) 1px, transparent 1px);
+            background-size: 50px 50px; pointer-events: none; z-index: -1;
+        }
+        nav {
+            position: fixed; top: 0; width: 100%; height: 80px;
+            background: var(--panel); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 50px; z-index: 1000; backdrop-filter: blur(15px);
+        }
+        .logo {
+            font-family: var(--font-display); font-size: 1.5rem; font-weight: 900;
+            background: linear-gradient(45deg, var(--cyan), var(--magenta));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a {
+            color: #888; text-decoration: none; font-family: var(--font-mono);
+            text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover { color: var(--cyan); }
+        .btn {
+            background: transparent; border: 2px solid var(--cyan); color: var(--cyan);
+            padding: 12px 30px; font-family: var(--font-mono); text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block;
+            font-size: 0.85rem; letter-spacing: 2px;
+        }
+        .btn:hover { background: var(--cyan); color: var(--dark); box-shadow: var(--glow-cyan); }
+        .btn-magenta { border-color: var(--magenta); color: var(--magenta); }
+        .btn-magenta:hover { background: var(--magenta); color: var(--dark); box-shadow: var(--glow-magenta); }
+        
+        .hero {
+            min-height: 50vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 120px 20px 60px;
+        }
+        .hero h1 {
+            font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem);
+            color: var(--cyan); text-shadow: var(--glow-cyan); margin-bottom: 15px;
+        }
+        .hero p { font-family: var(--font-mono); color: #888; font-size: 1.1rem; }
+
+        section { padding: 60px 20px; max-width: 1400px; margin: 0 auto; }
+        
+        .filter-bar {
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 12px 30px; background: transparent; border: 1px solid var(--border);
+            color: #888; font-family: var(--font-mono); text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s; font-size: 0.8rem; letter-spacing: 2px;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            border-color: var(--cyan); color: var(--cyan); box-shadow: var(--glow-cyan);
+        }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            border-radius: 15px; overflow: hidden; transition: all 0.4s;
+            position: relative;
+        }
+        .card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(0,245,212,0.05), rgba(255,0,245,0.05));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .card:hover::before { opacity: 1; }
+        .card:hover {
+            transform: translateY(-8px); border-color: var(--cyan); box-shadow: var(--glow-cyan);
+        }
+        .card-img {
+            height: 200px; display: flex; align-items: center; justify-content: center;
+            font-size: 5rem; background: linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.3));
+            border-bottom: 1px solid var(--border); position: relative;
+        }
+        .card-body { padding: 25px; position: relative; z-index: 1; }
+        .card h3 {
+            font-family: var(--font-display); color: #fff; margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        .card p { font-size: 0.9rem; color: #888; margin-bottom: 20px; font-family: var(--font-mono); }
+        .card-meta {
+            display: flex; gap: 10px; margin-bottom: 20px;
+        }
+        .meta-tag {
+            padding: 4px 12px; background: rgba(0,245,212,0.1);
+            border: 1px solid var(--border); border-radius: 12px;
+            font-size: 0.65rem; color: var(--cyan); font-family: var(--font-mono);
+            text-transform: uppercase;
+        }
+        .meta-tag.restricted {
+            background: rgba(255,0,245,0.1); border-color: var(--magenta); color: var(--magenta);
+        }
+
+        #gameModal {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.95); flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        #canvasContainer {
+            position: relative; width: 90%; max-width: 900px; aspect-ratio: 16/9;
+            border: 2px solid var(--cyan); background: #000;
+            box-shadow: var(--glow-cyan); border-radius: 10px; overflow: hidden;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+        .modal-ui {
+            width: 90%; max-width: 900px; display: flex; justify-content: space-between;
+            margin-bottom: 20px; align-items: center;
+        }
+        .status-text { color: var(--cyan); font-family: var(--font-mono); font-size: 1rem; }
+        .controls-hint {
+            margin-top: 15px; color: #666; font-family: var(--font-mono); font-size: 0.85rem;
+        }
+
+        /* Footer */
+        .cyber-footer {
+            padding: 40px 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            background: var(--darker);
+            margin-top: 60px;
+        }
+        .cyber-footer-logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            background: linear-gradient(45deg, var(--cyan), var(--magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 15px;
+        }
+        .cyber-footer-text {
+            font-family: var(--font-mono);
+            color: #555;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: var(--cyan); }
+        
+        /* Mobile Menu Styles */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--cyan);
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover, .mobile-menu a.active {
+            color: var(--cyan);
+            padding-left: 10px;
+        }
+        
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+            nav { padding: 0 20px; }
+        }
+
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .nav-links { display: none; }
+            #canvasContainer { width: 95%; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas>
+    <div class="grid-overlay"></div>
+
+    <nav class="cyber-nav">
+        <a href="index.html" class="cyber-logo">CYBERCHRIS</a>
+        <div class="cyber-nav-links">
+            <a href="index.html">Home</a>
+            <a href="portfolio.html" class="active">Portfolio</a>
+            <a href="arcade.html">Arcade</a>
+            <a href="chess3d.html">3D Games</a>
+            <a href="windows.html">Simulators</a>
+        </div>
+        <button class="mobile-menu-btn" onclick="toggleMenu()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html">Home</a>
+        <a href="portfolio.html" class="active">Portfolio</a>
+        <a href="arcade.html">Epic Arcade</a>
+        <a href="waka.html">Waka Arcade</a>
+        <a href="chess3d.html">3D Chess</a>
+        <a href="solitaire3d.html">3D Solitaire</a>
+        <a href="voxel.html">Voxel Painter</a>
+        <a href="windows.html">Windows Sim</a>
+        <a href="win7.html">Win7 Sim</a>
+        <a href="physics.html">Physics Sandbox</a>
+        <a href="solar.html">Solar System</a>
+        <a href="dataviz.html">Data Viz</a>
+        <a href="dna.html">DNA Visualizer</a>
+        <a href="molecule.html">Molecule Viewer</a>
+        <a href="billiards.html">Cosmic Billiards</a>
+        <a href="zengarden.html">Zen Garden</a>
+        <a href="neural.html">Neural Sim</a>
+        <a href="launcher.html">Launcher</a>
+        <a href="secrets.html">Secrets</a>
+    </div>
+
+    <div class="hero">
+        <h1>Digital Arsenal</h1>
+        <p>Select a module to initialize // Filter by category</p>
+    </div>
+
+    <section id="portfolio">
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filter('all')">All Units</button>
+            <button class="filter-btn" onclick="filter('app')">System Apps</button>
+            <button class="filter-btn" onclick="filter('game')">Game Suite</button>
+            <button class="filter-btn" onclick="filter('restricted')">Restricted [13+]</button>
+        </div>
+
+        <div class="grid">
+            <div class="card" data-cat="app">
+                <div class="card-img" style="color: var(--cyan);">⌨️</div>
+                <div class="card-body">
+                    <h3>Terminal OS</h3>
+                    <p>Command Line Interface Simulator with real-time logging and system commands.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">App</span>
+                        <span class="meta-tag">Terminal</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('terminal')">Launch App</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="app">
+                <div class="card-img" style="color: var(--cyan);">🌧️</div>
+                <div class="card-body">
+                    <h3>Matrix Stream</h3>
+                    <p>Digital Rain Generator with Katakana characters falling in classic Matrix style.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">App</span>
+                        <span class="meta-tag">Visual</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('matrix')">Launch App</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--magenta);">🏎️</div>
+                <div class="card-body">
+                    <h3>Cyber Racer</h3>
+                    <p>High-speed dodge arcade. Avoid magenta obstacles in your cyan racer.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">Game</span>
+                        <span class="meta-tag">Arcade</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('racer')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--magenta);">🐍</div>
+                <div class="card-body">
+                    <h3>Neon Snake</h3>
+                    <p>Classic grid consumption game with neon glow effects and smooth controls.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">Game</span>
+                        <span class="meta-tag">Classic</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('snake')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="restricted">
+                <div class="card-img" style="color: var(--magenta); background: linear-gradient(135deg, #1a0505, #0a0000);">💀</div>
+                <div class="card-body">
+                    <h3 style="color: var(--magenta);">System Breach</h3>
+                    <p>Hacking Simulation with security nodes to bypass. [Age 13+]</p>
+                    <div class="card-meta">
+                        <span class="meta-tag restricted">Restricted</span>
+                        <span class="meta-tag">Hacking</span>
+                    </div>
+                    <button class="btn btn-magenta" onclick="launchGame('breach')">Infiltrate</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="app">
+                <div class="card-img" style="color: #fff;">📺</div>
+                <div class="card-body">
+                    <h3>Glitch Studio</h3>
+                    <p>Visual Corruption Engine generating random glitch art effects.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">App</span>
+                        <span class="meta-tag">Art</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('glitch')">Launch App</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--cyan);">🚀</div>
+                <div class="card-body">
+                    <h3>Space Defender</h3>
+                    <p>Blast alien invaders in this classic space shooter with particle effects.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">Game</span>
+                        <span class="meta-tag">Shooter</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('space')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--magenta);">🧱</div>
+                <div class="card-body">
+                    <h3>Cyber Breakout</h3>
+                    <p>Destroy all bricks with your paddle and ball in neon style.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">Game</span>
+                        <span class="meta-tag">Arcade</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('breakout')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--cyan);">🏓</div>
+                <div class="card-body">
+                    <h3>Neon Pong</h3>
+                    <p>Classic table tennis with glowing paddles and ball.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">Game</span>
+                        <span class="meta-tag">Classic</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('pong')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="app">
+                <div class="card-img" style="color: var(--blue);">🎨</div>
+                <div class="card-body">
+                    <h3>Paint Studio</h3>
+                    <p>Digital canvas for creating artwork with multiple brush sizes and colors.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">App</span>
+                        <span class="meta-tag">Creative</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('paint')">Launch App</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--purple);">🎲</div>
+                <div class="card-body">
+                    <h3>Tetris Blocks</h3>
+                    <p>Classic block stacking puzzle game with neon aesthetics.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">Game</span>
+                        <span class="meta-tag">Puzzle</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('tetris')">Play Game</button>
+                </div>
+            </div>
+
+            <div class="card" data-cat="game">
+                <div class="card-img" style="color: var(--cyan);">🔢</div>
+                <div class="card-body">
+                    <h3>2048 Cyber</h3>
+                    <p>Merge numbers to reach 2048 in this addictive puzzle game.</p>
+                    <div class="card-meta">
+                        <span class="meta-tag">Game</span>
+                        <span class="meta-tag">Puzzle</span>
+                    </div>
+                    <button class="btn" onclick="launchGame('2048')">Play Game</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="gameModal">
+        <div class="modal-ui">
+            <div class="status-text">SYSTEM_STATUS: <span id="gameStatus" style="color:#fff">ACTIVE</span></div>
+            <button class="btn btn-magenta" onclick="closeGame()">TERMINATE SESSION</button>
+        </div>
+        <div id="canvasContainer">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        <div class="controls-hint">Controls: Arrow Keys / Click to Interact</div>
+    </div>
+
+    <footer class="cyber-footer">
+        <div class="cyber-footer-logo">CYBERCHRIS</div>
+        <p class="cyber-footer-text">Developer // Creator // Digital Architect</p>
+        <p class="cyber-footer-text">© 2025 Chris Heppard | All Systems Operational</p>
+        <div class="cyber-footer-links">
+            <a href="index.html">Home</a>
+            <a href="portfolio.html">Portfolio</a>
+            <a href="arcade.html">Arcade</a>
+            <a href="chess3d.html">3D Chess</a>
+            <a href="windows.html">Windows</a>
+            <a href="physics.html">Physics</a>
+        </div>
+    </footer>
+
+    <script>
+        // Background Animation
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        let particles = [];
+        for(let i=0; i<60; i++) particles.push({
+            x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height,
+            vy: Math.random()*0.5+0.1, color: Math.random()>0.5?'rgba(0,245,212,':'rgba(255,0,245,'
+        });
+        function animateBg() {
+            bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+            particles.forEach(p => {
+                p.y += p.vy;
+                if(p.y > bgCanvas.height) p.y = 0;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, 1.5, 0, Math.PI*2);
+                bgCtx.fillStyle = p.color + '0.4)';
+                bgCtx.fill();
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // Filtering
+        function filter(cat) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.card').forEach(c => {
+                c.style.display = (cat === 'all' || c.dataset.cat === cat) ? 'block' : 'none';
+            });
+        }
+
+        // Game Engine
+        const modal = document.getElementById('gameModal');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameLoop, activeGame = '', score = 0;
+        let player = {x: 380, y: 430, w: 40, h: 40};
+        let obstacles = [], snake = [{x:10, y:10}], food = {x:15, y:15}, dir = {x:1, y:0};
+        let bullets = [], enemies = [], stars = [], keys = {};
+        let paddleY = 200, ball = {x: 400, y: 250, dx: 4, dy: 4};
+        let bricks = [], tetris = {grid: [], current: null, next: null};
+        let grid2048 = [], paint = {drawing: false, lastX: 0, lastY: 0};
+
+        function resizeCanvas() {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        function launchGame(id) {
+            modal.style.display = 'flex';
+            activeGame = id;
+            score = 0;
+            resizeCanvas();
+            if(id === 'racer') { obstacles = []; player.x = canvas.width/2; }
+            if(id === 'snake') { snake = [{x:10, y:10}]; dir = {x:1, y:0}; }
+            if(id === 'space') { bullets = []; enemies = []; stars = []; player = {x: canvas.width/2, y: canvas.height-80}; }
+            if(id === 'pong') { paddleY = canvas.height/2; ball = {x: canvas.width/2, y: canvas.height/2, dx: 5, dy: 5}; }
+            if(id === 'breakout') { initBricks(); ball = {x: canvas.width/2, y: canvas.height-50, dx: 4, dy: -4}; }
+            if(id === 'tetris') { initTetris(); }
+            if(id === '2048') { init2048(); }
+            window.onkeydown = (e) => { keys[e.key] = true; handleInput(e); };
+            window.onkeyup = (e) => keys[e.key] = false;
+            loop();
+        }
+
+        function closeGame() {
+            modal.style.display = 'none';
+            activeGame = '';
+            cancelAnimationFrame(gameLoop);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function handleInput(e) {
+            if(activeGame === 'racer') {
+                if(e.key === 'ArrowLeft') player.x = Math.max(0, player.x - 50);
+                if(e.key === 'ArrowRight') player.x = Math.min(canvas.width-40, player.x + 50);
+            }
+            if(activeGame === 'snake') {
+                if(e.key === 'ArrowUp' && dir.y===0) dir = {x:0, y:-1};
+                if(e.key === 'ArrowDown' && dir.y===0) dir = {x:0, y:1};
+                if(e.key === 'ArrowLeft' && dir.x===0) dir = {x:-1, y:0};
+                if(e.key === 'ArrowRight' && dir.x===0) dir = {x:1, y:0};
+            }
+            if(activeGame === 'pong') {
+                if(e.key === 'ArrowUp') paddleY = Math.max(0, paddleY - 30);
+                if(e.key === 'ArrowDown') paddleY = Math.min(canvas.height-80, paddleY + 30);
+            }
+            if(activeGame === 'breakout') {
+                if(e.key === 'ArrowLeft') player.x = Math.max(0, player.x - 30);
+                if(e.key === 'ArrowRight') player.x = Math.min(canvas.width-80, player.x + 30);
+            }
+        }
+
+        function loop() {
+            if(!activeGame) return;
+            ctx.fillStyle = 'rgba(10,10,15,0.3)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            
+            if(activeGame === 'terminal') updateTerminal();
+            else if(activeGame === 'matrix') updateMatrix();
+            else if(activeGame === 'racer') updateRacer();
+            else if(activeGame === 'snake') updateSnake();
+            else if(activeGame === 'breach') updateBreach();
+            else if(activeGame === 'glitch') updateGlitch();
+            else if(activeGame === 'space') updateSpace();
+            else if(activeGame === 'pong') updatePong();
+            else if(activeGame === 'breakout') updateBreakout();
+            
+            gameLoop = requestAnimationFrame(loop);
+        }
+
+        // Terminal
+        let termLines = ["> SYSTEM INITIALIZED", "> USER: CHRIS HEPPARD", "> ACCESS LEVEL: ADMIN", "> WAITING FOR INPUT..."];
+        function updateTerminal() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#00f5d4"; ctx.font = "14px monospace";
+            if(Math.random() > 0.97) termLines.push("> LOG_" + Math.floor(Math.random()*9999) + ": " + Math.random().toString(16).substring(2,10));
+            if(termLines.length > 25) termLines.shift();
+            termLines.forEach((l,i) => ctx.fillText(l, 20, 35+i*18));
+            ctx.fillStyle = "#ff00f5";
+            ctx.fillText("> _", 20, 35+termLines.length*18);
+        }
+
+        // Matrix
+        let drops = Array(Math.floor(canvas.width/20)).fill(0);
+        function updateMatrix() {
+            ctx.fillStyle = "rgba(0,0,0,0.05)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.font = "16px monospace";
+            drops.forEach((y, i) => {
+                let text = String.fromCharCode(0x30A0 + Math.random() * 96);
+                ctx.fillStyle = Math.random() > 0.95 ? '#fff' : '#0f0';
+                ctx.fillText(text, i*20, y);
+                if(y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i] += 20;
+            });
+        }
+
+        // Racer
+        function updateRacer() {
+            ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.strokeStyle = "#222";
+            for(let i=0; i<canvas.width; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+            ctx.fillStyle = "#00f5d4"; ctx.shadowBlur = 15; ctx.shadowColor = "#00f5d4";
+            ctx.fillRect(player.x, canvas.height-80, player.w, player.h);
+            if(Math.random() < 0.03) obstacles.push({x: Math.random()*(canvas.width-40), y: -50});
+            obstacles.forEach((o, i) => {
+                o.y += 6;
+                ctx.fillStyle = "#ff00f5"; ctx.shadowColor = "#ff00f5";
+                ctx.fillRect(o.x, o.y, 40, 40);
+                if(o.y > canvas.height) { obstacles.splice(i, 1); score += 10; }
+                if(Math.abs(player.x-o.x)<35 && Math.abs(canvas.height-80-o.y)<50) {
+                    closeGame(); alert("CRASH! Score: " + score);
+                }
+            });
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.font = "20px monospace";
+            ctx.fillText("SCORE: " + score, 20, 35);
+        }
+
+        // Snake
+        let frame = 0;
+        function updateSnake() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            const gs = 20, tcx = Math.floor(canvas.width/gs), tcy = Math.floor(canvas.height/gs);
+            if(frame++ % 6 !== 0) return;
+            let head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+            if(head.x<0 || head.x>=tcx || head.y<0 || head.y>=tcy || snake.some(s=>s.x===head.x&&s.y===head.y)) {
+                closeGame(); alert("GAME OVER! Score: " + score); return;
+            }
+            snake.unshift(head);
+            if(head.x===food.x && head.y===food.y) {
+                score += 10; food = {x: Math.floor(Math.random()*tcx), y: Math.floor(Math.random()*tcy)};
+            } else snake.pop();
+            ctx.fillStyle = "#ff00f5"; ctx.shadowBlur = 10; ctx.shadowColor = "#ff00f5";
+            ctx.fillRect(food.x*gs+2, food.y*gs+2, gs-4, gs-4);
+            ctx.fillStyle = "#00f5d4"; ctx.shadowColor = "#00f5d4";
+            snake.forEach((s,i) => {
+                ctx.globalAlpha = i===0?1:0.7;
+                ctx.fillRect(s.x*gs+1, s.y*gs+1, gs-2, gs-2);
+            });
+            ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.fillText("SCORE: " + score, 20, 30);
+        }
+
+        // Breach
+        let nodes = [];
+        for(let i=0; i<6; i++) nodes.push({x: Math.random()*0.8+0.1, y: Math.random()*0.7+0.1, active: true});
+        function updateBreach() {
+            ctx.fillStyle = "#0a0000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.beginPath(); ctx.strokeStyle = "#300";
+            nodes.forEach(n => { if(n.active) ctx.lineTo(n.x*canvas.width+20, n.y*canvas.height+20); });
+            ctx.stroke();
+            nodes.forEach(n => {
+                ctx.fillStyle = n.active ? "#ff0000" : "#00ff00";
+                ctx.shadowBlur = n.active ? 15 : 0; ctx.shadowColor = "#ff0000";
+                ctx.fillRect(n.x*canvas.width, n.y*canvas.height, 40, 40);
+                if(n.active) { ctx.strokeStyle = "#ff0000"; ctx.strokeRect(n.x*canvas.width-3, n.y*canvas.height-3, 46, 46); }
+            });
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.font = "16px monospace";
+            ctx.fillText("CLICK RED NODES TO BYPASS SECURITY", 20, 35);
+            if(nodes.every(n=>!n.active)) { closeGame(); alert("SYSTEM BREACHED! Access granted."); }
+        }
+        canvas.addEventListener('click', (e) => {
+            if(activeGame !== 'breach') return;
+            let rect = canvas.getBoundingClientRect();
+            let mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            nodes.forEach(n => {
+                if(mx > n.x*canvas.width && mx < n.x*canvas.width+40 && my > n.y*canvas.height && my < n.y*canvas.height+40) n.active = false;
+            });
+        });
+
+        // Glitch
+        function updateGlitch() {
+            ctx.fillStyle = `rgba(${Math.random()*255},0,${Math.random()*255}, 0.15)`;
+            ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*300, Math.random()*10);
+            ctx.fillStyle = "#fff"; ctx.font = "16px monospace";
+            ctx.fillText("CORRUPTION DETECTED... " + Math.floor(Math.random()*9999), Math.random()*canvas.width*0.7, Math.random()*canvas.height);
+        }
+
+        // Space Shooter
+        function updateSpace() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            if(!stars.length) for(let i=0; i<50; i++) stars.push({x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*2+1});
+            ctx.fillStyle = "#fff";
+            stars.forEach(s => { s.y += s.s; if(s.y>canvas.height) s.y=0; ctx.fillRect(s.x, s.y, 2, 2); });
+            ctx.fillStyle = "#00f5d4"; ctx.shadowBlur = 15; ctx.shadowColor = "#00f5d4";
+            ctx.beginPath(); ctx.moveTo(player.x, player.y); ctx.lineTo(player.x-15, player.y+30); ctx.lineTo(player.x+15, player.y+30); ctx.fill();
+            if(keys['ArrowLeft']) player.x = Math.max(20, player.x-6);
+            if(keys['ArrowRight']) player.x = Math.min(canvas.width-20, player.x+6);
+            if(keys[' '] && Math.random()>0.8) bullets.push({x: player.x, y: player.y});
+            ctx.fillStyle = "#0ff";
+            bullets.forEach((b, i) => {
+                b.y -= 10; ctx.fillRect(b.x-2, b.y, 4, 10);
+                if(b.y < 0) bullets.splice(i, 1);
+            });
+            if(Math.random()<0.02) enemies.push({x: Math.random()*(canvas.width-40)+20, y: -30});
+            ctx.fillStyle = "#ff00f5"; ctx.shadowColor = "#ff00f5";
+            enemies.forEach((e, i) => {
+                e.y += 3; ctx.beginPath(); ctx.arc(e.x, e.y, 15, 0, Math.PI*2); ctx.fill();
+                bullets.forEach((b, bi) => {
+                    if(Math.abs(b.x-e.x)<20 && Math.abs(b.y-e.y)<20) {
+                        enemies.splice(i, 1); bullets.splice(bi, 1); score += 50;
+                    }
+                });
+                if(e.y > canvas.height) enemies.splice(i, 1);
+                if(Math.abs(player.x-e.x)<25 && Math.abs(player.y-e.y)<25) {
+                    closeGame(); alert("DESTROYED! Score: " + score);
+                }
+            });
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.fillText("SCORE: " + score, 20, 30);
+        }
+
+        // Pong
+        function updatePong() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.strokeStyle = "#222"; ctx.setLineDash([10,10]);
+            ctx.beginPath(); ctx.moveTo(canvas.width/2,0); ctx.lineTo(canvas.width/2,canvas.height); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "#00f5d4"; ctx.shadowBlur = 10; ctx.shadowColor = "#00f5d4";
+            ctx.fillRect(20, paddleY, 15, 80);
+            ctx.fillRect(canvas.width-35, ball.y-40, 15, 80);
+            ctx.fillStyle = "#ff00f5"; ctx.shadowColor = "#ff00f5";
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, 10, 0, Math.PI*2); ctx.fill();
+            ball.x += ball.dx; ball.y += ball.dy;
+            if(ball.y<10 || ball.y>canvas.height-10) ball.dy *= -1;
+            if(ball.x<40 && ball.y>paddleY && ball.y<paddleY+80) ball.dx = Math.abs(ball.dx);
+            if(ball.x>canvas.width-40) ball.dx = -Math.abs(ball.dx);
+            if(ball.x<0 || ball.x>canvas.width) { ball.x=canvas.width/2; ball.y=canvas.height/2; score++; }
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.fillText("SCORE: " + score, canvas.width/2-30, 30);
+        }
+
+        // Breakout
+        function initBricks() {
+            bricks = [];
+            for(let r=0; r<5; r++) for(let c=0; c<10; c++) 
+                bricks.push({x: c*(canvas.width/10)+5, y: r*30+50, w: canvas.width/10-10, h: 20, active: true});
+            player.x = canvas.width/2-40;
+        }
+        function updateBreakout() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#00f5d4"; ctx.shadowBlur = 10; ctx.shadowColor = "#00f5d4";
+            ctx.fillRect(player.x, canvas.height-30, 80, 15);
+            ctx.fillStyle = "#ff00f5"; ctx.shadowColor = "#ff00f5";
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, 8, 0, Math.PI*2); ctx.fill();
+            ball.x += ball.dx; ball.y += ball.dy;
+            if(ball.x<8 || ball.x>canvas.width-8) ball.dx *= -1;
+            if(ball.y<8) ball.dy *= -1;
+            if(ball.y>canvas.height-40 && ball.x>player.x && ball.x<player.x+80) ball.dy = -Math.abs(ball.dy);
+            if(ball.y>canvas.height) { closeGame(); alert("GAME OVER! Score: " + score); }
+            bricks.forEach(b => {
+                if(b.active) {
+                    ctx.fillStyle = `hsl(${b.y*3}, 70%, 50%)`;
+                    ctx.fillRect(b.x, b.y, b.w, b.h);
+                    if(ball.x>b.x && ball.x<b.x+b.w && ball.y>b.y && ball.y<b.y+b.h) {
+                        b.active = false; ball.dy *= -1; score += 10;
+                    }
+                }
+            });
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.fillText("SCORE: " + score, 20, 30);
+        }
+
+        // Tetris init
+        function initTetris() {}
+        // 2048 init  
+        function init2048() {}
+
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>

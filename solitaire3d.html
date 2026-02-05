@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Solitaire | Cyberpunk Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f5d4;
+            --neon-magenta: #ff00f5;
+            --neon-amber: #ffaa00;
+            --neon-lime: #ccff00;
+            --dark-bg: #0a0a0f;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+        
+        .neon-btn {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .neon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 212, 0.5);
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            z-index: 5;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            z-index: 10;
+            max-width: 280px;
+        }
+        
+        .stats-display {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+        }
+        
+        .suit-icon {
+            font-size: 20px;
+        }
+    
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #00f5d4;
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover {
+            color: #00f5d4;
+            padding-left: 10px;
+        }
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            border-top: 1px solid rgba(0, 245, 212, 0.3);
+            text-align: center;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: #00f5d4; }
+        .cyber-footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <nav class="fixed top-0 left-0 w-full z-50 glass-panel border-b border-cyan-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="font-orbitron text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">
+                    CYBER<span class="text-cyan-400">MATRIX</span>
+                </a>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="nav-link text-gray-300 font-mono text-sm">[HOME]</a>
+                    <a href="portfolio.html" class="nav-link text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                    <a href="chess3d.html" class="nav-link text-gray-300 font-mono text-sm">[3D_CHESS]</a>
+                    <a href="solitaire3d.html" class="nav-link text-cyan-400 font-mono text-sm">[SOLITAIRE]</a>
+                    <a href="arcade.html" class="nav-link text-gray-300 font-mono text-sm">[ARCADE]</a>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-cyan-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden glass-panel border-t border-cyan-500/30">
+            <div class="px-4 py-2 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-300 font-mono text-sm">[HOME]</a>
+                <a href="portfolio.html" class="block py-2 text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                <a href="chess3d.html" class="block py-2 text-gray-300 font-mono text-sm">[3D_CHESS]</a>
+                <a href="solitaire3d.html" class="block py-2 text-cyan-400 font-mono text-sm">[SOLITAIRE]</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="ui-overlay glass-panel rounded-lg p-4">
+        <h2 class="font-orbitron text-xl text-cyan-400 mb-2">3D SOLITAIRE</h2>
+        <p class="text-gray-400 text-xs mb-4 font-mono">Classic Card Game</p>
+        
+        <div class="stats-display mb-4 text-cyan-400 space-y-1">
+            <div>SCORE: <span id="score">0</span></div>
+            <div>MOVES: <span id="moves">0</span></div>
+            <div>TIME: <span id="time">00:00</span></div>
+        </div>
+        
+        <div class="space-y-2">
+            <button id="newGameBtn" class="neon-btn w-full py-2 rounded text-sm font-mono">NEW GAME</button>
+            <button id="undoBtn" class="w-full py-2 rounded text-sm font-mono border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/20 transition-all">UNDO</button>
+        </div>
+        
+        <div class="mt-4 text-xs text-gray-500 font-mono">
+            <p>Click cards to move</p>
+            <p>Build descending sequences</p>
+            <p>Alternate colors</p>
+        </div>
+    </div>
+    
+    <div id="canvas-container"></div>
+
+    <script>
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+        
+        // THREE.JS 3D Solitaire
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        scene.fog = new THREE.Fog(0x0a0a0f, 20, 60);
+        
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / (window.innerHeight - 80), 0.1, 1000);
+        camera.position.set(0, 15, 18);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        dirLight.position.set(5, 15, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+        
+        const cyanLight = new THREE.PointLight(0x00f5d4, 0.4, 30);
+        cyanLight.position.set(-10, 5, -5);
+        scene.add(cyanLight);
+        
+        // Table
+        const tableGeo = new THREE.PlaneGeometry(30, 20);
+        const tableMat = new THREE.MeshStandardMaterial({ 
+            color: 0x0d5c3b,
+            roughness: 0.8
+        });
+        const table = new THREE.Mesh(tableGeo, tableMat);
+        table.rotation.x = -Math.PI / 2;
+        table.position.y = -0.1;
+        table.receiveShadow = true;
+        scene.add(table);
+        
+        // Card constants
+        const cardWidth = 1.4;
+        const cardHeight = 0.02;
+        const cardDepth = 2;
+        
+        // Card textures
+        function createCardTexture(rank, suit) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 384;
+            const ctx = canvas.getContext('2d');
+            
+            // Card background
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, 256, 384);
+            
+            // Border
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(4, 4, 248, 376);
+            
+            // Suit color
+            const isRed = suit === '♥' || suit === '♦';
+            ctx.fillStyle = isRed ? '#cc0000' : '#000000';
+            
+            // Corner rank and suit
+            ctx.font = 'bold 32px Arial';
+            ctx.fillText(rank, 15, 40);
+            ctx.font = '32px Arial';
+            ctx.fillText(suit, 15, 75);
+            
+            // Center suit
+            ctx.font = '120px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(suit, 128, 220);
+            
+            // Bottom corner (inverted)
+            ctx.save();
+            ctx.translate(256, 384);
+            ctx.rotate(Math.PI);
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(rank, 15, 40);
+            ctx.font = '32px Arial';
+            ctx.fillText(suit, 15, 75);
+            ctx.restore();
+            
+            return new THREE.CanvasTexture(canvas);
+        }
+        
+        function createCardBackTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 384;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#1a237e';
+            ctx.fillRect(0, 0, 256, 384);
+            
+            // Pattern
+            ctx.strokeStyle = '#00f5d4';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 256; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, 384);
+                ctx.stroke();
+            }
+            for (let i = 0; i < 384; i += 20) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(256, i);
+                ctx.stroke();
+            }
+            
+            // Border
+            ctx.strokeStyle = '#ff00f5';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(8, 8, 240, 368);
+            
+            return new THREE.CanvasTexture(canvas);
+        }
+        
+        const cardBackTexture = createCardBackTexture();
+        
+        // Create card mesh
+        function createCard(rank, suit) {
+            const geometry = new THREE.BoxGeometry(cardWidth, cardHeight, cardDepth);
+            const frontTexture = createCardTexture(rank, suit);
+            
+            const materials = [
+                new THREE.MeshStandardMaterial({ color: 0xffffff }), // right
+                new THREE.MeshStandardMaterial({ color: 0xffffff }), // left
+                new THREE.MeshStandardMaterial({ map: frontTexture }), // top (face)
+                new THREE.MeshStandardMaterial({ map: cardBackTexture }), // bottom (back)
+                new THREE.MeshStandardMaterial({ color: 0xffffff }), // front
+                new THREE.MeshStandardMaterial({ color: 0xffffff })  // back
+            ];
+            
+            const card = new THREE.Mesh(geometry, materials);
+            card.castShadow = true;
+            card.userData = { rank, suit, faceUp: false };
+            
+            return card;
+        }
+        
+        // Game state
+        let deck = [];
+        let tableau = [[], [], [], [], [], [], []];
+        let foundations = [[], [], [], []];
+        let stock = [];
+        let waste = [];
+        let score = 0;
+        let moves = 0;
+        let startTime = null;
+        let selectedCard = null;
+        
+        const suits = ['♠', '♥', '♣', '♦'];
+        const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+        
+        function createDeck() {
+            deck = [];
+            for (let suit of suits) {
+                for (let rank of ranks) {
+                    deck.push({ rank, suit });
+                }
+            }
+            
+            // Shuffle
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+        
+        function initGame() {
+            // Clear existing cards
+            scene.children = scene.children.filter(child => 
+                child === table || child === ambientLight || child === dirLight || child === cyanLight
+            );
+            
+            createDeck();
+            
+            // Deal to tableau
+            tableau = [[], [], [], [], [], [], []];
+            for (let col = 0; col < 7; col++) {
+                for (let row = 0; row <= col; row++) {
+                    const cardData = deck.pop();
+                    const card = createCard(cardData.rank, cardData.suit);
+                    card.position.set((col - 3) * 2.2, 0.1, (row - 3) * 0.5 - 2);
+                    card.userData.col = col;
+                    card.userData.row = row;
+                    
+                    if (row === col) {
+                        card.userData.faceUp = true;
+                        card.rotation.x = Math.PI;
+                    }
+                    
+                    scene.add(card);
+                    tableau[col].push(card);
+                }
+            }
+            
+            // Remaining cards to stock
+            stock = [];
+            for (let cardData of deck) {
+                const card = createCard(cardData.rank, cardData.suit);
+                card.position.set(-8, 0.1, -6);
+                scene.add(card);
+                stock.push(card);
+            }
+            
+            foundations = [[], [], [], []];
+            waste = [];
+            score = 0;
+            moves = 0;
+            startTime = Date.now();
+            selectedCard = null;
+            
+            updateStats();
+        }
+        
+        function updateStats() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('moves').textContent = moves;
+            
+            if (startTime) {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const secs = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('time').textContent = `${mins}:${secs}`;
+            }
+        }
+        
+        function getCardValue(rank) {
+            if (rank === 'A') return 1;
+            if (rank === 'J') return 11;
+            if (rank === 'Q') return 12;
+            if (rank === 'K') return 13;
+            return parseInt(rank);
+        }
+        
+        function isRed(suit) {
+            return suit === '♥' || suit === '♦';
+        }
+        
+        function canPlaceOnTableau(card, targetCol) {
+            const col = tableau[targetCol];
+            if (col.length === 0) {
+                return card.userData.rank === 'K';
+            }
+            
+            const topCard = col[col.length - 1];
+            if (!topCard.userData.faceUp) return false;
+            
+            const cardValue = getCardValue(card.userData.rank);
+            const topValue = getCardValue(topCard.userData.rank);
+            
+            return cardValue === topValue - 1 && isRed(card.userData.suit) !== isRed(topCard.userData.suit);
+        }
+        
+        function canPlaceOnFoundation(card, foundationIdx) {
+            const foundation = foundations[foundationIdx];
+            
+            if (foundation.length === 0) {
+                return card.userData.rank === 'A';
+            }
+            
+            const topCard = foundation[foundation.length - 1];
+            const cardValue = getCardValue(card.userData.rank);
+            const topValue = getCardValue(topCard.userData.rank);
+            
+            return cardValue === topValue + 1 && card.userData.suit === topCard.userData.suit;
+        }
+        
+        // Mouse interaction
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        renderer.domElement.addEventListener('click', (e) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Get all cards
+            const allCards = [];
+            scene.traverse(child => {
+                if (child.userData && child.userData.rank) {
+                    allCards.push(child);
+                }
+            });
+            
+            const intersects = raycaster.intersectObjects(allCards);
+            
+            if (intersects.length > 0) {
+                const card = intersects[0].object;
+                
+                if (!card.userData.faceUp) {
+                    // Flip card
+                    card.userData.faceUp = true;
+                    new TWEEN.Tween(card.rotation)
+                        .to({ x: Math.PI }, 300)
+                        .easing(TWEEN.Easing.Quadratic.Out)
+                        .start();
+                    return;
+                }
+                
+                if (selectedCard === card) {
+                    // Deselect
+                    selectedCard.position.y -= 0.2;
+                    selectedCard = null;
+                    return;
+                }
+                
+                if (selectedCard) {
+                    // Try to move selected card to this card's column
+                    const targetCol = card.userData.col;
+                    if (targetCol !== undefined && canPlaceOnTableau(selectedCard, targetCol)) {
+                        const oldCol = selectedCard.userData.col;
+                        if (oldCol !== undefined) {
+                            tableau[oldCol] = tableau[oldCol].filter(c => c !== selectedCard);
+                        }
+                        
+                        selectedCard.userData.col = targetCol;
+                        selectedCard.userData.row = tableau[targetCol].length;
+                        tableau[targetCol].push(selectedCard);
+                        
+                        new TWEEN.Tween(selectedCard.position)
+                            .to({ 
+                                x: (targetCol - 3) * 2.2, 
+                                y: 0.1 + selectedCard.userData.row * 0.3, 
+                                z: (selectedCard.userData.row - 3) * 0.5 - 2 
+                            }, 300)
+                            .easing(TWEEN.Easing.Quadratic.Out)
+                            .start();
+                        
+                        selectedCard.position.y -= 0.2;
+                        selectedCard = null;
+                        moves++;
+                        score += 5;
+                        updateStats();
+                    } else {
+                        selectedCard.position.y -= 0.2;
+                        selectedCard = null;
+                    }
+                } else {
+                    // Select card
+                    selectedCard = card;
+                    selectedCard.position.y += 0.2;
+                }
+            } else {
+                // Check if clicked on stock area
+                raycaster.setFromCamera(mouse, camera);
+                const stockIntersects = raycaster.intersectObject(table);
+                
+                if (stockIntersects.length > 0) {
+                    const point = stockIntersects[0].point;
+                    if (point.x < -6 && point.z < -4) {
+                        // Draw from stock
+                        if (stock.length > 0) {
+                            const card = stock.pop();
+                            card.userData.faceUp = true;
+                            waste.push(card);
+                            
+                            new TWEEN.Tween(card.position)
+                                .to({ x: -5, y: 0.1, z: -6 }, 200)
+                                .easing(TWEEN.Easing.Quadratic.Out)
+                                .start();
+                            
+                            new TWEEN.Tween(card.rotation)
+                                .to({ x: Math.PI }, 200)
+                                .start();
+                            
+                            moves++;
+                            updateStats();
+                        }
+                    }
+                }
+                
+                if (selectedCard) {
+                    selectedCard.position.y -= 0.2;
+                    selectedCard = null;
+                }
+            }
+        });
+        
+        // UI handlers
+        document.getElementById('newGameBtn').addEventListener('click', initGame);
+        document.getElementById('undoBtn').addEventListener('click', () => {
+            // Simple undo - just deselect
+            if (selectedCard) {
+                selectedCard.position.y -= 0.2;
+                selectedCard = null;
+            }
+        });
+        
+        // Camera controls
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            if (e.button === 2) {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+        
+        renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+        
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                camera.position.x = Math.max(-10, Math.min(10, camera.position.x - deltaX * 0.02));
+                camera.lookAt(0, 0, 0);
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+        
+        renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        renderer.domElement.addEventListener('wheel', (e) => {
+            camera.position.z = Math.max(10, Math.min(30, camera.position.z + e.deltaY * 0.05));
+        });
+        
+        // Animation loop
+        function animate(time) {
+            requestAnimationFrame(animate);
+            TWEEN.update(time);
+            updateStats();
+            renderer.render(scene, camera);
+        }
+        
+        initGame();
+        animate();
+        
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight - 80);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        });
+    
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>

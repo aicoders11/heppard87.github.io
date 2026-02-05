@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Voxel Painter | Cyberpunk Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f5d4;
+            --neon-magenta: #ff00f5;
+            --neon-amber: #ffaa00;
+            --neon-lime: #ccff00;
+            --dark-bg: #0a0a0f;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+        
+        .neon-btn {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .neon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 212, 0.5);
+        }
+        
+        .tool-btn {
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            background: rgba(0, 245, 212, 0.1);
+            color: var(--neon-cyan);
+            transition: all 0.3s;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .tool-btn:hover, .tool-btn.active {
+            background: rgba(0, 245, 212, 0.3);
+            box-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
+        }
+        
+        .color-btn {
+            width: 32px; height: 32px;
+            border-radius: 4px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .color-btn:hover { transform: scale(1.1); }
+        .color-btn.active { border-color: #fff; box-shadow: 0 0 10px currentColor; }
+        
+        #canvas-container {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            z-index: 5;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            z-index: 10;
+            max-width: 280px;
+        }
+        
+        .stats-display {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+        }
+    
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #00f5d4;
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover {
+            color: #00f5d4;
+            padding-left: 10px;
+        }
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            border-top: 1px solid rgba(0, 245, 212, 0.3);
+            text-align: center;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: #00f5d4; }
+        .cyber-footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <nav class="fixed top-0 left-0 w-full z-50 glass-panel border-b border-cyan-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="font-orbitron text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">
+                    CYBER<span class="text-cyan-400">MATRIX</span>
+                </a>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="nav-link text-gray-300 font-mono text-sm">[HOME]</a>
+                    <a href="portfolio.html" class="nav-link text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                    <a href="voxel.html" class="nav-link text-cyan-400 font-mono text-sm">[VOXEL]</a>
+                    <a href="physics.html" class="nav-link text-gray-300 font-mono text-sm">[PHYSICS]</a>
+                    <a href="chess3d.html" class="nav-link text-gray-300 font-mono text-sm">[3D_CHESS]</a>
+                    <a href="solar.html" class="nav-link text-gray-300 font-mono text-sm">[SOLAR]</a>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-cyan-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden glass-panel border-t border-cyan-500/30">
+            <div class="px-4 py-2 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-300 font-mono text-sm">[HOME]</a>
+                <a href="portfolio.html" class="block py-2 text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                <a href="voxel.html" class="block py-2 text-cyan-400 font-mono text-sm">[VOXEL]</a>
+                <a href="physics.html" class="block py-2 text-gray-300 font-mono text-sm">[PHYSICS]</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="ui-overlay glass-panel rounded-lg p-4">
+        <h2 class="font-orbitron text-xl text-cyan-400 mb-2">VOXEL PAINTER</h2>
+        <p class="text-gray-400 text-xs mb-4 font-mono">3D Voxel Builder</p>
+        
+        <div class="stats-display mb-4 text-cyan-400">
+            <span id="voxelCount">VOXELS: 0</span>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs font-mono mb-2">TOOLS</p>
+            <div class="grid grid-cols-2 gap-2">
+                <button id="toolAdd" class="tool-btn active text-sm font-mono">ADD</button>
+                <button id="toolRemove" class="tool-btn text-sm font-mono">REMOVE</button>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs font-mono mb-2">COLORS</p>
+            <div class="grid grid-cols-4 gap-2">
+                <button class="color-btn active" style="background: #00f5d4" data-color="0x00f5d4"></button>
+                <button class="color-btn" style="background: #ff00f5" data-color="0xff00f5"></button>
+                <button class="color-btn" style="background: #ffaa00" data-color="0xffaa00"></button>
+                <button class="color-btn" style="background: #ccff00" data-color="0xccff00"></button>
+                <button class="color-btn" style="background: #ff4444" data-color="0xff4444"></button>
+                <button class="color-btn" style="background: #4444ff" data-color="0x4444ff"></button>
+                <button class="color-btn" style="background: #ffffff" data-color="0xffffff"></button>
+                <button class="color-btn" style="background: #444444" data-color="0x444444"></button>
+            </div>
+        </div>
+        
+        <div class="space-y-2">
+            <button id="clearBtn" class="w-full py-2 rounded text-sm font-mono border border-red-500/50 text-red-400 hover:bg-red-500/20 transition-all">CLEAR ALL</button>
+            <button id="saveBtn" class="neon-btn w-full py-2 rounded text-sm font-mono">SAVE MODEL</button>
+        </div>
+        
+        <div class="mt-4 text-xs text-gray-500 font-mono">
+            <p>Left click: Add/Remove</p>
+            <p>Right click + drag: Rotate</p>
+            <p>Scroll: Zoom</p>
+        </div>
+    </div>
+    
+    <div id="canvas-container"></div>
+
+    <script>
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+        
+        // THREE.JS Voxel Painter
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        scene.fog = new THREE.Fog(0x0a0a0f, 20, 60);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / (window.innerHeight - 80), 0.1, 1000);
+        camera.position.set(15, 15, 15);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+        
+        const cyanLight = new THREE.PointLight(0x00f5d4, 0.5, 30);
+        cyanLight.position.set(-10, 10, -10);
+        scene.add(cyanLight);
+        
+        // Grid
+        const gridHelper = new THREE.GridHelper(30, 30, 0x00f5d4, 0x1a1a2e);
+        scene.add(gridHelper);
+        
+        // Ground plane
+        const groundGeo = new THREE.PlaneGeometry(30, 30);
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0f, roughness: 0.8 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.01;
+        ground.receiveShadow = true;
+        scene.add(ground);
+        
+        // Voxel settings
+        const voxelSize = 1;
+        const voxels = new Map();
+        let currentTool = 'add';
+        let currentColor = 0x00f5d4;
+        
+        // Roll-over helper
+        const rollOverGeo = new THREE.BoxGeometry(voxelSize, voxelSize, voxelSize);
+        const rollOverMaterial = new THREE.MeshBasicMaterial({ color: 0x00f5d4, opacity: 0.5, transparent: true });
+        const rollOverMesh = new THREE.Mesh(rollOverGeo, rollOverMaterial);
+        scene.add(rollOverMesh);
+        
+        // Voxel geometry (reused)
+        const voxelGeo = new THREE.BoxGeometry(voxelSize, voxelSize, voxelSize);
+        
+        function createVoxel(x, y, z, color) {
+            const material = new THREE.MeshStandardMaterial({
+                color: color,
+                roughness: 0.3,
+                metalness: 0.4
+            });
+            const voxel = new THREE.Mesh(voxelGeo, material);
+            voxel.position.set(x, y, z);
+            voxel.castShadow = true;
+            voxel.receiveShadow = true;
+            scene.add(voxel);
+            
+            const key = `${x},${y},${z}`;
+            voxels.set(key, voxel);
+            updateVoxelCount();
+        }
+        
+        function removeVoxel(x, y, z) {
+            const key = `${x},${y},${z}`;
+            const voxel = voxels.get(key);
+            if (voxel) {
+                scene.remove(voxel);
+                voxels.delete(key);
+                updateVoxelCount();
+            }
+        }
+        
+        function updateVoxelCount() {
+            document.getElementById('voxelCount').textContent = `VOXELS: ${voxels.size}`;
+        }
+        
+        // Raycaster
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        
+        function getIntersects(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            
+            const objects = Array.from(voxels.values());
+            objects.push(ground);
+            
+            return raycaster.intersectObjects(objects);
+        }
+        
+        // Mouse events
+        let isRightMouseDown = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        
+        renderer.domElement.addEventListener('mousemove', (event) => {
+            if (isRightMouseDown) {
+                const deltaX = event.clientX - previousMousePosition.x;
+                const deltaY = event.clientY - previousMousePosition.y;
+                
+                const spherical = new THREE.Spherical();
+                spherical.setFromVector3(camera.position);
+                spherical.theta -= deltaX * 0.01;
+                spherical.phi += deltaY * 0.01;
+                spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
+                
+                camera.position.setFromSpherical(spherical);
+                camera.lookAt(0, 0, 0);
+                
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+                return;
+            }
+            
+            const intersects = getIntersects(event);
+            
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                
+                if (currentTool === 'add') {
+                    rollOverMesh.position.copy(intersect.point).add(intersect.face.normal);
+                    rollOverMesh.position.divideScalar(voxelSize).floor().multiplyScalar(voxelSize).addScalar(voxelSize / 2);
+                } else {
+                    if (intersect.object !== ground) {
+                        rollOverMesh.position.copy(intersect.object.position);
+                    }
+                }
+                rollOverMesh.visible = true;
+            } else {
+                rollOverMesh.visible = false;
+            }
+        });
+        
+        renderer.domElement.addEventListener('mousedown', (event) => {
+            if (event.button === 2) {
+                isRightMouseDown = true;
+                previousMousePosition = { x: event.clientX, y: event.clientY };
+                return;
+            }
+            
+            const intersects = getIntersects(event);
+            
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                
+                if (currentTool === 'add') {
+                    const pos = new THREE.Vector3().copy(intersect.point).add(intersect.face.normal);
+                    pos.divideScalar(voxelSize).floor().multiplyScalar(voxelSize).addScalar(voxelSize / 2);
+                    createVoxel(pos.x, pos.y, pos.z, currentColor);
+                } else if (currentTool === 'remove') {
+                    if (intersect.object !== ground) {
+                        removeVoxel(intersect.object.position.x, intersect.object.position.y, intersect.object.position.z);
+                    }
+                }
+            }
+        });
+        
+        renderer.domElement.addEventListener('mouseup', () => {
+            isRightMouseDown = false;
+        });
+        
+        renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        renderer.domElement.addEventListener('wheel', (event) => {
+            const scale = event.deltaY > 0 ? 1.1 : 0.9;
+            camera.position.multiplyScalar(scale);
+        });
+        
+        // UI handlers
+        document.getElementById('toolAdd').addEventListener('click', function() {
+            currentTool = 'add';
+            document.getElementById('toolAdd').classList.add('active');
+            document.getElementById('toolRemove').classList.remove('active');
+            rollOverMaterial.color.setHex(currentColor);
+        });
+        
+        document.getElementById('toolRemove').addEventListener('click', function() {
+            currentTool = 'remove';
+            document.getElementById('toolRemove').classList.add('active');
+            document.getElementById('toolAdd').classList.remove('active');
+            rollOverMaterial.color.setHex(0xff4444);
+        });
+        
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentColor = parseInt(this.dataset.color);
+                if (currentTool === 'add') {
+                    rollOverMaterial.color.setHex(currentColor);
+                }
+            });
+        });
+        
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            voxels.forEach(voxel => scene.remove(voxel));
+            voxels.clear();
+            updateVoxelCount();
+        });
+        
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const data = [];
+            voxels.forEach((voxel, key) => {
+                data.push({
+                    pos: [voxel.position.x, voxel.position.y, voxel.position.z],
+                    color: voxel.material.color.getHex()
+                });
+            });
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'voxel-model.json';
+            a.click();
+        });
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight - 80);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        });
+    
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>

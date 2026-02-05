@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Launcher | Chris Heppard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan: #00f5d4; --magenta: #ff00f5; --blue: #3b82f6;
+            --dark: #0a0a0f; --panel: rgba(10, 10, 15, 0.95);
+            --border: rgba(0, 245, 212, 0.3); --glow-cyan: 0 0 20px rgba(0, 245, 212, 0.5);
+            --font-main: 'Rajdhani', sans-serif; --font-mono: 'Share Tech Mono', monospace;
+            --font-display: 'Orbitron', sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-main); background-color: var(--dark);
+            color: #e0e0e0; overflow-x: hidden; line-height: 1.6;
+        }
+        #bgCanvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(to right, rgba(0,245,212,0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,245,212,0.03) 1px, transparent 1px);
+            background-size: 50px 50px; pointer-events: none; z-index: -1;
+        }
+        
+        /* Age Gate */
+        #age-gate {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .gate-title {
+            font-family: var(--font-display); font-size: 3rem; color: var(--magenta);
+            text-shadow: var(--glow-magenta); margin-bottom: 20px;
+        }
+        .gate-text { font-size: 1.2rem; color: #888; margin-bottom: 40px; text-align: center; }
+        .gate-btns { display: flex; gap: 30px; }
+        .gate-btn {
+            padding: 15px 50px; border: 2px solid var(--border);
+            background: transparent; color: var(--cyan); font-family: var(--font-mono);
+            font-size: 1rem; cursor: pointer; transition: all 0.3s; text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .gate-btn:hover { background: var(--cyan); color: var(--dark); box-shadow: var(--glow-cyan); }
+        .gate-btn.no { border-color: var(--magenta); color: var(--magenta); }
+        .gate-btn.no:hover { background: var(--magenta); color: var(--dark); box-shadow: var(--glow-magenta); }
+        
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 80px;
+            background: var(--panel); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 50px; z-index: 1000; backdrop-filter: blur(15px);
+        }
+        .logo {
+            font-family: var(--font-display); font-size: 1.5rem; font-weight: 900;
+            background: linear-gradient(45deg, var(--cyan), var(--magenta));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .nav-links { display: flex; gap: 30px; }
+        .nav-links a {
+            color: #888; text-decoration: none; font-family: var(--font-mono);
+            text-transform: uppercase; font-size: 0.8rem; letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .nav-links a:hover { color: var(--cyan); }
+        
+        /* Hero */
+        .hero {
+            min-height: 60vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 120px 20px 60px;
+        }
+        .hero h1 {
+            font-family: var(--font-display); font-size: clamp(2.5rem, 6vw, 4rem);
+            color: var(--cyan); text-shadow: var(--glow-cyan); margin-bottom: 15px;
+        }
+        .hero p { font-family: var(--font-mono); color: #888; font-size: 1.1rem; }
+        
+        /* Modules */
+        section { padding: 60px 20px; max-width: 1400px; margin: 0 auto; }
+        .section-header {
+            text-align: center; margin-bottom: 50px;
+        }
+        .section-title {
+            font-family: var(--font-display); font-size: 2rem;
+            color: var(--cyan); text-shadow: var(--glow-cyan);
+        }
+        
+        .module-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .module-card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            border-radius: 15px; padding: 30px; transition: all 0.4s;
+            position: relative; overflow: hidden;
+        }
+        .module-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(0,245,212,0.05), rgba(255,0,245,0.05));
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .module-card:hover::before { opacity: 1; }
+        .module-card:hover {
+            transform: translateY(-8px); border-color: var(--cyan); box-shadow: var(--glow-cyan);
+        }
+        .module-icon {
+            font-size: 3rem; margin-bottom: 20px;
+        }
+        .module-card h3 {
+            font-family: var(--font-display); font-size: 1.3rem; color: #fff;
+            margin-bottom: 10px;
+        }
+        .module-card p {
+            color: #888; font-size: 0.95rem; margin-bottom: 20px;
+        }
+        .btn {
+            background: transparent; border: 2px solid var(--cyan); color: var(--cyan);
+            padding: 12px 30px; font-family: var(--font-mono); text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block;
+            font-size: 0.8rem; letter-spacing: 2px;
+        }
+        .btn:hover { background: var(--cyan); color: var(--dark); box-shadow: var(--glow-cyan); }
+        .btn-magenta { border-color: var(--magenta); color: var(--magenta); }
+        .btn-magenta:hover { background: var(--magenta); color: var(--dark); box-shadow: var(--glow-magenta); }
+        
+        /* Game Modal */
+        #gameModal {
+            display: none; position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.98); flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        #canvasContainer {
+            position: relative; width: 90%; max-width: 900px; aspect-ratio: 16/9;
+            border: 2px solid var(--cyan); background: #000;
+            box-shadow: var(--glow-cyan); border-radius: 10px; overflow: hidden;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+        .modal-ui {
+            width: 90%; max-width: 900px; display: flex; justify-content: space-between;
+            margin-bottom: 20px; align-items: center;
+        }
+        .status-text { color: var(--cyan); font-family: var(--font-mono); font-size: 1rem; }
+        
+        footer {
+            padding: 40px 20px; border-top: 1px solid var(--border);
+            text-align: center; margin-top: 60px;
+        }
+        .footer-text { font-family: var(--font-mono); color: #555; font-size: 0.85rem; }
+        
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .nav-links { display: none; }
+            .gate-btns { flex-direction: column; }
+        }
+    
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #00f5d4;
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover {
+            color: #00f5d4;
+            padding-left: 10px;
+        }
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            border-top: 1px solid rgba(0, 245, 212, 0.3);
+            text-align: center;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: #00f5d4; }
+        .cyber-footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas>
+    <div class="grid-overlay"></div>
+
+    <div id="age-gate">
+        <h1 class="gate-title">AGE VERIFICATION</h1>
+        <p class="gate-text">This launcher contains restricted content. Are you 13+ years old?</p>
+        <div class="gate-btns">
+            <button class="gate-btn" onclick="enterSite()">Yes, I am 13+</button>
+            <button class="gate-btn no" onclick="window.location.href='index.html'">No, take me back</button>
+        </div>
+    </div>
+
+    <nav>
+        <a href="index.html" class="logo">CYBERSOLUTIONSOHIO</a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="portfolio.html">Portfolio</a>
+            <a href="arcade.html">Arcade</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Game Launcher</h1>
+        <p>Select a module to initialize // Age 13+ Content</p>
+    </div>
+
+    <section id="modules">
+        <div class="section-header">
+            <h2 class="section-title">AVAILABLE MODULES</h2>
+        </div>
+
+        <div class="module-grid">
+            <div class="module-card">
+                <div class="module-icon">⌨️</div>
+                <h3>Terminal OS</h3>
+                <p>Command Line Interface Simulator with real-time logging and system commands.</p>
+                <button class="btn" onclick="launchGame('terminal')">Launch Module</button>
+            </div>
+
+            <div class="module-card">
+                <div class="module-icon">🌧️</div>
+                <h3>Matrix Stream</h3>
+                <p>Digital Rain Generator with Katakana characters falling in classic Matrix style.</p>
+                <button class="btn" onclick="launchGame('matrix')">Launch Module</button>
+            </div>
+
+            <div class="module-card">
+                <div class="module-icon">🏎️</div>
+                <h3>Cyber Racer</h3>
+                <p>High-speed dodge arcade. Avoid magenta obstacles in your cyan racer.</p>
+                <button class="btn" onclick="launchGame('racer')">Launch Module</button>
+            </div>
+
+            <div class="module-card">
+                <div class="module-icon">🐍</div>
+                <h3>Neon Snake</h3>
+                <p>Classic grid consumption game with neon glow effects and smooth controls.</p>
+                <button class="btn" onclick="launchGame('snake')">Launch Module</button>
+            </div>
+
+            <div class="module-card">
+                <div class="module-icon">💀</div>
+                <h3>System Breach</h3>
+                <p>Hacking Simulation with security nodes to bypass. [Restricted Content]</p>
+                <button class="btn btn-magenta" onclick="launchGame('breach')">Infiltrate</button>
+            </div>
+
+            <div class="module-card">
+                <div class="module-icon">📺</div>
+                <h3>Glitch Studio</h3>
+                <p>Visual Corruption Engine generating random glitch art effects.</p>
+                <button class="btn" onclick="launchGame('glitch')">Launch Module</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="gameModal">
+        <div class="modal-ui">
+            <div class="status-text">MODULE_STATUS: <span id="gameStatus" style="color:#fff">ACTIVE</span></div>
+            <button class="btn btn-magenta" onclick="closeGame()">TERMINATE SESSION</button>
+        </div>
+        <div id="canvasContainer">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+    </div>
+
+    <footer>
+        <p class="footer-text">© 2024 Chris Heppard | Game Launcher v2.0 | Age 13+</p>
+    </footer>
+
+    <script>
+        // Background Animation
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        let particles = [];
+        for(let i=0; i<60; i++) particles.push({
+            x: Math.random()*bgCanvas.width, y: Math.random()*bgCanvas.height,
+            vy: Math.random()*0.5+0.1, color: Math.random()>0.5?'rgba(0,245,212,':'rgba(255,0,245,'
+        });
+        function animateBg() {
+            bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+            particles.forEach(p => {
+                p.y += p.vy;
+                if(p.y > bgCanvas.height) p.y = 0;
+                bgCtx.beginPath();
+                bgCtx.arc(p.x, p.y, 1.5, 0, Math.PI*2);
+                bgCtx.fillStyle = p.color + '0.4)';
+                bgCtx.fill();
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        function enterSite() {
+            document.getElementById('age-gate').style.display = 'none';
+        }
+
+        // Game Engine
+        const modal = document.getElementById('gameModal');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let gameLoop, activeGame = '', score = 0;
+        let player = {x: 380, y: 430, w: 40, h: 40};
+        let obstacles = [], snake = [{x:10, y:10}], food = {x:15, y:15}, dir = {x:1, y:0};
+        let nodes = [], keys = {};
+
+        function resizeCanvas() {
+            const container = document.getElementById('canvasContainer');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        function launchGame(id) {
+            modal.style.display = 'flex';
+            activeGame = id;
+            score = 0;
+            resizeCanvas();
+            if(id === 'racer') { obstacles = []; player.x = canvas.width/2; }
+            if(id === 'snake') { snake = [{x:10, y:10}]; dir = {x:1, y:0}; }
+            if(id === 'breach') { nodes = []; for(let i=0; i<6; i++) nodes.push({x: Math.random()*0.8+0.1, y: Math.random()*0.7+0.1, active: true}); }
+            window.onkeydown = (e) => { keys[e.key] = true; handleInput(e); };
+            window.onkeyup = (e) => keys[e.key] = false;
+            loop();
+        }
+
+        function closeGame() {
+            modal.style.display = 'none';
+            activeGame = '';
+            cancelAnimationFrame(gameLoop);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function handleInput(e) {
+            if(activeGame === 'racer') {
+                if(e.key === 'ArrowLeft') player.x = Math.max(0, player.x - 50);
+                if(e.key === 'ArrowRight') player.x = Math.min(canvas.width-40, player.x + 50);
+            }
+            if(activeGame === 'snake') {
+                if(e.key === 'ArrowUp' && dir.y===0) dir = {x:0, y:-1};
+                if(e.key === 'ArrowDown' && dir.y===0) dir = {x:0, y:1};
+                if(e.key === 'ArrowLeft' && dir.x===0) dir = {x:-1, y:0};
+                if(e.key === 'ArrowRight' && dir.x===0) dir = {x:1, y:0};
+            }
+        }
+
+        function loop() {
+            if(!activeGame) return;
+            ctx.fillStyle = 'rgba(10,10,15,0.3)';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            
+            if(activeGame === 'terminal') updateTerminal();
+            else if(activeGame === 'matrix') updateMatrix();
+            else if(activeGame === 'racer') updateRacer();
+            else if(activeGame === 'snake') updateSnake();
+            else if(activeGame === 'breach') updateBreach();
+            else if(activeGame === 'glitch') updateGlitch();
+            
+            gameLoop = requestAnimationFrame(loop);
+        }
+
+        // Terminal
+        let termLines = ["> SYSTEM INITIALIZED", "> USER: CHRIS HEPPARD", "> ACCESS LEVEL: ADMIN", "> WAITING FOR INPUT..."];
+        function updateTerminal() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#00f5d4"; ctx.font = "14px monospace";
+            if(Math.random() > 0.97) termLines.push("> LOG_" + Math.floor(Math.random()*9999) + ": " + Math.random().toString(16).substring(2,10));
+            if(termLines.length > 25) termLines.shift();
+            termLines.forEach((l,i) => ctx.fillText(l, 20, 35+i*18));
+            ctx.fillStyle = "#ff00f5";
+            ctx.fillText("> _", 20, 35+termLines.length*18);
+        }
+
+        // Matrix
+        let drops = Array(Math.floor(canvas.width/20)).fill(0);
+        function updateMatrix() {
+            ctx.fillStyle = "rgba(0,0,0,0.05)"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.font = "16px monospace";
+            drops.forEach((y, i) => {
+                let text = String.fromCharCode(0x30A0 + Math.random() * 96);
+                ctx.fillStyle = Math.random() > 0.95 ? '#fff' : '#0f0';
+                ctx.fillText(text, i*20, y);
+                if(y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i] += 20;
+            });
+        }
+
+        // Racer
+        function updateRacer() {
+            ctx.fillStyle = "#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.strokeStyle = "#222";
+            for(let i=0; i<canvas.width; i+=60) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+            ctx.fillStyle = "#00f5d4"; ctx.shadowBlur = 15; ctx.shadowColor = "#00f5d4";
+            ctx.fillRect(player.x, canvas.height-80, player.w, player.h);
+            if(Math.random() < 0.03) obstacles.push({x: Math.random()*(canvas.width-40), y: -50});
+            obstacles.forEach((o, i) => {
+                o.y += 6;
+                ctx.fillStyle = "#ff00f5"; ctx.shadowColor = "#ff00f5";
+                ctx.fillRect(o.x, o.y, 40, 40);
+                if(o.y > canvas.height) { obstacles.splice(i, 1); score += 10; }
+                if(Math.abs(player.x-o.x)<35 && Math.abs(canvas.height-80-o.y)<50) {
+                    closeGame(); alert("CRASH! Score: " + score);
+                }
+            });
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.font = "20px monospace";
+            ctx.fillText("SCORE: " + score, 20, 35);
+        }
+
+        // Snake
+        let frame = 0;
+        function updateSnake() {
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            const gs = 20, tcx = Math.floor(canvas.width/gs), tcy = Math.floor(canvas.height/gs);
+            if(frame++ % 6 !== 0) return;
+            let head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+            if(head.x<0 || head.x>=tcx || head.y<0 || head.y>=tcy || snake.some(s=>s.x===head.x&&s.y===head.y)) {
+                closeGame(); alert("GAME OVER! Score: " + score); return;
+            }
+            snake.unshift(head);
+            if(head.x===food.x && head.y===food.y) {
+                score += 10; food = {x: Math.floor(Math.random()*tcx), y: Math.floor(Math.random()*tcy)};
+            } else snake.pop();
+            ctx.fillStyle = "#ff00f5"; ctx.shadowBlur = 10; ctx.shadowColor = "#ff00f5";
+            ctx.fillRect(food.x*gs+2, food.y*gs+2, gs-4, gs-4);
+            ctx.fillStyle = "#00f5d4"; ctx.shadowColor = "#00f5d4";
+            snake.forEach((s,i) => {
+                ctx.globalAlpha = i===0?1:0.7;
+                ctx.fillRect(s.x*gs+1, s.y*gs+1, gs-2, gs-2);
+            });
+            ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.fillText("SCORE: " + score, 20, 30);
+        }
+
+        // Breach
+        function updateBreach() {
+            ctx.fillStyle = "#0a0000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.beginPath(); ctx.strokeStyle = "#300";
+            nodes.forEach(n => { if(n.active) ctx.lineTo(n.x*canvas.width+20, n.y*canvas.height+20); });
+            ctx.stroke();
+            nodes.forEach(n => {
+                ctx.fillStyle = n.active ? "#ff0000" : "#00ff00";
+                ctx.shadowBlur = n.active ? 15 : 0; ctx.shadowColor = "#ff0000";
+                ctx.fillRect(n.x*canvas.width, n.y*canvas.height, 40, 40);
+                if(n.active) { ctx.strokeStyle = "#ff0000"; ctx.strokeRect(n.x*canvas.width-3, n.y*canvas.height-3, 46, 46); }
+            });
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff"; ctx.font = "16px monospace";
+            ctx.fillText("CLICK RED NODES TO BYPASS SECURITY", 20, 35);
+            if(nodes.every(n=>!n.active)) { closeGame(); alert("SYSTEM BREACHED! Access granted."); }
+        }
+        canvas.addEventListener('click', (e) => {
+            if(activeGame !== 'breach') return;
+            let rect = canvas.getBoundingClientRect();
+            let mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            nodes.forEach(n => {
+                if(mx > n.x*canvas.width && mx < n.x*canvas.width+40 && my > n.y*canvas.height && my < n.y*canvas.height+40) n.active = false;
+            });
+        });
+
+        // Glitch
+        function updateGlitch() {
+            ctx.fillStyle = `rgba(${Math.random()*255},0,${Math.random()*255}, 0.15)`;
+            ctx.fillRect(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*300, Math.random()*10);
+            ctx.fillStyle = "#fff"; ctx.font = "16px monospace";
+            ctx.fillText("CORRUPTION DETECTED... " + Math.floor(Math.random()*9999), Math.random()*canvas.width*0.7, Math.random()*canvas.height);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+    
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>

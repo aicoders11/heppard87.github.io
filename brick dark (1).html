@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chris Heppard Brick Smash</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #a8d8f0 0%, #f0b8d8 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --text-color: #4a4a4a;
+            --accent: #ff6b9d;
+            --accent-dark: #764ba2;
+            --panel-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+
+        body.dark-mode {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #f0f0f0;
+            --accent: #00d2ff;
+            --accent-dark: #667eea;
+            --panel-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-gradient);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.5s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ambient Background Effects */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            opacity: 0.4;
+            animation: float 15s infinite linear;
+            font-size: 20px;
+        }
+
+        @keyframes float {
+            from { transform: translateY(100vh) rotate(0deg); }
+            to { transform: translateY(-100px) rotate(360deg); }
+        }
+
+        /* Header - Aero Glass */
+        .header {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px 0;
+            padding: 15px 25px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--panel-shadow);
+            z-index: 10;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .score-display { 
+            color: var(--text-color); 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .score-number { 
+            color: var(--accent); 
+            font-size: 1.6rem; 
+            font-weight: 800;
+            transition: transform 0.2s;
+        }
+        
+        .score-pop {
+            transform: scale(1.3);
+        }
+
+        .powerup-badges {
+            display: flex;
+            gap: 5px;
+        }
+
+        .badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            animation: pulse 2s infinite;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Game Canvas */
+        #gameCanvas {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            cursor: none;
+            max-width: 95vw;
+            max-height: 70vh;
+            z-index: 5;
+        }
+
+        /* Floating Controls */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 20;
+        }
+
+        .btn-circle {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: var(--text-color);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            box-shadow: var(--panel-shadow);
+        }
+
+        .btn-circle:hover { 
+            transform: scale(1.1) rotate(10deg); 
+            background: rgba(255, 255, 255, 0.4); 
+        }
+
+        .btn-circle:active {
+            transform: scale(0.95);
+        }
+
+        /* Notification Toast */
+        #notification {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-200%);
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--accent-dark);
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 1px solid rgba(255,255,255,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        #notification.show { 
+            transform: translateX(-50%) translateY(0); 
+        }
+
+        /* Overlay Screens */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .overlay.show .modal {
+            transform: scale(1);
+        }
+
+        body.dark-mode .modal {
+            background: rgba(30, 30, 50, 0.98);
+            color: white;
+        }
+
+        .modal h1 {
+            color: var(--accent-dark);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .modal h2 {
+            color: var(--accent-dark);
+            margin-bottom: 15px;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .mode-btn {
+            padding: 15px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover, .mode-btn.active {
+            border-color: var(--accent-dark);
+            background: rgba(118, 75, 162, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .big-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--accent-dark), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .big-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Skin Shop Grid */
+        .skin-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .skin-item {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: rgba(0,0,0,0.05);
+            transition: all 0.2s;
+        }
+
+        .skin-item:hover:not(.locked) {
+            transform: scale(1.1);
+            border-color: var(--accent);
+        }
+
+        .skin-item.selected {
+            border-color: var(--accent-dark);
+            background: rgba(118, 75, 162, 0.2);
+        }
+
+        .skin-item.locked {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .close-x {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        body.dark-mode .close-x {
+            color: #aaa;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header { padding: 12px 15px; }
+            .score-display { font-size: 0.9rem; }
+            .controls { bottom: 20px; right: 20px; }
+            .btn-circle { width: 45px; height: 45px; font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-bg" id="ambientBg"></div>
+
+    <div id="notification">Power-up!</div>
+
+    <div class="header">
+        <div class="score-display">
+            Score: <span id="score" class="score-number">0</span>
+        </div>
+        <div class="powerup-badges" id="powerupBadges"></div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-circle" onclick="game.toggleShop()" title="Skins">🎨</button>
+            <button class="btn-circle" onclick="game.restart()" title="Restart">🔄</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="controls">
+        <button class="btn-circle" onclick="game.toggleDarkMode()" id="themeBtn" title="Toggle Theme">🌙</button>
+        <button class="btn-circle" onclick="game.toggleSound()" id="soundBtn" title="Toggle Sound">🔊</button>
+        <button class="btn-circle" onclick="game.togglePause()" id="pauseBtn" title="Pause">⏸️</button>
+    </div>
+
+    <!-- Start Screen -->
+    <div class="overlay show" id="startScreen">
+        <div class="modal">
+            <h1>🧱 Chris Heppard<br>Brick Smash</h1>
+            <p style="margin-bottom: 20px; color: #666;">The ultimate stress-relief experience</p>
+            
+            <div class="mode-grid">
+                <div class="mode-btn active" onclick="game.selectMode('classic', this)">
+                    <div style="font-weight: 700; color: var(--accent-dark);">Classic</div>
+                    <div style="font-size: 12px; color: #666;">3 lives, traditional</div>
+                </div>
+                <div class="mode-btn" onclick="game.selectMode('zen', this)">
+                    <div style="font-weight: 700; color: var(--accent-dark);">🧘 Zen</div>
+                    <div style="font-size: 12px; color: #666;">No game over, endless</div>
+                </div>
+                <div class="mode-btn" onclick="game.selectMode('challenge', this)">
+                    <div style="font-weight: 700; color: var(--accent-dark);">⚡ Challenge</div>
+                    <div style="font-size: 12px; color: #666;">Speed up, moving bricks</div>
+                </div>
+                <div class="mode-btn" onclick="game.selectMode('color', this)">
+                    <div style="font-weight: 700; color: var(--accent-dark);">🎨 Color</div>
+                    <div style="font-size: 12px; color: #666;">Match for combos</div>
+                </div>
+            </div>
+
+            <div style="margin: 15px 0; font-size: 14px; color: #888;">
+                <div>🔥 <span id="streakDisplay">0</span> day streak</div>
+                <div style="margin-top: 5px;">🧱 <span id="totalBricks">0</span> total smashed</div>
+            </div>
+
+            <button class="big-btn" onclick="game.start()">Start Smashing</button>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div class="overlay" id="gameOverScreen">
+        <div class="modal">
+            <h2>Session Complete</h2>
+            <p>Final Score: <span id="finalScore" style="font-size: 24px; font-weight: bold; color: var(--accent);">0</span></p>
+            <p>Bricks Smashed: <span id="finalBricks">0</span></p>
+            <div id="unlockMsg" style="display: none; margin: 15px 0; padding: 10px; background: rgba(118,75,162,0.1); border-radius: 10px; color: var(--accent-dark); font-weight: 600;">
+                🎉 New skin unlocked!
+            </div>
+            <button class="big-btn" onclick="game.restart()">Smash Again</button>
+        </div>
+    </div>
+
+    <!-- Shop Screen -->
+    <div class="overlay" id="shopScreen">
+        <div class="modal" style="position: relative;">
+            <span class="close-x" onclick="game.toggleShop()">✕</span>
+            <h2>🎨 Ball Skins</h2>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">Collect them all!</p>
+            <div class="skin-grid" id="skinGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        class ChrisHeppardBrickSmash {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Game State
+                this.score = 0;
+                this.lives = 3;
+                this.mode = 'classic';
+                this.isPlaying = false;
+                this.isPaused = false;
+                this.soundEnabled = true;
+                this.audioCtx = null;
+                this.totalBricks = parseInt(localStorage.getItem('chrisTotalBricks') || '0');
+                this.streak = parseInt(localStorage.getItem('chrisStreak') || '0');
+                this.lastPlayed = localStorage.getItem('chrisLastPlayed');
+                
+                // Game Objects
+                this.paddle = { width: 120, height: 12, x: 0 };
+                this.balls = [];
+                this.bricks = [];
+                this.particles = [];
+                this.powerups = [];
+                this.activePowerups = {
+                    slowmo: 0,
+                    multiball: 0,
+                    expand: 0,
+                    sticky: 0,
+                    explosive: 0
+                };
+                
+                // Visuals
+                this.combo = 0;
+                this.lastBrickColor = null;
+                this.ballSkin = localStorage.getItem('chrisBallSkin') || 'default';
+                this.skins = {
+                    default: { emoji: '⚪', color: '#ff6b9d', unlocked: true },
+                    crystal: { emoji: '💎', color: '#48dbfb', unlocked: false, req: 100 },
+                    fire: { emoji: '🔥', color: '#ff6b6b', unlocked: false, req: 500 },
+                    water: { emoji: '💧', color: '#4ecdc4', unlocked: false, req: 1000 },
+                    star: { emoji: '⭐', color: '#feca57', unlocked: false, req: 2000 },
+                    rainbow: { emoji: '🌈', color: '#fd79a8', unlocked: false, req: 5000 }
+                };
+                
+                this.init();
+            }
+
+            init() {
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.setupControls();
+                this.checkStreak();
+                this.updateSkinGrid();
+                this.createAmbientParticles();
+                
+                // Unlock check
+                Object.keys(this.skins).forEach(key => {
+                    if (this.skins[key].req <= this.totalBricks) {
+                        this.skins[key].unlocked = true;
+                    }
+                });
+                
+                // Start loop
+                this.animate();
+            }
+
+            createAmbientParticles() {
+                const container = document.getElementById('ambientBg');
+                const emojis = ['✨', '🌸', '💫', '🍃'];
+                setInterval(() => {
+                    if (Math.random() > 0.7) return;
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                    p.style.left = Math.random() * 100 + '%';
+                    p.style.animationDuration = (10 + Math.random() * 10) + 's';
+                    container.appendChild(p);
+                    setTimeout(() => p.remove(), 20000);
+                }, 3000);
+            }
+
+            checkStreak() {
+                const today = new Date().toDateString();
+                const last = this.lastPlayed ? new Date(this.lastPlayed).toDateString() : null;
+                
+                if (last !== today) {
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    if (last === yesterday.toDateString()) {
+                        this.streak++;
+                        localStorage.setItem('chrisStreak', this.streak);
+                    } else if (last !== today) {
+                        this.streak = 1;
+                        localStorage.setItem('chrisStreak', 1);
+                    }
+                    localStorage.setItem('chrisLastPlayed', new Date().toISOString());
+                }
+                
+                document.getElementById('streakDisplay').textContent = this.streak;
+                document.getElementById('totalBricks').textContent = this.totalBricks;
+            }
+
+            resize() {
+                this.canvas.width = Math.min(window.innerWidth * 0.95, 800);
+                this.canvas.height = Math.min(window.innerHeight * 0.7, 600);
+                this.paddle.x = (this.canvas.width - this.paddle.width) / 2;
+                if (!this.isPlaying) this.resetBall();
+            }
+
+            setupControls() {
+                const handleMove = (x) => {
+                    if (!this.isPlaying || this.isPaused) return;
+                    this.paddle.x = Math.max(0, Math.min(this.canvas.width - this.paddle.width, x - this.paddle.width/2));
+                };
+
+                window.addEventListener('mousemove', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    handleMove(e.clientX - rect.left);
+                });
+
+                window.addEventListener('touchmove', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    handleMove(e.touches[0].clientX - rect.left);
+                }, { passive: false });
+
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === ' ') this.togglePause();
+                    if (e.key === 'ArrowLeft') this.paddle.x -= 30;
+                    if (e.key === 'ArrowRight') this.paddle.x += 30;
+                });
+
+                window.addEventListener('mousedown', () => {
+                    if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }, { once: true });
+            }
+
+            selectMode(mode, el) {
+                this.mode = mode;
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+            }
+
+            start() {
+                document.getElementById('startScreen').classList.remove('show');
+                document.getElementById('gameOverScreen').classList.remove('show');
+                this.score = 0;
+                this.lives = this.mode === 'zen' ? 999 : 3;
+                this.isPlaying = true;
+                this.isPaused = false;
+                this.createBricks();
+                this.resetBall();
+                this.updateUI();
+                setTimeout(() => this.launchBall(), 1000);
+            }
+
+            restart() {
+                this.start();
+            }
+
+            launchBall() {
+                const angle = -Math.PI/2 + (Math.random() - 0.5) * 0.5;
+                const speed = this.mode === 'challenge' ? 7 : 5;
+                this.balls = [{
+                    x: this.canvas.width/2,
+                    y: this.canvas.height - 50,
+                    dx: Math.cos(angle) * speed,
+                    dy: Math.sin(angle) * speed,
+                    radius: 8,
+                    active: true,
+                    trail: []
+                }];
+            }
+
+            resetBall() {
+                this.balls = [{
+                    x: this.canvas.width/2,
+                    y: this.canvas.height - 50,
+                    dx: 0,
+                    dy: 0,
+                    radius: 8,
+                    active: false,
+                    trail: []
+                }];
+            }
+
+            createBricks() {
+                this.bricks = [];
+                const rows = 6;
+                const cols = 8;
+                const padding = 10;
+                const offsetTop = 60;
+                const offsetLeft = 35;
+                const w = (this.canvas.width - (offsetLeft * 2) - (padding * (cols - 1))) / cols;
+                
+                const colors = ['#ff9a9e', '#a8edea', '#d299c2', '#fcb69f', '#a8e6cf', '#e0c3fc'];
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        let x = offsetLeft + c * (w + padding);
+                        let y = offsetTop + r * (25 + padding);
+                        
+                        if (this.mode === 'challenge' && r % 2 === 1) {
+                            x += Math.sin(Date.now() / 1000) * 20;
+                        }
+                        
+                        this.bricks.push({
+                            x, y, w, h: 25,
+                            active: true,
+                            color: colors[r],
+                            row: r
+                        });
+                    }
+                }
+            }
+
+            togglePause() {
+                if (!this.isPlaying) return;
+                this.isPaused = !this.isPaused;
+                document.getElementById('pauseBtn').textContent = this.isPaused ? '▶️' : '⏸️';
+            }
+
+            toggleDarkMode() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+                localStorage.setItem('chrisDark', isDark);
+            }
+
+            toggleSound() {
+                this.soundEnabled = !this.soundEnabled;
+                document.getElementById('soundBtn').textContent = this.soundEnabled ? '🔊' : '🔇';
+            }
+
+            toggleShop() {
+                document.getElementById('shopScreen').classList.toggle('show');
+                this.updateSkinGrid();
+            }
+
+            updateSkinGrid() {
+                const grid = document.getElementById('skinGrid');
+                grid.innerHTML = '';
+                Object.entries(this.skins).forEach(([key, skin]) => {
+                    const div = document.createElement('div');
+                    div.className = `skin-item ${!skin.unlocked ? 'locked' : ''} ${this.ballSkin === key ? 'selected' : ''}`;
+                    div.innerHTML = skin.unlocked ? skin.emoji : '🔒';
+                    div.title = skin.unlocked ? key : `Smash ${skin.req} bricks`;
+                    if (skin.unlocked) {
+                        div.onclick = () => {
+                            this.ballSkin = key;
+                            localStorage.setItem('chrisBallSkin', key);
+                            this.updateSkinGrid();
+                        };
+                    }
+                    grid.appendChild(div);
+                });
+            }
+
+            spawnPowerup(x, y) {
+                if (Math.random() > 0.15) return;
+                const types = ['slowmo', 'multiball', 'expand', 'sticky', 'explosive'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                this.powerups.push({
+                    x, y, type, dy: 2,
+                    emoji: {slowmo: '🐌', multiball: '⚪', expand: '📏', sticky: '🍯', explosive: '💣'}[type]
+                });
+            }
+
+            activatePowerup(type) {
+                this.showNotification(type.charAt(0).toUpperCase() + type.slice(1) + '!');
+                switch(type) {
+                    case 'slowmo':
+                        this.balls.forEach(b => { b.dx *= 0.5; b.dy *= 0.5; });
+                        setTimeout(() => this.balls.forEach(b => { b.dx *= 2; b.dy *= 2; }), 3000);
+                        break;
+                    case 'multiball':
+                        const newBalls = [];
+                        this.balls.forEach(b => {
+                            if (b.active) {
+                                newBalls.push({...b, dx: b.dx * 0.8, dy: -b.dy});
+                                newBalls.push({...b, dx: -b.dx * 0.8, dy: -b.dy});
+                            }
+                        });
+                        this.balls.push(...newBalls);
+                        break;
+                    case 'expand':
+                        this.paddle.width = Math.min(200, this.paddle.width * 1.5);
+                        setTimeout(() => this.paddle.width = 120, 5000);
+                        break;
+                    case 'sticky':
+                        this.paddle.sticky = true;
+                        setTimeout(() => this.paddle.sticky = false, 5000);
+                        break;
+                    case 'explosive':
+                        this.activePowerups.explosive = 300;
+                        break;
+                }
+            }
+
+            showNotification(text) {
+                const notif = document.getElementById('notification');
+                notif.textContent = text;
+                notif.classList.add('show');
+                setTimeout(() => notif.classList.remove('show'), 2000);
+            }
+
+            playSound(freq, type = 'sine', duration = 0.1) {
+                if (!this.soundEnabled || !this.audioCtx) return;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+                osc.type = type;
+                gain.gain.setValueAtTime(0.2, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duration);
+                osc.start();
+                osc.stop(this.audioCtx.currentTime + duration);
+            }
+
+            createParticles(x, y, color, count = 8) {
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x, y,
+                        vx: (Math.random() - 0.5) * 8,
+                        vy: (Math.random() - 0.5) * 8,
+                        life: 1,
+                        color,
+                        size: Math.random() * 4 + 2
+                    });
+                }
+            }
+
+            update() {
+                if (!this.isPlaying || this.isPaused) return;
+
+                // Update balls
+                this.balls = this.balls.filter(ball => {
+                    if (!ball.active) {
+                        ball.x = this.paddle.x + this.paddle.width/2;
+                        ball.y = this.paddle.y - ball.radius - 2;
+                        return true;
+                    }
+
+                    ball.x += ball.dx;
+                    ball.y += ball.dy;
+                    
+                    // Trail
+                    ball.trail.push({x: ball.x, y: ball.y});
+                    if (ball.trail.length > 8) ball.trail.shift();
+
+                    // Walls
+                    if (ball.x < ball.radius || ball.x > this.canvas.width - ball.radius) {
+                        ball.dx *= -1;
+                        this.playSound(300);
+                    }
+                    if (ball.y < ball.radius) {
+                        ball.dy *= -1;
+                        this.playSound(300);
+                    }
+
+                    // Paddle
+                    if (ball.y + ball.radius > this.canvas.height - 25 &&
+                        ball.x > this.paddle.x && ball.x < this.paddle.x + this.paddle.width) {
+                        
+                        if (this.paddle.sticky) {
+                            ball.active = false;
+                        } else {
+                            const hit = (ball.x - this.paddle.x) / this.paddle.width;
+                            const angle = (hit - 0.5) * Math.PI/2;
+                            const speed = Math.sqrt(ball.dx**2 + ball.dy**2);
+                            ball.dx = speed * Math.sin(angle);
+                            ball.dy = -Math.abs(speed * Math.cos(angle));
+                        }
+                        this.playSound(400, 'square');
+                    }
+
+                    // Bricks
+                    let hit = false;
+                    this.bricks.forEach(brick => {
+                        if (brick.active && !hit &&
+                            ball.x > brick.x && ball.x < brick.x + brick.w &&
+                            ball.y > brick.y && ball.y < brick.y + brick.h) {
+                            
+                            brick.active = false;
+                            ball.dy *= -1;
+                            this.score += 10;
+                            this.totalBricks++;
+                            this.createParticles(brick.x + brick.w/2, brick.y + brick.h/2, brick.color);
+                            this.playSound(400 + brick.row * 50);
+                            this.spawnPowerup(brick.x, brick.y);
+                            
+                            // Combo system for color mode
+                            if (this.mode === 'color') {
+                                if (this.lastBrickColor === brick.color) {
+                                    this.combo++;
+                                    if (this.combo > 2) this.showNotification(`${this.combo}x Combo!`);
+                                } else {
+                                    this.combo = 1;
+                                    this.lastBrickColor = brick.color;
+                                }
+                            }
+                            
+                            hit = true;
+                            this.updateUI();
+                        }
+                    });
+
+                    // Floor
+                    if (ball.y > this.canvas.height) {
+                        if (this.mode === 'zen') {
+                            this.resetBall();
+                            setTimeout(() => this.launchBall(), 500);
+                            return false;
+                        }
+                        return false;
+                    }
+                    
+                    return true;
+                });
+
+                // Check lives
+                if (this.balls.length === 0 && this.mode !== 'zen') {
+                    this.lives--;
+                    this.playSound(150, 'sawtooth', 0.3);
+                    this.updateUI();
+                    if (this.lives <= 0) {
+                        this.gameOver();
+                    } else {
+                        this.resetBall();
+                        setTimeout(() => this.launchBall(), 1000);
+                    }
+                }
+
+                // Check win
+                if (this.bricks.every(b => !b.active)) {
+                    this.showNotification('Level Complete!');
+                    setTimeout(() => this.createBricks(), 1000);
+                }
+
+                // Powerups
+                this.powerups = this.powerups.filter(p => {
+                    p.y += p.dy;
+                    if (p.y > this.canvas.height - 25 && p.x > this.paddle.x && p.x < this.paddle.x + this.paddle.width) {
+                        this.activatePowerup(p.type);
+                        return false;
+                    }
+                    return p.y < this.canvas.height;
+                });
+
+                // Particles
+                this.particles = this.particles.filter(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.3;
+                    p.life -= 0.02;
+                    return p.life > 0;
+                });
+
+                // Explosive powerup timer
+                if (this.activePowerups.explosive > 0) this.activePowerups.explosive--;
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                // Paddle
+                this.ctx.fillStyle = document.body.classList.contains('dark-mode') ? '#667eea' : '#764ba2';
+                this.ctx.beginPath();
+                this.ctx.roundRect(this.paddle.x, this.canvas.height - 25, this.paddle.width, 12, 6);
+                this.ctx.fill();
+                
+                // Paddle shine
+                this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                this.ctx.fillRect(this.paddle.x, this.canvas.height - 25, this.paddle.width, 4);
+
+                // Bricks
+                this.bricks.forEach(b => {
+                    if (b.active) {
+                        this.ctx.fillStyle = b.color;
+                        this.ctx.beginPath();
+                        this.ctx.roundRect(b.x, b.y, b.w, b.h, 4);
+                        this.ctx.fill();
+                        this.ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                        this.ctx.fillRect(b.x, b.y, b.w, b.h/2);
+                    }
+                });
+
+                // Balls
+                const skin = this.skins[this.ballSkin];
+                this.balls.forEach(ball => {
+                    // Trail
+                    ball.trail.forEach((t, i) => {
+                        this.ctx.globalAlpha = (i / ball.trail.length) * 0.3;
+                        this.ctx.fillStyle = skin.color;
+                        this.ctx.beginPath();
+                        this.ctx.arc(t.x, t.y, ball.radius * (i/8), 0, Math.PI*2);
+                        this.ctx.fill();
+                    });
+                    this.ctx.globalAlpha = 1;
+                    
+                    this.ctx.fillStyle = skin.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
+                    this.ctx.fill();
+                    
+                    if (this.ballSkin !== 'default') {
+                        this.ctx.font = '12px Arial';
+                        this.ctx.textAlign = 'center';
+                        this.ctx.fillText(skin.emoji, ball.x, ball.y + 4);
+                    }
+                });
+
+                // Powerups
+                this.powerups.forEach(p => {
+                    this.ctx.font = '20px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(p.emoji, p.x, p.y);
+                });
+
+                // Particles
+                this.particles.forEach(p => {
+                    this.ctx.globalAlpha = p.life;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+                this.ctx.globalAlpha = 1;
+
+                // Pause overlay
+                if (this.isPaused) {
+                    this.ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = 'bold 48px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('PAUSED', this.canvas.width/2, this.canvas.height/2);
+                }
+            }
+
+            animate() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.animate());
+            }
+
+            updateUI() {
+                const scoreEl = document.getElementById('score');
+                scoreEl.textContent = this.score;
+                scoreEl.classList.add('score-pop');
+                setTimeout(() => scoreEl.classList.remove('score-pop'), 200);
+            }
+
+            gameOver() {
+                this.isPlaying = false;
+                localStorage.setItem('chrisTotalBricks', this.totalBricks);
+                
+                document.getElementById('finalScore').textContent = this.score;
+                document.getElementById('finalBricks').textContent = this.totalBricks;
+                
+                // Check unlocks
+                let newUnlock = false;
+                Object.values(this.skins).forEach(skin => {
+                    if (this.totalBricks >= skin.req && !skin.unlocked) {
+                        skin.unlocked = true;
+                        newUnlock = true;
+                    }
+                });
+                
+                document.getElementById('unlockMsg').style.display = newUnlock ? 'block' : 'none';
+                document.getElementById('gameOverScreen').classList.add('show');
+            }
+        }
+
+        const game = new ChrisHeppardBrickSmash();
+    </script>
+</body>
+</html>
