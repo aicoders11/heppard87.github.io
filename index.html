@@ -3,775 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberChris | Digital Universe</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="theme.css">
-    <style>
-        /* Page-specific styles */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 120px 20px 80px;
-            position: relative;
-        }
-        
-        .hero-badge {
-            display: inline-block;
-            padding: 8px 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: var(--neon-cyan);
-            margin-bottom: 30px;
-            letter-spacing: 3px;
-        }
-        
-        .hero h1 {
-            font-family: var(--font-display);
-            font-size: clamp(3rem, 10vw, 7rem);
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 10px;
-            text-shadow: 4px 4px 0px var(--neon-magenta), var(--glow-cyan);
-            line-height: 1.1;
-            background: linear-gradient(45deg, #fff, var(--neon-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .hero p {
-            font-family: var(--font-mono);
-            color: var(--neon-cyan);
-            margin-bottom: 50px;
-            font-size: 1.3rem;
-            letter-spacing: 3px;
-        }
-        
-        .hero-buttons {
-            display: flex;
-            gap: 25px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
-        /* Stats Bar */
-        .stats-bar {
-            display: flex;
-            justify-content: center;
-            gap: 60px;
-            padding: 40px 20px;
-            background: rgba(0,0,0,0.3);
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            flex-wrap: wrap;
-        }
-        
-        .stat-item { text-align: center; }
-        
-        .stat-number {
-            font-family: var(--font-display);
-            font-size: 3rem;
-            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .stat-label {
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        /* Section Styles */
-        section {
-            padding: 80px 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .section-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-        
-        .section-title {
-            font-family: var(--font-display);
-            font-size: clamp(1.8rem, 5vw, 3rem);
-            color: var(--neon-cyan);
-            margin-bottom: 10px;
-            text-shadow: var(--glow-cyan);
-        }
-        
-        .section-subtitle {
-            font-family: var(--font-mono);
-            color: #666;
-            font-size: 0.9rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-        
-        /* Universe Grid */
-        .universe-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
-        }
-        
-        .universe-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-        }
-        
-        .universe-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, rgba(0,245,212,0.1), rgba(255,0,245,0.1));
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-        
-        .universe-card:hover::before { opacity: 1; }
-        
-        .universe-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            border-color: var(--neon-cyan);
-            box-shadow: var(--glow-cyan);
-        }
-        
-        .card-header {
-            padding: 25px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .card-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            flex-shrink: 0;
-        }
-        
-        .card-title {
-            font-family: var(--font-display);
-            font-size: 1.2rem;
-            color: #fff;
-        }
-        
-        .card-body {
-            padding: 25px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .card-desc {
-            color: #888;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-        
-        .card-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .feature-tag {
-            padding: 4px 10px;
-            background: rgba(0,245,212,0.1);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            font-family: var(--font-mono);
-            font-size: 0.65rem;
-            color: var(--neon-cyan);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .card-footer {
-            padding: 0 25px 25px;
-        }
-        
-        .card-footer .cyber-btn {
-            width: 100%;
-            text-align: center;
-        }
-        
-        /* Category Headers */
-        .category-header {
-            grid-column: 1 / -1;
-            padding: 20px 0 10px;
-            border-bottom: 2px solid var(--border-color);
-            margin-top: 20px;
-        }
-        
-        .category-title {
-            font-family: var(--font-display);
-            font-size: 1.3rem;
-            color: var(--neon-magenta);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-        }
-        
-        /* Background Canvas */
-        #bgCanvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1;
-            pointer-events: none;
-        }
-        
-        @media (max-width: 768px) {
-            .stats-bar { gap: 30px; }
-            .stat-number { font-size: 2rem; }
-            .hero h1 { letter-spacing: 5px; }
-        }
-    </style>
+    <title>CYBERCHRIS | Game Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <canvas id="bgCanvas"></canvas>
-    <div class="grid-bg"></div>
 
-    <!-- Navigation -->
+    <div id="terminal-loader">
+        <div id="terminal-content"></div>
+        <span class="cursor" style="display:inline-block; width:10px; height:1.2rem; background:var(--neon-cyan); animation:blink 0.8s infinite;"></span>
+    </div>
+    <div class="scanlines"></div>
+    <div class="grid-bg"></div>
+    <div class="particles"></div>
+
     <nav class="cyber-nav">
-        <a href="index.html" class="cyber-logo">CYBERCHRIS</a>
+        <a href="#" class="cyber-logo">CYBERCHRIS</a>
         <div class="cyber-nav-links">
-            <a href="index.html" class="active">Home</a>
-            <a href="portfolio.html">Portfolio</a>
-            <a href="arcade.html">Arcade</a>
-            <a href="chess3d.html">3D Games</a>
-            <a href="windows.html">Simulators</a>
+            <button id="sound-toggle" class="cyber-btn" style="padding: 2px 10px; font-size: 0.6rem;">AUDIO: OFF</button>
+            <a href="#">Games</a>
+            <a href="https://github.com/heppard87" target="_blank">Source</a>
         </div>
-        <button class="mobile-menu-btn" onclick="toggleMenu()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-        </button>
     </nav>
 
-    <!-- Mobile Menu -->
-    <div class="mobile-menu" id="mobileMenu">
-        <a href="index.html" class="active">Home</a>
-        <a href="portfolio.html">Portfolio</a>
-        <a href="arcade.html">Epic Arcade</a>
-        <a href="waka.html">Waka Arcade</a>
-        <a href="chess3d.html">3D Chess</a>
-        <a href="solitaire3d.html">3D Solitaire</a>
-        <a href="voxel.html">Voxel Painter</a>
-        <a href="windows.html">Windows Sim</a>
-        <a href="win7.html">Win7 Sim</a>
-        <a href="physics.html">Physics Sandbox</a>
-        <a href="solar.html">Solar System</a>
-        <a href="dataviz.html">Data Viz</a>
-        <a href="dna.html">DNA Visualizer</a>
-        <a href="molecule.html">Molecule Viewer</a>
-        <a href="billiards.html">Cosmic Billiards</a>
-        <a href="zengarden.html">Zen Garden</a>
-        <a href="neural.html">Neural Sim</a>
-        <a href="launcher.html">Launcher</a>
-        <a href="secrets.html">Secrets</a>
-    </div>
+    <main style="position: relative; z-index: 2; padding-top: 120px; max-width: 1200px; margin: 0 auto; padding-inline: 20px;">
+        <header style="margin-bottom: 50px; text-align: center;">
+            <h1 class="glitch" data-text="SYSTEM READY" style="font-family: 'Orbitron'; font-size: 3.5rem; color: var(--neon-cyan); text-shadow: var(--glow-cyan);">SYSTEM READY</h1>
+            <p style="font-family: 'Share Tech Mono'; color: var(--neon-magenta);">CONNECTION STABLE // PORTAL ACTIVE</p>
+        </header>
 
-    <!-- Hero Section -->
-    <div class="hero">
-        <div class="hero-badge">SYSTEM.ONLINE // V.2025.1</div>
-        <h1>CyberChris</h1>
-        <p>Developer // Creator // Digital Architect</p>
-        <div class="hero-buttons">
-            <a href="#universe" class="cyber-btn">Explore Universe</a>
-            <a href="portfolio.html" class="cyber-btn magenta">View Portfolio</a>
-        </div>
-    </div>
-
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-        <div class="stat-item">
-            <div class="stat-number">50+</div>
-            <div class="stat-label">Games</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">20</div>
-            <div class="stat-label">Experiences</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">11</div>
-            <div class="stat-label">3D Worlds</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">∞</div>
-            <div class="stat-label">Possibilities</div>
-        </div>
-    </div>
-
-    <!-- Universe Section -->
-    <section id="universe">
-        <div class="section-header">
-            <h2 class="section-title">DIGITAL UNIVERSE</h2>
-            <p class="section-subtitle">Choose Your Destination</p>
-        </div>
-
-        <div class="universe-grid">
-            <!-- 3D EXPERIENCES -->
-            <div class="category-header">
-                <span class="category-title">🎮 3D Experiences</span>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+            <div class="glass-panel">
+                <h3 style="font-family: 'Orbitron'; color: var(--neon-cyan);">3D CHESS</h3>
+                <p style="font-size: 0.9rem; margin: 15px 0;">Strategic simulation in a virtual vacuum.</p>
+                <a href="chess3d.html" class="cyber-btn">Execute</a>
             </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">♟️</div>
-                    <div class="card-title">3D Chess</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Fully playable 3D chess with neon cyan and magenta pieces. Complete game engine with valid move calculation.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Strategy</span>
-                        <span class="feature-tag">Multiplayer</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="chess3d.html" class="cyber-btn small">Play Now</a>
-                </div>
+            <div class="glass-panel">
+                <h3 style="font-family: 'Orbitron'; color: var(--neon-magenta);">BILLIARDS</h3>
+                <p style="font-size: 0.9rem; margin: 15px 0;">Physics-based kinetic interaction module.</p>
+                <a href="billiards.html" class="cyber-btn">Execute</a>
             </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🎴</div>
-                    <div class="card-title">3D Solitaire</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Classic Klondike Solitaire in full 3D. Tableau, foundations, stock, and waste piles with smooth animations.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Cards</span>
-                        <span class="feature-tag">Relaxing</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="solitaire3d.html" class="cyber-btn small">Play Now</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🧊</div>
-                    <div class="card-title">Voxel Painter</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Minecraft-style voxel builder. Add and remove cubes in multiple colors, save and load your 3D creations.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Creative</span>
-                        <span class="feature-tag">Builder</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="voxel.html" class="cyber-btn small">Create</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🎱</div>
-                    <div class="card-title">Cosmic Billiards</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Physics-based pool game with planets as balls. Drag-to-shoot mechanics with realistic physics.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Cannon.js</span>
-                        <span class="feature-tag">Physics</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="billiards.html" class="cyber-btn small">Play Pool</a>
-                </div>
-            </div>
-
-            <!-- VISUALIZERS -->
-            <div class="category-header">
-                <span class="category-title">🔬 Visualizers</span>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">📊</div>
-                    <div class="card-title">Data Visualizer</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Interactive 3D bar charts with multiple datasets. Market growth, user retention, neural latency data.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Data Viz</span>
-                        <span class="feature-tag">Animated</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="dataviz.html" class="cyber-btn small">Visualize</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🧬</div>
-                    <div class="card-title">DNA Visualizer</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Double helix DNA structure with A-T-C-G base pairs. Auto-rotation and interactive highlighting.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Science</span>
-                        <span class="feature-tag">Educational</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="dna.html" class="cyber-btn small">Explore</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">⚛️</div>
-                    <div class="card-title">Molecule Viewer</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Interactive molecular structures: Water, Caffeine, and Glucose. Rotatable 3D models with atom coloring.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Chemistry</span>
-                        <span class="feature-tag">Educational</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="molecule.html" class="cyber-btn small">View</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🪐</div>
-                    <div class="card-title">Solar System</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">8 planets orbiting the sun with accurate relative speeds. Click to focus on planets and view data.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Space</span>
-                        <span class="feature-tag">Educational</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="solar.html" class="cyber-btn small">Explore Space</a>
-                </div>
-            </div>
-
-            <!-- ARCADE GAMES -->
-            <div class="category-header">
-                <span class="category-title">👾 Arcade Games</span>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🎯</div>
-                    <div class="card-title">Epic Game Arcade</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">The ultimate gaming destination featuring 26+ unique games including survival, shooters, puzzles, and more.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">26 Games</span>
-                        <span class="feature-tag">Canvas API</span>
-                        <span class="feature-tag">High Scores</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="arcade.html" class="cyber-btn small">Enter Arcade</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🏎️</div>
-                    <div class="card-title">Waka Arcade</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Classic arcade collection with Ocean, Escape, Cafe, Snake, Space Defender, and many more favorites.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">25 Games</span>
-                        <span class="feature-tag">Particles</span>
-                        <span class="feature-tag">Arcade</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="waka.html" class="cyber-btn small">Play Now</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🧠</div>
-                    <div class="card-title">Neural Simulation</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Cyberpunk neural arcade featuring Cyber Inferno bullet-hell dodging and Logic Breach quiz challenges.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Bullet Hell</span>
-                        <span class="feature-tag">Quiz Mode</span>
-                        <span class="feature-tag">Neural UI</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="neural.html" class="cyber-btn small">Initialize</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🎯</div>
-                    <div class="card-title">Game Launcher</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Cyberpunk portfolio launcher with Terminal OS, Matrix Stream, Cyber Racer, Neon Snake, and more.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">6 Modules</span>
-                        <span class="feature-tag">Hacker Mode</span>
-                        <span class="feature-tag">Restricted</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="launcher.html" class="cyber-btn small">Launch</a>
-                </div>
-            </div>
-
-            <!-- SIMULATORS -->
-            <div class="category-header">
-                <span class="category-title">🖥️ Simulators</span>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🪟</div>
-                    <div class="card-title">Windows Simulator</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Fully functional Windows-style desktop with draggable windows, calculator, notepad, paint, and browser.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Desktop OS</span>
-                        <span class="feature-tag">Multi-Window</span>
-                        <span class="feature-tag">Apps Suite</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="windows.html" class="cyber-btn small">Boot System</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">💻</div>
-                    <div class="card-title">Win7 Ultimate</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Enhanced Windows 7 simulator with boot sequence, start menu, taskbar, multiple apps, and full desktop.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Boot Sequence</span>
-                        <span class="feature-tag">Start Menu</span>
-                        <span class="feature-tag">Multi-App</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="win7.html" class="cyber-btn small">Power On</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">⚙️</div>
-                    <div class="card-title">Physics Sandbox</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Cannon.js physics playground. Spawn shapes, invert gravity, throw objects, watch them collide.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Three.js</span>
-                        <span class="feature-tag">Cannon.js</span>
-                        <span class="feature-tag">Physics</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="physics.html" class="cyber-btn small">Play Physics</a>
-                </div>
-            </div>
-
-            <!-- CREATIVE -->
-            <div class="category-header">
-                <span class="category-title">🎨 Creative</span>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">🪨</div>
-                    <div class="card-title">Digital Zen Garden</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Peaceful sand raking simulation. Create patterns in the sand, add glowing rocks, find your digital zen.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Canvas</span>
-                        <span class="feature-tag">Relaxing</span>
-                        <span class="feature-tag">Creative</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="zengarden.html" class="cyber-btn magenta small">Find Zen</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">📁</div>
-                    <div class="card-title">Portfolio Hub</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">The main digital arsenal showcasing all projects with filtering, categorization, and direct access.</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Filtering</span>
-                        <span class="feature-tag">Categories</span>
-                        <span class="feature-tag">Showcase</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="portfolio.html" class="cyber-btn small">View Hub</a>
-                </div>
-            </div>
-
-            <div class="universe-card">
-                <div class="card-header">
-                    <div class="card-icon">💀</div>
-                    <div class="card-title">Hidden Secrets</div>
-                </div>
-                <div class="card-body">
-                    <p class="card-desc">Atmospheric horror text adventure. Explore the Foyer, Kitchen, Nursery, and Basement. Can you escape?</p>
-                    <div class="card-features">
-                        <span class="feature-tag">Horror</span>
-                        <span class="feature-tag">Text Adventure</span>
-                        <span class="feature-tag">13+</span>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <a href="secrets.html" class="cyber-btn magenta small">Enter Void</a>
-                </div>
+            <div class="glass-panel">
+                <h3 style="font-family: 'Orbitron'; color: var(--neon-amber);">3D PONG</h3>
+                <p style="font-size: 0.9rem; margin: 15px 0;">Retro-reflex testing protocol.</p>
+                <a href="3d-pong.html" class="cyber-btn">Execute</a>
             </div>
         </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="cyber-footer">
-        <div class="cyber-footer-logo">CYBERCHRIS</div>
-        <p class="cyber-footer-text">Developer // Creator // Digital Architect</p>
-        <p class="cyber-footer-text">© 2025 Chris Heppard | All Systems Operational</p>
-        <div class="cyber-footer-links">
-            <a href="index.html">Home</a>
-            <a href="portfolio.html">Portfolio</a>
-            <a href="arcade.html">Arcade</a>
-            <a href="chess3d.html">3D Chess</a>
-            <a href="windows.html">Windows</a>
-            <a href="physics.html">Physics</a>
-        </div>
-    </footer>
+    </main>
 
     <script>
-        // Mobile Menu Toggle
-        function toggleMenu() {
-            const menu = document.getElementById('mobileMenu');
-            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let audioEnabled = false;
+
+        // Sound Toggle
+        document.getElementById('sound-toggle').addEventListener('click', (e) => {
+            audioEnabled = !audioEnabled;
+            e.target.textContent = `AUDIO: ${audioEnabled ? 'ON' : 'OFF'}`;
+            if(audioEnabled) audioCtx.resume();
+        });
+
+        function playBeep(freq) {
+            if(!audioEnabled) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(e) {
-            const menu = document.getElementById('mobileMenu');
-            const btn = document.querySelector('.mobile-menu-btn');
-            if (!menu.contains(e.target) && !btn.contains(e.target)) {
-                menu.style.display = 'none';
+        // Terminal & Particles Logic
+        const lines = ["> BOOTING...", "> LOADING ASSETS...", "> BYPASSING FIREWALL...", "> ACCESS GRANTED."];
+        async function init() {
+            const content = document.getElementById('terminal-content');
+            for(let line of lines) {
+                let div = document.createElement('div');
+                div.textContent = line;
+                content.appendChild(div);
+                await new Promise(r => setTimeout(r, 400));
             }
-        });
-
-        // Animated Background Particles
-        const bgCanvas = document.getElementById('bgCanvas');
-        const bgCtx = bgCanvas.getContext('2d');
-        
-        function resizeCanvas() {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
+            setTimeout(() => {
+                document.getElementById('terminal-loader').classList.add('loaded');
+                createParticles();
+                attachHoverSounds();
+            }, 600);
         }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        
-        let particles = [];
-        for(let i = 0; i < 80; i++) {
-            particles.push({
-                x: Math.random() * bgCanvas.width,
-                y: Math.random() * bgCanvas.height,
-                vy: Math.random() * 0.8 + 0.2,
-                size: Math.random() * 2 + 1,
-                color: Math.random() > 0.5 ? 'rgba(0, 245, 212, ' : 'rgba(255, 0, 245, '
+
+        function createParticles() {
+            const container = document.querySelector('.particles');
+            for(let i=0; i<40; i++) {
+                let p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.width = p.style.height = (Math.random() * 3 + 1) + 'px';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(p);
+            }
+        }
+
+        function attachHoverSounds() {
+            document.querySelectorAll('.cyber-btn, .glass-panel').forEach(el => {
+                el.addEventListener('mouseenter', () => playBeep(880));
             });
         }
 
-        function animateBg() {
-            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-            particles.forEach(p => {
-                p.y += p.vy;
-                if(p.y > bgCanvas.height) {
-                    p.y = 0;
-                    p.x = Math.random() * bgCanvas.width;
-                }
-                bgCtx.beginPath();
-                bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                bgCtx.fillStyle = p.color + (Math.random() * 0.5 + 0.2) + ')';
-                bgCtx.fill();
-            });
-            requestAnimationFrame(animateBg);
-        }
-        animateBg();
-    </script>
-</body>
-</html>
-   particles.forEach(p => {
-                p.y += p.vy;
-                if(p.y > bgCanvas.height) { p.y = 0; p.x = Math.random()*bgCanvas.width; }
-                bgCtx.beginPath();
-                bgCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-                bgCtx.fillStyle = p.color + (Math.random()*0.5+0.2) + ')';
-                bgCtx.fill();
-            });
-            requestAnimationFrame(animateBg);
-        }
-        animateBg();
-
-        window.addEventListener('resize', () => {
-            bgCanvas.width = window.innerWidth;
-            bgCanvas.height = window.innerHeight;
-        });
+        window.onload = init;
     </script>
 </body>
 </html>
