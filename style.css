@@ -1,0 +1,84 @@
+.slot.col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: none; /* Hide border once game starts */
+    min-height: 400px;
+}
+
+.card {
+    position: relative;
+    /* This allows cards to overlap slightly */
+    transition: transform 0.1s ease;
+}
+
+/* Adjust this value based on your card height to show the top edge */
+.slot.col .card:not(:first-child) {
+    margin-top: -100px; 
+}    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--neon-cyan);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+/* State management */
+#game-ui.collapsed #menu-content {
+    width: 160px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+h1 {
+    font-size: 1.2rem;
+    margin-top: 0;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    background: var(--neon-cyan);
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    background: var(--neon-pink);
+    box-shadow: 0 0 15px var(--neon-pink);
+    transform: translateY(-2px);
+}
+
+.stats {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 10px;
+    color: #fff;
+}
+
+.stat-item {
+    font-size: 0.9rem;
+    margin: 5px 0;
+    letter-spacing: 1px;
+}
+
+.copyright-box {
+    position: absolute;
+    bottom: 15px;
+    right: 20px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.75rem;
+    z-index: 50;
+    pointer-events: none;
+}

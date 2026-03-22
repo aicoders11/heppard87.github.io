@@ -1,0 +1,48 @@
+/* Container for the game */
+.game-container {
+    max-width: 600px;
+    margin: 50px auto;
+    background: rgba(10, 10, 20, 0.9);
+    border: 2px solid #00f2ff; /* Cyan neon border */
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.5);
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+/* Glowing stats dashboard */
+.stats {
+    font-family: 'Orbitron', sans-serif;
+    color: #ff00ff; /* Neon pink */
+    text-shadow: 0 0 10px #ff00ff;
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+/* Cyber-grid for cards */
+.memory-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.card {
+    height: 100px;
+    background: #1a1a2e;
+    border: 1px solid #00f2ff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #00f2ff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.card.flipped {
+    background: #00f2ff;
+    color: #1a1a2e;
+    box-shadow: 0 0 15px #00f2ff;
+}

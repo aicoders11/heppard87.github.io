@@ -1,3 +1,5 @@
+Services | CyberSolutionsOhio
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,105 +7,358 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Services | CyberSolutionsOhio</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Modern Bento Grid Layout for Cyberpunk theme */
+        :root {
+            --dark: #0a0a0f;
+            --darker: #050508;
+            --neon-cyan: #00f5d4;
+            --neon-magenta: #ff00f5;
+            --neon-amber: #feca57;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+            --border-glow: rgba(0, 245, 212, 0.3);
+            --font-main: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+            --font-display: 'Orbitron', sans-serif;
+
+        }
+
+        /* CORE STYLES */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-main);
+            background-color: var(--dark);
+            color: #e0e0e0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* ATMOSPHERICS */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0) 100%);
+            background-size: 100% 4px; z-index: 10; pointer-events: none;
+            opacity: 0.3;
+
+        }
+
+        .grid-bg {
+            position: fixed; top: 0; left: 0; width: 200%; height: 200%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: center top;
+            z-index: -2;
+            animation: grid-move 20s linear infinite;
+        }
+
+        @keyframes grid-move {
+            from { background-position: 0 0; }
+            to { background-position: 0 50px; }
+        }
+
+
+        .particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none;
+        }
+        .particle {
+            position: absolute; background: var(--neon-cyan);
+            border-radius: 50%; opacity: 0.3;
+            animation: float-up 10s infinite linear;
+        }
+        @keyframes float-up {
+            0% { transform: translateY(100vh); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(-10vh); opacity: 0; }
+        }
+
+        /* NAVIGATION */
+        header {
+            position: fixed; top: 0; width: 100%; height: 70px;
+            background: var(--panel-bg); border-bottom: 1px solid var(--border-glow);
+
+            z-index: 1000; backdrop-filter: blur(15px);
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .cyber-nav {
+            width: 100%; max-width: 1200px; padding: 0 40px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .cyber-logo {
+            font-family: var(--font-display); font-size: 1.2rem; font-weight: 900;
+            color: var(--neon-cyan); text-decoration: none;
+            text-shadow: 0 0 10px var(--neon-cyan);
+            letter-spacing: 2px;
+        }
+
+        .cyber-nav-links { display: flex; gap: 25px; align-items: center; }
+        .cyber-nav-links a {
+            color: #888; text-decoration: none; font-family: var(--font-mono);
+
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px;
+            transition: 0.3s;
+        }
+        .cyber-nav-links a:hover, .cyber-nav-links a.active {
+            color: var(--neon-cyan); text-shadow: 0 0 5px var(--neon-cyan);
+        }
+
+        .menu-btn {
+            display: none; background: transparent; border: 1px solid var(--neon-magenta);
+            color: var(--neon-magenta); padding: 5px 15px; cursor: pointer;
+            font-family: var(--font-mono); font-size: 0.7rem; border-radius: 4px;
+        }
+
+        /* BENTO GRID LAYOUT */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+
+        }
+
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            grid-auto-rows: minmax(180px, auto);
+            grid-auto-rows: minmax(200px, auto);
             gap: 20px;
-            margin-top: 30px;
+            margin-top: 40px;
         }
-        .bento-item { padding: 30px; display: flex; flex-direction: column; justify-content: center; transition: 0.3s; }
-        .bento-item h3 { font-family: 'Orbitron'; margin-bottom: 10px; font-size: 1.1rem; }
-        .bento-item p { font-family: 'Rajdhani'; font-size: 1rem; color: #ccc; }
 
-        /* Bento Span Logic */
+        .bento-item { 
+            padding: 35px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border-left: 4px solid transparent;
+        }
+
+
+        .bento-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .bento-item h3 { 
+            font-family: var(--font-display); 
+            margin-bottom: 15px; 
+            font-size: 1.2rem; 
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .bento-item p { 
+            font-family: var(--font-main); 
+            font-size: 1.05rem; 
+            line-height: 1.5;
+            color: #aaa; 
+
+        }
+
         .item-1 { grid-column: span 2; border-color: var(--neon-cyan); }
         .item-2 { grid-column: span 1; border-color: var(--neon-magenta); }
         .item-3 { grid-column: span 1; border-color: var(--neon-amber); }
         .item-4 { grid-column: span 1; border-color: var(--neon-cyan); }
         .item-5 { grid-column: span 1; border-color: var(--neon-magenta); }
 
+        /* GLITCH EFFECT */
+        .glitch { position: relative; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .glitch::before { left: 2px; text-shadow: -2px 0 var(--neon-magenta); clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 5s infinite linear alternate-reverse; }
+        .glitch::after { left: -2px; text-shadow: -2px 0 var(--neon-cyan); clip: rect(44px, 450px, 56px, 0); animation: glitch-anim2 5s infinite linear alternate-reverse; }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(31px, 9999px, 94px, 0); }
+            20% { clip: rect(62px, 9999px, 42px, 0); }
+
+            100% { clip: rect(11px, 9999px, 85px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(67px, 9999px, 21px, 0); }
+            20% { clip: rect(15px, 9999px, 52px, 0); }
+            100% { clip: rect(89px, 9999px, 13px, 0); }
+        }
+
+        /* FOOTER */
+        .cyber-footer {
+            margin-top: 100px;
+            padding: 60px 40px;
+            background: rgba(0,0,0,0.5);
+            border-top: 1px solid var(--border-glow);
+            text-align: center;
+        }
+        .cyber-footer-logo {
+            font-family: var(--font-display); color: var(--neon-cyan);
+            font-size: 1.5rem; margin-bottom: 20px;
+
+        }
+        .cyber-footer-text { font-size: 0.8rem; color: #555; margin-bottom: 25px; }
+        .cyber-footer-links { display: flex; justify-content: center; gap: 30px; }
+        .cyber-footer-links a {
+            color: #888; text-decoration: none; font-family: var(--font-mono); font-size: 0.7rem;
+            transition: 0.3s;
+        }
+        .cyber-footer-links a:hover { color: var(--neon-magenta); }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+            .item-1 { grid-column: span 2; }
+        }
+
         @media (max-width: 768px) {
+            .menu-btn { display: block; }
+            .cyber-nav-links {
+                display: none; position: absolute; top: 70px; left: 0; width: 100%;
+
+                background: var(--panel-bg); flex-direction: column; padding: 20px; gap: 15px;
+                border-bottom: 1px solid var(--border-glow);
+            }
+            .cyber-nav-links.active { display: flex; }
             .bento-grid { grid-template-columns: 1fr; }
             .item-1 { grid-column: span 1; }
+            header { padding: 0 20px; }
         }
     </style>
 </head>
-<body>
+<body id="home">
+
     <div class="scanlines"></div>
     <div class="grid-bg"></div>
     <div class="particles"></div>
 
-    <header>
-        <nav class="cyber-nav">
-            <a href="index.html" class="cyber-logo">CyberSolutionsOhio</a>
-            <div class="cyber-nav-links">
-                <a href="index.html">Home</a>
-                <a href="about.html">About Us</a>
-                <a href="services.html" class="active">Services</a>
-                <a href="games.html">Games</a>
-                <a href="apps.html">Apps</a>
-                <a href="contact.html">Contact</a>
-            </div>
-        </nav>
+<header>
+    <nav class="cyber-nav">
+        <a href="index.html" class="cyber-logo">CyberSolutionsOhio</a>
+
+        <button id="navToggle" class="menu-btn">MENU</button>
+
+        <ul class="cyber-nav-links" id="navLinks">
+     
+
+
+            <li><a href="about.html">About</a></li>
+
+
+            <li><a href="services.html">Services</a></li>
+
+
+            <li><a href="games.html">Games</a></li>
+
+
+            <li><a href="apps.html">Apps</a></li>
+
+
+            <li><a href="contact.html">Contact</a></li>
+
+
+            <li><a href="arcade.html">Arcade</a></li> 
+
+
+            <li><a href="portfolio.html">Portfolio</a></li>
+
+
+            <li><a href="launchpad.html">Other</a></li> 
+            <li><button id="theme-toggle-button" class="menu-btn" style="margin-left: 10px; border-color: var(--neon-cyan); color: var(--neon-cyan);">THEME</button></li>
+        </ul>
+    </nav>
+</header>
+
+
     </header>
 
-    <main style="position: relative; z-index: 2; padding-top: 120px; max-width: 1100px; margin: 0 auto; padding-inline: 20px;">
-        <section class="services-header" style="text-align: center; margin-bottom: 40px;">
-            <h1 class="glitch font-orbitron" data-text="Our Services" style="color: var(--neon-cyan); font-size: 3rem;">Our Services</h1>
-            <p class="font-mono" style="color: var(--neon-magenta); max-width: 700px; margin: 20px auto;">We offer a range of solutions designed to meet the diverse needs of modern businesses. Our approach is agile, our methods are cutting-edge, and our focus is always on delivering tangible results.</p>
+    <main style="position: relative; z-index: 2; padding-top: 140px; max-width: 1200px; margin: 0 auto; padding-inline: 40px;">
+        <section class="services-header" id="services" style="text-align: center; margin-bottom: 60px;">
+            <h1 class="glitch" data-text="CORE CAPABILITIES" style="color: var(--neon-cyan); font-family: var(--font-display); font-size: clamp(2rem, 8vw, 3.5rem); letter-spacing: 4px;">CORE CAPABILITIES</h1>
+            <p style="font-family: var(--font-mono); color: var(--neon-magenta); max-width: 800px; margin: 25px auto; font-size: 0.9rem; line-height: 1.8; letter-spacing: 1px;">
+                We deploy cutting-edge technical architecture to resolve complex digital vulnerabilities. Our agile methodology ensures your infrastructure is resilient, scalable, and prepared for the next generation of web evolution.
+            </p>
         </section>
+
 
         <div class="bento-grid">
             <div class="glass-panel bento-item item-1">
-                <h3 style="color: var(--neon-cyan);">Custom Web Development</h3>
-                <p>From sleek landing pages to complex web applications, we build bespoke solutions that perform.</p>
+                <h3 style="color: var(--neon-cyan);">01 // Custom Web Systems</h3>
+                <p>Deploying high-performance web applications and immersive digital interfaces. We specialize in React architecture and real-time data integration for modern platforms.</p>
             </div>
             <div class="glass-panel bento-item item-2">
-                <h3 style="color: var(--neon-magenta);">Full-Stack Cybersecurity</h3>
-                <p>Protect your assets with our comprehensive security audits and threat mitigation strategies.</p>
+                <h3 style="color: var(--neon-magenta);">02 // Cyber Security</h3>
+                <p>Advanced penetration testing and vulnerability mitigation to shield your core data assets from external intrusion.</p>
             </div>
             <div class="glass-panel bento-item item-3">
-                <h3 style="color: var(--neon-amber);">Cloud Architecture & DevOps</h3>
-                <p>Scalable, resilient infrastructure designed for the future.</p>
+                <h3 style="color: var(--neon-amber);">03 // Cloud Ops</h3>
+                <p>Resilient cloud infrastructure and DevOps automation to streamline your deployment lifecycle.</p>
             </div>
             <div class="glass-panel bento-item item-4">
-                <h3 style="color: var(--neon-cyan);">AI & Automation</h3>
-                <p>Leverage the power of artificial intelligence to streamline your operations.</p>
+                <h3 style="color: var(--neon-cyan);">04 // AI Integration</h3>
+                <p>Injecting machine learning protocols and automated neural processing into your operational workflows.</p>
             </div>
             <div class="glass-panel bento-item item-5">
-                <h3 style="color: var(--neon-magenta);">Data Analytics</h3>
-                <p>Turn your data into actionable insights with our advanced analytics services.</p>
+                <h3 style="color: var(--neon-magenta);">05 // Systems Audit</h3>
+
+                <p>Deep-layer analysis of your technical debt and infrastructure to optimize performance and security.</p>
             </div>
         </div>
     </main>
 
-    <footer class="cyber-footer" style="margin-top: 80px;">
-        <div class="cyber-footer-logo">CyberSolutionsOhio</div>
-        <p class="cyber-footer-text">&copy; 2024 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
+    <footer class="cyber-footer" id="footer">
+        <div class="cyber-footer-logo">CYBERSOLUTIONSOHIO</div>
+        <p class="cyber-footer-text">&copy; 2026 Chris Heppard // High-Fidelity Technical Solutions. All rights reserved.</p>
         <div class="cyber-footer-links">
-            <a href="#">LinkedIn</a>
-            <a href="#">Twitter</a>
-            <a href="#">GitHub</a>
+            <a href="#">LINKEDIN</a>
+            <a href="#">TWITTER</a>
+            <a href="#">GITHUB</a>
         </div>
     </footer>
 
     <script>
+        // PARTICLE ENGINE
         function createParticles() {
             const container = document.querySelector('.particles');
-            for(let i=0; i<30; i++) {
+
+            for(let i=0; i<40; i++) {
                 let p = document.createElement('div');
                 p.className = 'particle';
                 p.style.left = Math.random() * 100 + '%';
-                p.style.width = p.style.height = (Math.random() * 3 + 1) + 'px';
+                let size = (Math.random() * 3 + 1);
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.animationDuration = (Math.random() * 5 + 5) + 's';
                 p.style.animationDelay = Math.random() * 5 + 's';
                 container.appendChild(p);
             }
         }
+
+        // NAVIGATION LOGIC
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        const links = navLinks.querySelectorAll('a');
+
+        navToggle.addEventListener('click', () => {
+
+            navLinks.classList.toggle('active');
+            navToggle.innerText = navLinks.classList.contains('active') ? 'CLOSE' : 'MENU';
+        });
+
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                navToggle.innerText = 'MENU';
+            });
+        });
+
         window.onload = createParticles;
     </script>
 </body>
 </html>
+
+
