@@ -1,0 +1,10 @@
+.pong-game {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#gameCanvas {
+    background-color: var(--navy);
+    border: 2px solid var(--gold);
+}
