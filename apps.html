@@ -3,240 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyberSolutionsOhio | Ultimate Dashboard</title>
+    <title>Apps | CyberSolutionsOhio</title>
+    <meta name="description" content="A collection of games and utilities from CyberSolutionsOhio.">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        /* Cyberpunk UI - Layout Fix */
-        body { 
-            background-color: #020205; 
-            color: #e0e0e0; 
-            font-family: 'Segoe UI', sans-serif; 
-            margin: 0;
-            /* Cyber grid background */
-            background-image: linear-gradient(rgba(0, 245, 212, 0.05) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(0, 245, 212, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header { width: 100%; }
-
-        .dashboard-content { 
-            padding: 2rem; 
-            max-width: 1400px; 
-            margin: 0 auto;
-            flex: 1; /* Pushes footer down */
-        }
-
-        .section-divider { 
-            border-bottom: 1px solid #333; 
-            margin: 4rem 0 1.5rem 0; 
-            padding-bottom: 0.5rem; 
-        }
-
-        .section-divider h2 { 
-            font-family: 'Fredoka One', sans-serif; 
-            color: #ff00f5; 
-            text-transform: uppercase; 
-            font-size: 1.2rem;
-            letter-spacing: 3px;
-            margin: 0;
-        }
-
-        /* FIXED: Side-by-Side Grid System */
-        .features-grid {
-            display: grid;
-            /* This forces 3 columns on desktop, 2 on tablet, 1 on mobile */
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        /* Responsive Grid Overrides */
-        @media (max-width: 1100px) {
-            .features-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 750px) {
-            .features-grid { grid-template-columns: 1fr; }
-        }
-
-        .feature-item { 
-            display: flex;
-            flex-direction: column;
-            background: rgba(10, 10, 15, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid #1a1a1a; 
-            text-decoration: none;
-            padding: 1.8rem;
-            min-height: 220px; /* Uniform card height */
-            transition: all 0.3s ease;
-            box-sizing: border-box;
-        }
-
-        .feature-item:hover { 
-            border-color: #00f5d4; 
-            box-shadow: 0 0 25px rgba(0, 245, 212, 0.1);
-            transform: translateY(-5px);
-        }
-
-        .feature-item h3 { 
-            color: #00f5d4; 
-            margin: 0 0 0.8rem 0; 
-            font-family: 'Fredoka One', sans-serif;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-        }
-
-        .feature-item p { 
-            color: #999; 
-            font-size: 0.9rem; 
-            line-height: 1.6; 
-            margin-bottom: 1.5rem; 
-            flex-grow: 1; /* Pushes button to the bottom */
-        }
-
-        .read-more-btn { 
-            color: #00f5d4; 
-            font-family: monospace; 
-            font-weight: bold; 
-            font-size: 0.8rem; 
-            text-align: center;
-            border: 1px solid #00f5d4; 
-            padding: 8px 20px; 
-            align-self: flex-end; /* Align to bottom right of card */
-            transition: 0.3s;
-        }
-
-        .feature-item:hover .read-more-btn {
-            background: rgba(0, 245, 212, 0.1);
-        }
-
-        /* Fixed Footer Fix */
-        .credits-footer { 
-            text-align: center; 
-            padding: 60px 20px; 
-            background: #000;
-            border-top: 1px solid #111;
-            margin-top: 80px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .credits-text { 
-            font-family: monospace; 
-            font-size: 0.75rem; 
-            color: #555; 
-            letter-spacing: 3px; 
-            text-transform: uppercase; 
-            margin: 0 0 10px 0; 
-        }
-
-        .credits-name { 
-            color: #00f5d4; 
-            font-weight: bold; 
-            text-shadow: 0 0 10px rgba(0, 245, 212, 0.3);
-        }
-
-        .copyright-text { 
-            font-family: monospace; 
-            font-size: 0.65rem; 
-            color: #333; 
-            margin: 0;
-        }
-    </style>
 </head>
 <body>
     <header>
         <nav>
             <a href="index.html" class="logo">CyberSolutionsOhio</a>
+           
             <ul>
                 <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="services.html">Services</a></li>
                 <li><a href="apps.html">Apps</a></li>
                 <li><a href="contact.html">Contact</a></li>
+                <li><a href="arcade.html">Arcade</a></li> 
+
+            <li><a href="portfolio.html">Portfolio</a></li>
+
+            <li><a href="launchpad.html">Other</a></li> 
+
             </ul>
+            <button id="theme-toggle-button" class="cta-button">Change Theme</button>
         </nav>
     </header>
 
     <main class="dashboard-main">
-        <section class="dashboard-content">
-            
-            <!-- ACTION PROTOCOLS -->
-            <div class="section-divider"><h2>Action Protocols</h2></div>
-            <div class="features-grid">
-                <a href="momentum-runner.html" class="feature-item">
-                    <h3>MOMENTUM RUNNER</h3><p>Avoid the firewall. Maintain terminal velocity.</p><span class="read-more-btn">PLAY</span>
+        <aside class="sidebar">
+            <h3>Heppard's Hub Controls</h3>
+            <div class="sidebar-control">
+                <input type="search" id="search-bar" placeholder="Filter by name...">
+            </div>
+            <div class="sidebar-control">
+                <label><input type="checkbox" id="show-games" checked> Show Games</label>
+            </div>
+            <div class="sidebar-control">
+                <label><input type="checkbox" id="show-utilities" checked> Show Utilities</label>
+            </div>
+            <div class="sidebar-control">
+                <span>View Mode:</span>
+                <label class="switch">
+                    <input type="checkbox" id="view-mode-toggle">
+                    <span class="slider round"></span>
+                </label>
+                <span id="view-mode-label">Grid</span>
+            </div>
+        </aside>
+
+        <section class="app-collection">
+            <div class="features-grid" id="apps-grid">
+                <a href="3d-pong.html" class="feature-item" data-category="game">
+                    <h3>Chris Heppard's 3D Pong</h3>
+                    <p>A modern twist on the classic arcade game.</p>
                 </a>
-                <a href="Rhythm Runner.html" class="feature-item">
-                    <h3>RHYTHM RUNNER</h3><p>Synchronize tactical maneuvers with the audio beat.</p><span class="read-more-btn">PLAY</span>
+                <a href="apps/world-clock.html" class="feature-item" data-category="utility">
+                    <h3>Mr. Heppard's World Clock</h3>
+                    <p>An interactive globe displaying the time.</p>
                 </a>
-                <a href="TrippyRun.html" class="feature-item">
-                    <h3>TRIPPY RUN</h3><p>High-speed psychedelic visual data traversal.</p><span class="read-more-btn">PLAY</span>
+                <a href="3d-asteroid-field.html" class="feature-item" data-category="game">
+                    <h3>Chris Heppard's 3D Asteroid Field</h3>
+                    <p>Dodge and destroy asteroids in this 3D space shooter.</p>
                 </a>
-                <a href="3d-pong.html" class="feature-item">
-                    <h3>3D PONG</h3><p>Enhanced spatial arcade combat simulator.</p><span class="read-more-btn">PLAY</span>
+                <a href="city-builder.html" class="feature-item" data-category="utility">
+                    <h3>Mr. Heppard's 3D City Builder</h3>
+                    <p>Create a sprawling neon city one block at a time.</p>
                 </a>
-                <a href="Cosmic Billiards.html" class="feature-item">
-                    <h3>COSMIC BILLIARDS</h3><p>Physics-based deep space arcade simulation.</p><span class="read-more-btn">PLAY</span>
+                <a href="tic-tac-toe.html" class="feature-item" data-category="game">
+                    <h3>Tic-Tac-Toe</h3>
+                    <p>The classic game of X's and O's.</p>
                 </a>
-                <a href="asteroid-field.html" class="feature-item">
-                    <h3>ASTEROID FIELD</h3><p>Navigate debris fields in hostile space.</p><span class="read-more-btn">EXPLORE</span>
+                <a href="memory-game.html" class="feature-item" data-category="game">
+                    <h3>Memory Game</h3>
+                    <p>Test your memory with this card-matching game.</p>
+                </a>
+                <a href="solitaire.html" class="feature-item" data-category="game">
+                    <h3>Chris Heppard's 3D Solitaire</h3>
+                    <p>A classic card game in a stunning 3D environment.</p>
+                </a>
+                <a href="Momentum-runner.html" class="feature-item" data-category="game">
+                    <h3>Chris Heppard's 3D Maze Explorer</h3>
+                    <p>Navigate a procedurally generated 3D maze.</p>
                 </a>
             </div>
-
-            <!-- CREATIVE SIMULATIONS -->
-            <div class="section-divider"><h2>Creative Simulations</h2></div>
-            <div class="features-grid">
-                <a href="3D Voxel Painter Ultra.html" class="feature-item">
-                    <h3>VOXEL PAINTER</h3><p>Precision 3D construction suite for cyber-worlds.</p><span class="read-more-btn">LAUNCH</span>
-                </a>
-                <a href="3D DNA Visualizer.html" class="feature-item">
-                    <h3>DNA VISUALIZER</h3><p>Interactive biomedical data mapping engine.</p><span class="read-more-btn">VIEW</span>
-                </a>
-                <a href="3D Molecule Viewer.html" class="feature-item">
-                    <h3>MOLECULE VIEWER</h3><p>Real-time molecular structure simulation.</p><span class="read-more-btn">VIEW</span>
-                </a>
-                <a href="Virtual Room Planner.html" class="feature-item">
-                    <h3>ROOM PLANNER</h3><p>Virtual architectural layout and design suite.</p><span class="read-more-btn">LAUNCH</span>
-                </a>
-                <a href="Digital Zen Garden.html" class="feature-item">
-                    <h3>ZEN GARDEN</h3><p>Procedural relaxation and pattern meditation.</p><span class="read-more-btn">ENTER</span>
-                </a>
-                <a href="Interactive Solar System.html" class="feature-item">
-                    <h3>SOLAR SYSTEM</h3><p>Interactive 3D celestial body mapping.</p><span class="read-more-btn">LAUNCH</span>
-                </a>
-            </div>
-
-            <!-- LOGICAL SYSTEMS -->
-            <div class="section-divider"><h2>Logical Systems</h2></div>
-            <div class="features-grid">
-                <a href="3D Chess.html" class="feature-item">
-                    <h3>3D CHESS</h3><p>Advanced tactical logic simulator v4.2.</p><span class="read-more-btn">PLAY</span>
-                </a>
-                <a href="3D Solitaire.html" class="feature-item">
-                    <h3>3D SOLITAIRE</h3><p>Classic logic expanded into immersive space.</p><span class="read-more-btn">DEAL</span>
-                </a>
-                <a href="memory-game.html" class="feature-item">
-                    <h3>MEMORY GAME</h3><p>Neural pattern recall and efficiency testing.</p><span class="read-more-btn">PLAY</span>
-                </a>
-                <a href="3D Data Visualizer.html" class="feature-item">
-                    <h3>DATA VISUALIZER</h3><p>Real-time data stream analytics engine.</p><span class="read-more-btn">RUN</span>
-                </a>
-                <a href="Cyber Dreams.html" class="feature-item">
-                    <h3>CYBER DREAMS</h3><p>Atmospheric neural network simulation.</p><span class="read-more-btn">DREAM</span>
-                </a>
-                <a href="world-clock.html" class="feature-item">
-                    <h3>WORLD CLOCK</h3><p>Global temporal synchronization grid.</p><span class="read-more-btn">VIEW</span>
-                </a>
-            </div>
-
         </section>
     </main>
 
-    <footer class="credits-footer">
-        <p class="credits-text">A GAME DEVELOPED AND CODED BY <span class="credits-name">CHRIS HEPPARD</span></p>
-        <p class="copyright-text">&copy; 2026 CyberSolutionsOhio. All Systems Nominal.</p>
+    <footer>
+        <div class="chatbot-widget">
+            <div class="chat-icon" id="chatIcon">?</div>
+            <div class="chat-window" id="chatWindow">
+                <div class="chat-header">Chat with Us!</div>
+                <div class="chat-body" id="chatBody">
+                    <div class="chat-message bot">Hello! How can I help you today?</div>
+                </div>
+                <div class="chat-footer">
+                    <input type="text" id="chatInput" placeholder="Ask a question...">
+                    <button id="chatSendBtn">Send</button>
+                </div>
+            </div>
+        </div>
+        <div class="footer-content">
+            <p>&copy; 2024 CyberSolutionsOhio Chris Heppard. All rights reserved.</p>
+            <button id="subscribeBtn" class="cta-button">Subscribe to Newsletter</button>
+            <ul class="social-links">
+                <li><a href="#">LinkedIn</a></li>
+                <li><a href="#">Twitter</a></li>
+                <li><a href="#">GitHub</a></li>
+            </ul>
+        </div>
     </footer>
+
+    <div id="newsletterModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Subscribe to Our Newsletter</h2>
+            <p>Stay up to date with the latest industry news and insights.</p>
+            <form class="newsletter-form">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit" class="cta-button">Subscribe</button>
+            </form>
+        </div>
+    </div>
+    <script src="js/main.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/filter.js"></script>
 </body>
 </html>
