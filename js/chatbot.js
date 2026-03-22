@@ -1,83 +1,53 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // Wrapping everything inside this function fixes the "already declared" error
-    
-    const chatIcon = document.getElementById('chatIcon');
-    const chatWindow = document.getElementById('chatWindow');
-    const chatInput = document.getElementById('chatInput');
-    const chatSendBtn = document.getElementById('chatSendBtn');
-    const chatBody = document.getElementById('chatBody');
+const chatIcon = document.getElementById('chatIcon');
+const chatWindow = document.getElementById('chatWindow');
+const chatInput = document.getElementById('chatInput');
+const chatSendBtn = document.getElementById('chatSendBtn');
+const chatBody = document.getElementById('chatBody');
 
-    // 1. Toggle Chat Window
-    if (chatIcon && chatWindow) {
-        chatIcon.addEventListener('click', () => {
-            // Toggle a class to show/hide (requires CSS for .show { display: flex; })
-            // Or simple style toggle:
-            if (chatWindow.style.display === 'flex') {
-                chatWindow.style.display = 'none';
-            } else {
-                chatWindow.style.display = 'flex';
-            }
-        });
-    }
-
-    // 2. Function to Add Message
-    function addMessage(text, sender) {
-        const messageDiv = document.createElement('div');
-        messageDiv.classList.add('chat-message', sender); // 'user' or 'bot'
-        messageDiv.textContent = text;
-        chatBody.appendChild(messageDiv);
-        
-        // Auto-scroll to bottom
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    // 3. Handle User Input
-    function handleUserMessage() {
-        const text = chatInput.value.trim();
-        if (text) {
-            // Add User Message
-            addMessage(text, 'user');
-            chatInput.value = '';
-
-            // Simulate Bot Response
-            setTimeout(() => {
-                const responses = [
-                    "That's interesting! Tell me more.",
-                    "We offer web, security, and cloud services.",
-                    "I'll have a human contact you shortly.",
-                    "Cyber security is our specialty."
-                ];
-                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                addMessage(randomResponse, 'bot');
-            }, 1000);
-        }
-    }
-
-    // 4. Event Listeners for Sending
-    if (chatSendBtn) {
-        chatSendBtn.addEventListener('click', handleUserMessage);
-    }
-
-    if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleUserMessage();
-            }
-        });
-    }
+chatIcon.addEventListener('click', () => {
+  chatWindow.classList.toggle('show');
 });
-function processChat(input) {
-    const text = input.toLowerCase();
-    
-    if (text.includes("service") || text.includes("help")) {
-        return "We offer full-stack dev and security audits. Check the Services page!";
-    }
-    if (text.includes("who") || text.includes("chris")) {
-        return "Chris Heppard is a specialist based in Cincinnati focused on secure tech.";
-    }
-    if (text.includes("theme")) {
-        return "You can change the site's look using the THEMES button in the bottom left!";
-    }
-    
-    return "That's interesting! I'm still learning, but you can email us for more details.";
+
+chatSendBtn.addEventListener('click', sendMessage);
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    sendMessage();
+  }
+});
+
+function sendMessage() {
+  const userInput = chatInput.value;
+  if (userInput.trim() === '') return;
+
+  appendMessage(userInput, 'user');
+  chatInput.value = '';
+
+  setTimeout(() => {
+    const botResponse = getBotResponse(userInput);
+    appendMessage(botResponse, 'bot');
+  }, 500);
+}
+
+function appendMessage(message, sender) {
+  const messageElement = document.createElement('div');
+  messageElement.classList.add('chat-message', sender);
+  messageElement.textContent = message;
+  chatBody.appendChild(messageElement);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+function getBotResponse(input) {
+  const lowerCaseInput = input.toLowerCase();
+
+  if (lowerCaseInput.includes('hello') || lowerCaseInput.includes('hi')) {
+    return 'Hello there! How can I assist you?';
+  } else if (lowerCaseInput.includes('services')) {
+    return 'We offer web development, cybersecurity, and cloud solutions. Which one are you interested in?';
+  } else if (lowerCaseInput.includes('contact')) {
+    return 'You can contact us by filling out the form on our contact page.';
+  } else if (lowerCaseInput.includes('games')) {
+    return 'You can play Tic-Tac-Toe and a Memory Game on our games page!';
+  } else {
+    return "I'm sorry, I don't understand. Can you please rephrase your question?";
+  }
 }
