@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chris Heppard's 3D Voxel Painter Ultra</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --neon-yellow: #ffff00;
+            --glass-bg: rgba(5, 10, 15, 0.9);
+            --panel-border: rgba(0, 255, 255, 0.25);
+        }
+
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: #000; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            color: white; 
+            touch-action: none;
+        }
+
+        /* UI Overlay Layer */
+        #ui-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+
+        .glass-panel {
+            pointer-events: auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+        }
+
+        /* Branding Header */
+        #header {
+            position: absolute; top: env(safe-area-inset-top, 20px); left: 20px; padding: 15px 25px;
+            border-left: 4px solid var(--neon-cyan);
+        }
+        #header h1 { margin: 0; font-size: 18px; letter-spacing: 3px; text-transform: uppercase; color: var(--neon-cyan); }
+        #header p { margin: 2px 0 0 0; font-size: 9px; opacity: 0.6; letter-spacing: 2px; }
+
+        /* Sidebar Containers */
+        .sidebar {
+            position: absolute; width: 150px; display: flex; flex-direction: column; gap: 12px; padding: 15px;
+        }
+        #left-sidebar { top: 110px; left: 20px; }
+        #right-sidebar { top: env(safe-area-inset-top, 20px); right: 20px; }
+
+        /* Bottom HUD */
+        #palette-container {
+            position: absolute; bottom: env(safe-area-inset-bottom, 25px); left: 50%; transform: translateX(-50%);
+            padding: 12px 20px; display: flex; align-items: center; gap: 15px;
+            max-width: 90vw; overflow-x: auto;
+        }
+
+        /* Form Elements */
+        .setting-group { display: flex; flex-direction: column; gap: 5px; }
+        .setting-label { font-size: 9px; color: var(--neon-cyan); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+        
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .tool-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid rgba(0, 255, 255, 0.15);
+            color: #fff; padding: 10px 4px; cursor: pointer; font-size: 10px;
+            border-radius: 6px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: bold; text-transform: uppercase;
+        }
+        .tool-btn:hover { background: rgba(0, 255, 255, 0.1); border-color: var(--neon-cyan); }
+        .tool-btn.active { background: var(--neon-cyan); color: #000; border-color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0,255,255,0.4); }
+        .tool-btn.erase-active { background: var(--neon-magenta) !important; color: white !important; border-color: var(--neon-magenta) !important; }
+
+        .color-swatch {
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+            border: 2px solid rgba(255,255,255,0.1); transition: 0.2s;
+        }
+        .color-swatch.active { border-color: white; transform: scale(1.2); box-shadow: 0 0 15px currentColor; }
+
+        /* Specific Modifiers */
+        .magenta-text { color: var(--neon-magenta); }
+        
+        #toast {
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: var(--neon-cyan); color: black; padding: 8px 20px; border-radius: 30px;
+            font-weight: bold; font-size: 12px; opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; z-index: 100;
+        }
+
+        canvas { display: block; outline: none; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <div id="toast">SYSTEM NOTIFICATION</div>
+
+    <div id="ui-overlay">
+        <div id="header" class="glass-panel">
+            <h1>VOXEL PAINTER ULTRA</h1>
+            <p>MR. HEPPARD KINETIC STUDIO v3.0</p>
+        </div>
+
+        <div id="left-sidebar" class="sidebar glass-panel">
+            <div class="setting-group">
+                <div class="setting-label">Primary Action</div>
+                <button id="mode-btn" class="tool-btn active" onclick="toggleMode()">BUILD</button>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">Brush Shape</div>
+                <div class="btn-grid">
+                    <button id="shape-cube" class="tool-btn active" onclick="setShape('cube')">Cube</button>
+                    <button id="shape-sphere" class="tool-btn" onclick="setShape('sphere')">Sphere</button>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <div class="setting-label">Material Type</div>
+                <div class="btn-grid">
+                    <button id="mat-solid" class="tool-btn active" onclick="setMaterial('solid')">Solid</button>
+                    <button id="mat-neon" class="tool-btn" onclick="setMaterial('neon')">Neon</button>
+                    <button id="mat-glass" class="tool-btn" onclick="setMaterial('glass')">Glass</button>
+                    <button class="tool-btn" onclick="toggleMirror()">Mirror</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="right-sidebar" class="sidebar glass-panel">
+            <div class="setting-group">
+                <div class="setting-label">Studio Controls</div>
+                <button class="tool-btn" onclick="takeSnapshot()">Neural Capture</button>
+                <button class="tool-btn" onclick="toggleGrid()">Void Mode</button>
+            </div>
+            <div class="setting-group">
+                <div class="setting-label">System</div>
+                <div class="btn-grid">
+                    <button class="tool-btn" onclick="undo()">Undo</button>
+                    <button class="tool-btn" onclick="saveData()">Save</button>
+                </div>
+                <button class="tool-btn magenta-text" onclick="clearCanvas()">Purge Matrix</button>
+            </div>
+        </div>
+
+        <div id="palette-container" class="glass-panel">
+            <div id="palette" style="display: flex; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CORE CONFIG ---
+        const V_SIZE = 50;
+        const G_SIZE = 1200;
+        const NEON_COLORS = [0x00ffff, 0xff00ff, 0xffff00, 0x00ff00, 0xff4400, 0x4400ff, 0xffffff, 0x222222];
+
+        // --- APP STATE ---
+        let scene, camera, renderer, controls, raycaster, mouse;
+        let grid, ghost, objects = [], history = [];
+        let activeColor = NEON_COLORS[0];
+        let currentMaterial = 'solid';
+        let currentShape = 'cube';
+        let eraseMode = false;
+        let mirrorX = false;
+        
+        // Touch state
+        let pStart = new THREE.Vector2(), pTime = 0;
+
+        init();
+        animate();
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x010103);
+            scene.fog = new THREE.FogExp2(0x010103, 0.0006);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 10000);
+            camera.position.set(1000, 1000, 1500);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.06;
+
+            // Ghost Helper
+            const gGeo = new THREE.BoxGeometry(V_SIZE, V_SIZE, V_SIZE);
+            const gMat = new THREE.MeshBasicMaterial({ color: activeColor, opacity: 0.4, transparent: true });
+            ghost = new THREE.Mesh(gGeo, gMat);
+            scene.add(ghost);
+
+            // Grid
+            grid = new THREE.GridHelper(G_SIZE, 24, 0x00ffff, 0x111111);
+            scene.add(grid);
+
+            // Interaction Plane
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            const pGeo = new THREE.PlaneGeometry(G_SIZE, G_SIZE);
+            pGeo.rotateX(-Math.PI / 2);
+            const plane = new THREE.Mesh(pGeo, new THREE.MeshBasicMaterial({ visible: false }));
+            scene.add(plane);
+            objects.push(plane);
+
+            // Lights
+            scene.add(new THREE.AmbientLight(0x404040));
+            const l1 = new THREE.DirectionalLight(0xffffff, 0.7);
+            l1.position.set(1, 1, 1);
+            scene.add(l1);
+
+            // UI Init
+            const pal = document.getElementById('palette');
+            NEON_COLORS.forEach((c, i) => {
+                const s = document.createElement('div');
+                s.className = 'color-swatch' + (i===0?' active':'');
+                s.style.backgroundColor = '#' + c.toString(16).padStart(6,'0');
+                s.onclick = () => {
+                    activeColor = c;
+                    ghost.material.color.setHex(c);
+                    document.querySelectorAll('.color-swatch').forEach(x => x.classList.remove('active'));
+                    s.classList.add('active');
+                };
+                pal.appendChild(s);
+            });
+
+            // Listeners
+            window.addEventListener('pointermove', onMove);
+            window.addEventListener('pointerdown', e => { pTime = Date.now(); pStart.set(e.clientX, e.clientY); });
+            window.addEventListener('pointerup', e => {
+                if(Date.now() - pTime < 250 && pStart.distanceTo(new THREE.Vector2(e.clientX, e.clientY)) < 10) paint();
+            });
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // --- UI ACTIONS ---
+
+        function toggleMode() {
+            eraseMode = !eraseMode;
+            const b = document.getElementById('mode-btn');
+            b.innerText = eraseMode ? 'ERASING' : 'BUILDING';
+            b.classList.toggle('erase-active', eraseMode);
+            ghost.material.color.setHex(eraseMode ? 0xff0055 : activeColor);
+        }
+
+        function setShape(s) {
+            currentShape = s;
+            document.querySelectorAll('#shape-cube, #shape-sphere').forEach(b => b.classList.remove('active'));
+            document.getElementById('shape-' + s).classList.add('active');
+        }
+
+        function setMaterial(m) {
+            currentMaterial = m;
+            document.querySelectorAll('#mat-solid, #mat-neon, #mat-glass').forEach(b => b.classList.remove('active'));
+            document.getElementById('mat-' + m).classList.add('active');
+        }
+
+        function toggleMirror() { mirrorX = !mirrorX; notify(`Mirror Path: ${mirrorX?'Active':'Inactive'}`); }
+        function toggleGrid() { grid.visible = !grid.visible; scene.fog.density = grid.visible ? 0.0006 : 0.0015; }
+
+        function onMove(e) {
+            mouse.set((e.clientX / window.innerWidth) * 2 - 1, -(e.clientY / window.innerHeight) * 2 + 1);
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(objects, false);
+            if(hits.length > 0) {
+                const pos = hits[0].point.clone().add(hits[0].face.normal.clone().multiplyScalar(5));
+                ghost.position.copy(pos).divideScalar(V_SIZE).floor().multiplyScalar(V_SIZE).addScalar(V_SIZE/2);
+                ghost.visible = true;
+            } else { ghost.visible = false; }
+        }
+
+        function paint() {
+            raycaster.setFromCamera(mouse, camera);
+            const hits = raycaster.intersectObjects(objects, false);
+            if(hits.length === 0) return;
+
+            const base = hits[0].point.clone().add(hits[0].face.normal.clone().multiplyScalar(5)).divideScalar(V_SIZE).floor();
+            const action = { type: eraseMode?'del':'add', voxels: [] };
+
+            if(currentShape === 'cube') {
+                process(base.x, base.y, base.z, eraseMode, action);
+                if(mirrorX) process(-base.x - 1, base.y, base.z, eraseMode, action);
+            } else {
+                // Sphere Brush (3x3 area)
+                for(let x=-1; x<=1; x++) {
+                    for(let y=-1; y<=1; y++) {
+                        for(let z=-1; z<=1; z++) {
+                            if(Math.sqrt(x*x+y*y+z*z) <= 1.2) {
+                                process(base.x+x, base.y+y, base.z+z, eraseMode, action);
+                            }
+                        }
+                    }
+                }
+            }
+            if(action.voxels.length) history.push(action);
+        }
+
+        function process(gx, gy, gz, del, action) {
+            const world = new THREE.Vector3(gx*V_SIZE+25, gy*V_SIZE+25, gz*V_SIZE+25);
+            const hit = objects.find(o => o !== objects[0] && o.position.distanceTo(world) < 1);
+
+            if(del && hit) {
+                action.voxels.push({pos: hit.position.clone(), mat: hit.userData.m, col: hit.material.color.getHex()});
+                scene.remove(hit);
+                objects.splice(objects.indexOf(hit), 1);
+            } else if(!del && !hit) {
+                const v = createVoxel(activeColor, currentMaterial);
+                v.position.copy(world);
+                // Intro Anim
+                v.scale.set(0,0,0);
+                v.userData.targetScale = 1;
+                scene.add(v);
+                objects.push(v);
+                action.voxels.push({pos: world.clone(), mat: currentMaterial, col: activeColor});
+            }
+        }
+
+        function createVoxel(col, type) {
+            let mat;
+            if(type === 'neon') mat = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 2 });
+            else if(type === 'glass') mat = new THREE.MeshPhysicalMaterial({ color: col, transparent: true, opacity: 0.4, roughness: 0, transmission: 1 });
+            else mat = new THREE.MeshStandardMaterial({ color: col, roughness: 0.7 });
+
+            const m = new THREE.Mesh(new THREE.BoxGeometry(V_SIZE, V_SIZE, V_SIZE), mat);
+            m.userData.m = type;
+            return m;
+        }
+
+        function undo() {
+            if(!history.length) return;
+            const a = history.pop();
+            a.voxels.forEach(v => {
+                const hit = objects.find(o => o !== objects[0] && o.position.distanceTo(v.pos) < 1);
+                if(a.type === 'add' && hit) { scene.remove(hit); objects.splice(objects.indexOf(hit), 1); }
+                else if(a.type === 'del') {
+                    const vx = createVoxel(v.col, v.mat);
+                    vx.position.copy(v.pos);
+                    scene.add(vx);
+                    objects.push(vx);
+                }
+            });
+        }
+
+        function takeSnapshot() {
+            renderer.render(scene, camera);
+            const link = document.createElement('a');
+            link.download = 'heppard_voxel_capture.png';
+            link.href = renderer.domElement.toDataURL();
+            link.click();
+            notify("NEURAL CAPTURE DOWNLOADED");
+        }
+
+        function saveData() {
+            const d = objects.filter(o => o !== objects[0]).map(o => ({p: o.position.toArray(), m: o.userData.m, c: o.material.color.getHex()}));
+            localStorage.setItem('heppard_ultra_data', JSON.stringify(d));
+            notify("SECTOR DATA SYNCED");
+        }
+
+        function clearCanvas() {
+            if(!confirm("Purge entire sector?")) return;
+            objects.filter(o => o !== objects[0]).forEach(o => scene.remove(o));
+            objects = [objects[0]];
+            history = [];
+        }
+
+        function notify(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg; t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 2000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            // Scale animations
+            objects.forEach(o => {
+                if(o.userData.targetScale) {
+                    o.scale.lerp(new THREE.Vector3(1,1,1), 0.15);
+                    if(o.scale.x > 0.99) delete o.userData.targetScale;
+                }
+            });
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

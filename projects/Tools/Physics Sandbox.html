@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chris Heppard's Physics Sandbox</title>
+    <style>
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-magenta: #ff00ff;
+            --glass-bg: rgba(5, 10, 20, 0.8);
+        }
+
+        body { margin: 0; overflow: hidden; background: #010105; font-family: 'Courier New', monospace; color: white; }
+
+        #ui-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 10;
+        }
+
+        .glass-panel {
+            pointer-events: auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+        }
+
+        /* Branding Header */
+        #header {
+            position: absolute; top: 30px; left: 30px; padding: 20px 30px;
+            border-left: 5px solid var(--neon-cyan);
+        }
+        #header h1 { margin: 0; font-size: 22px; letter-spacing: 3px; text-shadow: 0 0 15px var(--neon-cyan); }
+        #header p { margin: 5px 0 0 0; font-size: 10px; opacity: 0.7; text-transform: uppercase; }
+
+        /* Control Panel */
+        #control-panel {
+            position: absolute; top: 30px; right: 30px; padding: 20px;
+            display: flex; flex-direction: column; gap: 15px; width: 220px;
+        }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .label { font-size: 10px; color: var(--neon-cyan); letter-spacing: 1px; text-transform: uppercase; }
+        
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.3);
+            color: white; padding: 10px; cursor: pointer; font-family: inherit;
+            font-size: 11px; text-transform: uppercase; transition: 0.3s;
+            border-radius: 4px;
+        }
+        .action-btn:hover { background: var(--neon-cyan); color: black; box-shadow: 0 0 15px var(--neon-cyan); }
+        .action-btn.magenta:hover { background: var(--neon-magenta); box-shadow: 0 0 15px var(--neon-magenta); }
+
+        /* Stats */
+        #stats-hud {
+            position: absolute; bottom: 30px; left: 30px; padding: 15px 20px;
+            font-size: 12px; color: #aaa;
+        }
+        .stat-line { margin-bottom: 5px; }
+        .stat-line span { color: var(--neon-cyan); font-weight: bold; }
+
+        /* Controls Hint */
+        #interaction-hint {
+            position: absolute; bottom: 30px; right: 30px; padding: 10px 20px;
+            font-size: 11px; color: #666; text-transform: uppercase;
+        }
+
+        canvas { display: block; }
+    </style>
+    <!-- Load Three.js and Cannon.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+</head>
+<body>
+
+    <div id="ui-overlay">
+        <div id="header" class="glass-panel">
+            <h1>PHYSICS SANDBOX</h1>
+            <p>Kinetic Neural Lab v4.0</p>
+        </div>
+
+        <div id="control-panel" class="glass-panel">
+            <div class="control-group">
+                <div class="label">Spawn Object</div>
+                <div class="btn-grid">
+                    <button class="action-btn" onclick="spawnObject('cube')">Cube</button>
+                    <button class="action-btn" onclick="spawnObject('sphere')">Sphere</button>
+                    <button class="action-btn" onclick="spawnObject('cylinder')">Cyl</button>
+                    <button class="action-btn" onclick="spawnObject('tetra')">Tetra</button>
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="label">Simulation</div>
+                <button class="action-btn magenta" onclick="toggleGravity()">Invert Gravity</button>
+                <button class="action-btn" onclick="clearScene()">Clear Sector</button>
+            </div>
+        </div>
+
+        <div id="stats-hud" class="glass-panel">
+            <div class="stat-line">ACTIVE BODIES: <span id="body-count">0</span></div>
+            <div class="stat-line">GRAVITY: <span id="grav-status">-9.82 m/s²</span></div>
+        </div>
+
+        <div id="interaction-hint" class="glass-panel">
+            L-CLICK & DRAG TO THROW &bull; RIGHT-CLICK TO ORBIT
+        </div>
+    </div>
+
+    <script>
+        // --- PHYSICS & VISUAL GLOBALS ---
+        let world, scene, camera, renderer, clock;
+        let bodies = [], meshes = [];
+        let mouse = new THREE.Vector2(), raycaster = new THREE.Raycaster();
+        let dragBody = null, dragPlane = new THREE.Plane(), dragPoint = new THREE.Vector3();
+        let gravityY = -9.82;
+
+        init();
+        animate();
+
+        function init() {
+            // Cannon.js Physics World
+            world = new CANNON.World();
+            world.gravity.set(0, gravityY, 0);
+            world.broadphase = new CANNON.NaiveBroadphase();
+            world.solver.iterations = 10;
+
+            // Three.js Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020205);
+            scene.fog = new THREE.FogExp2(0x020205, 0.002);
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(0, 100, 200);
+            camera.lookAt(0, 40, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.body.appendChild(renderer.domElement);
+
+            clock = new THREE.Clock();
+
+            // Lights
+            scene.add(new THREE.AmbientLight(0x404040));
+            const spotlight = new THREE.SpotLight(0x00ffff, 1);
+            spotlight.position.set(0, 200, 100);
+            spotlight.castShadow = true;
+            scene.add(spotlight);
+
+            createRoom();
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        }
+
+        function createRoom() {
+            // Physical Ground
+            const groundMat = new CANNON.Material("groundMaterial");
+            const groundBody = new CANNON.Body({ mass: 0, material: groundMat });
+            groundBody.addShape(new CANNON.Plane());
+            groundBody.quaternion.setFromAxisAngle(new CANNON.Vector3(1, 0, 0), -Math.PI / 2);
+            world.addBody(groundBody);
+
+            // Visual Grid Ground
+            const grid = new THREE.GridHelper(400, 20, 0x00ffff, 0x111122);
+            scene.add(grid);
+
+            // Invisible Walls to keep objects in view
+            const wallSize = 200;
+            const wallPositions = [
+                [0, 100, -100, 0, 0],   // Back
+                [100, 100, 0, 0, -Math.PI/2], // Right
+                [-100, 100, 0, 0, Math.PI/2],  // Left
+                [0, 100, 100, 0, Math.PI]    // Front (behind camera)
+            ];
+
+            wallPositions.forEach(p => {
+                const shape = new CANNON.Box(new CANNON.Vector3(wallSize, wallSize, 5));
+                const body = new CANNON.Body({ mass: 0 });
+                body.addShape(shape);
+                body.position.set(p[0], p[1], p[2]);
+                body.quaternion.setFromAxisAngle(new CANNON.Vector3(0, 1, 0), p[4]);
+                world.addBody(body);
+            });
+
+            // Ceiling
+            const ceilBody = new CANNON.Body({ mass: 0 });
+            ceilBody.addShape(new CANNON.Plane());
+            ceilBody.position.set(0, 200, 0);
+            ceilBody.quaternion.setFromAxisAngle(new CANNON.Vector3(1, 0, 0), Math.PI / 2);
+            world.addBody(ceilBody);
+        }
+
+        function spawnObject(type) {
+            let shape, geo;
+            const size = 8 + Math.random() * 8;
+            const color = Math.random() > 0.5 ? 0x00ffff : 0xff00ff;
+
+            switch(type) {
+                case 'cube':
+                    shape = new CANNON.Box(new CANNON.Vector3(size, size, size));
+                    geo = new THREE.BoxGeometry(size * 2, size * 2, size * 2);
+                    break;
+                case 'sphere':
+                    shape = new CANNON.Sphere(size);
+                    geo = new THREE.SphereGeometry(size, 32, 32);
+                    break;
+                case 'cylinder':
+                    shape = new CANNON.Cylinder(size, size, size * 2, 16);
+                    geo = new THREE.CylinderGeometry(size, size, size * 2, 16);
+                    break;
+                case 'tetra':
+                    shape = new CANNON.ConvexPolyhedron([
+                        new CANNON.Vector3(0, size, 0),
+                        new CANNON.Vector3(-size, -size, size),
+                        new CANNON.Vector3(size, -size, size),
+                        new CANNON.Vector3(0, -size, -size)
+                    ], [
+                        [0, 1, 2], [0, 2, 3], [0, 3, 1], [1, 3, 2]
+                    ]);
+                    geo = new THREE.TetrahedronGeometry(size);
+                    break;
+            }
+
+            const body = new CANNON.Body({
+                mass: size * 0.5,
+                position: new CANNON.Vector3((Math.random()-0.5)*50, 150, (Math.random()-0.5)*50),
+                shape: shape
+            });
+            body.angularDamping = 0.5;
+            world.addBody(body);
+
+            const mat = new THREE.MeshStandardMaterial({
+                color: color,
+                emissive: color,
+                emissiveIntensity: 0.4,
+                wireframe: true
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+            scene.add(mesh);
+
+            bodies.push(body);
+            meshes.push(mesh);
+            updateStats();
+        }
+
+        function onMouseDown(e) {
+            if (e.button !== 0) return; // Only left click
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(meshes);
+
+            if (intersects.length > 0) {
+                const mesh = intersects[0].object;
+                const index = meshes.indexOf(mesh);
+                dragBody = bodies[index];
+                dragBody.type = CANNON.Body.KINEMATIC; // Pause physics on this body
+
+                // Setup drag plane
+                dragPlane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(new THREE.Vector3()).negate(), mesh.position);
+            }
+        }
+
+        function onMouseMove(e) {
+            if (!dragBody) return;
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            raycaster.ray.intersectPlane(dragPlane, dragPoint);
+            
+            dragBody.position.copy(dragPoint);
+            dragBody.velocity.set(0, 0, 0); // No velocity while dragging
+        }
+
+        function onMouseUp() {
+            if (dragBody) {
+                dragBody.type = CANNON.Body.DYNAMIC;
+                dragBody = null;
+            }
+        }
+
+        function toggleGravity() {
+            gravityY *= -1;
+            world.gravity.set(0, gravityY, 0);
+            document.getElementById('grav-status').innerText = `${gravityY.toFixed(2)} m/s²`;
+            document.getElementById('grav-status').parentElement.classList.toggle('magenta');
+        }
+
+        function clearScene() {
+            bodies.forEach(b => world.remove(b));
+            meshes.forEach(m => scene.remove(m));
+            bodies = [];
+            meshes = [];
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('body-count').innerText = bodies.length;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = Math.min(clock.getDelta(), 0.1);
+
+            world.step(1/60, delta);
+
+            // Sync Visuals with Physics
+            for (let i = 0; i < bodies.length; i++) {
+                meshes[i].position.copy(bodies[i].position);
+                meshes[i].quaternion.copy(bodies[i].quaternion);
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>

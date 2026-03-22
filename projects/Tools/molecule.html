@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Molecule Viewer | Cyberpunk Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f5d4;
+            --neon-magenta: #ff00f5;
+            --neon-amber: #ffaa00;
+            --neon-lime: #ccff00;
+            --dark-bg: #0a0a0f;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        
+        .particles {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .particle {
+            position: absolute;
+            width: 2px; height: 2px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            animation: float 15s infinite;
+            opacity: 0.6;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+        
+        .neon-btn {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .neon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 212, 0.5);
+        }
+        
+        .molecule-btn {
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            background: rgba(0, 245, 212, 0.1);
+            color: var(--neon-cyan);
+            transition: all 0.3s;
+        }
+        .molecule-btn:hover, .molecule-btn.active {
+            background: rgba(0, 245, 212, 0.3);
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.3);
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            z-index: 5;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            z-index: 10;
+            max-width: 280px;
+        }
+        
+        .atom-legend {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .atom-dot {
+            width: 16px; height: 16px;
+            border-radius: 50%;
+        }
+    
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #00f5d4;
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover {
+            color: #00f5d4;
+            padding-left: 10px;
+        }
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            border-top: 1px solid rgba(0, 245, 212, 0.3);
+            text-align: center;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: #00f5d4; }
+        .cyber-footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="particles" id="particles"></div>
+    
+    <nav class="fixed top-0 left-0 w-full z-50 glass-panel border-b border-cyan-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="font-orbitron text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">
+                    CYBER<span class="text-cyan-400">MATRIX</span>
+                </a>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="nav-link text-gray-300 font-mono text-sm">[HOME]</a>
+                    <a href="portfolio.html" class="nav-link text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                    <a href="dna.html" class="nav-link text-gray-300 font-mono text-sm">[DNA]</a>
+                    <a href="molecule.html" class="nav-link text-cyan-400 font-mono text-sm">[MOLECULE]</a>
+                    <a href="solar.html" class="nav-link text-gray-300 font-mono text-sm">[SOLAR]</a>
+                    <a href="physics.html" class="nav-link text-gray-300 font-mono text-sm">[PHYSICS]</a>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-cyan-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden glass-panel border-t border-cyan-500/30">
+            <div class="px-4 py-2 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-300 font-mono text-sm">[HOME]</a>
+                <a href="portfolio.html" class="block py-2 text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                <a href="dna.html" class="block py-2 text-gray-300 font-mono text-sm">[DNA]</a>
+                <a href="molecule.html" class="block py-2 text-cyan-400 font-mono text-sm">[MOLECULE]</a>
+                <a href="solar.html" class="block py-2 text-gray-300 font-mono text-sm">[SOLAR]</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="ui-overlay glass-panel rounded-lg p-4">
+        <h2 class="font-orbitron text-xl text-cyan-400 mb-2">MOLECULE VIEWER</h2>
+        <p class="text-gray-400 text-xs mb-4 font-mono">3D Molecular Structures</p>
+        
+        <div class="space-y-2 mb-4">
+            <p class="text-gray-400 text-xs font-mono">SELECT MOLECULE</p>
+            <button class="molecule-btn w-full py-2 rounded text-sm font-mono active" data-mol="water">WATER (H₂O)</button>
+            <button class="molecule-btn w-full py-2 rounded text-sm font-mono" data-mol="caffeine">CAFFEINE (C₈H₁₀N₄O₂)</button>
+            <button class="molecule-btn w-full py-2 rounded text-sm font-mono" data-mol="glucose">GLUCOSE (C₆H₁₂O₆)</button>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs font-mono mb-2">ATOM LEGEND</p>
+            <div class="atom-legend">
+                <div class="atom-dot" style="background: #ffffff; box-shadow: 0 0 5px #fff;"></div>
+                <span class="text-xs text-gray-400">Hydrogen (H)</span>
+            </div>
+            <div class="atom-legend">
+                <div class="atom-dot" style="background: #ff4444; box-shadow: 0 0 5px #ff4444;"></div>
+                <span class="text-xs text-gray-400">Oxygen (O)</span>
+            </div>
+            <div class="atom-legend">
+                <div class="atom-dot" style="background: #888888; box-shadow: 0 0 5px #888;"></div>
+                <span class="text-xs text-gray-400">Carbon (C)</span>
+            </div>
+            <div class="atom-legend">
+                <div class="atom-dot" style="background: #4444ff; box-shadow: 0 0 5px #4444ff;"></div>
+                <span class="text-xs text-gray-400">Nitrogen (N)</span>
+            </div>
+        </div>
+        
+        <div id="moleculeInfo" class="glass-panel rounded p-3 mb-4">
+            <p class="text-cyan-400 font-mono text-sm">WATER</p>
+            <p class="text-gray-400 text-xs">Essential for life</p>
+        </div>
+        
+        <div class="text-xs text-gray-500 font-mono">
+            <p>Drag to rotate</p>
+            <p>Scroll to zoom</p>
+            <p>Right-click to pan</p>
+        </div>
+    </div>
+    
+    <div id="canvas-container"></div>
+
+    <script>
+        // Particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particlesContainer.appendChild(particle);
+        }
+        
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+        
+        // THREE.JS Molecule Viewer
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        scene.fog = new THREE.Fog(0x0a0a0f, 10, 50);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / (window.innerHeight - 80), 0.1, 1000);
+        camera.position.set(0, 0, 8);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        dirLight.position.set(5, 5, 5);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+        
+        const cyanLight = new THREE.PointLight(0x00f5d4, 0.5, 20);
+        cyanLight.position.set(-5, 5, -5);
+        scene.add(cyanLight);
+        
+        // Atom materials
+        const atomMaterials = {
+            H: new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 0.2, roughness: 0.2, metalness: 0.5 }),
+            O: new THREE.MeshStandardMaterial({ color: 0xff4444, emissive: 0xff4444, emissiveIntensity: 0.2, roughness: 0.2, metalness: 0.5 }),
+            C: new THREE.MeshStandardMaterial({ color: 0x888888, emissive: 0x888888, emissiveIntensity: 0.2, roughness: 0.2, metalness: 0.5 }),
+            N: new THREE.MeshStandardMaterial({ color: 0x4444ff, emissive: 0x4444ff, emissiveIntensity: 0.2, roughness: 0.2, metalness: 0.5 })
+        };
+        
+        const atomSizes = { H: 0.3, O: 0.5, C: 0.45, N: 0.48 };
+        
+        const bondMaterial = new THREE.MeshStandardMaterial({ 
+            color: 0x888888, 
+            roughness: 0.5, 
+            metalness: 0.3 
+        });
+        
+        let moleculeGroup = new THREE.Group();
+        scene.add(moleculeGroup);
+        
+        function createAtom(element, x, y, z) {
+            const geometry = new THREE.SphereGeometry(atomSizes[element], 32, 32);
+            const atom = new THREE.Mesh(geometry, atomMaterials[element]);
+            atom.position.set(x, y, z);
+            atom.castShadow = true;
+            return atom;
+        }
+        
+        function createBond(pos1, pos2) {
+            const direction = new THREE.Vector3().subVectors(pos2, pos1);
+            const length = direction.length();
+            const geometry = new THREE.CylinderGeometry(0.1, 0.1, length, 16);
+            const bond = new THREE.Mesh(geometry, bondMaterial);
+            
+            const midPoint = new THREE.Vector3().addVectors(pos1, pos2).multiplyScalar(0.5);
+            bond.position.copy(midPoint);
+            bond.lookAt(pos2);
+            bond.rotateX(Math.PI / 2);
+            
+            return bond;
+        }
+        
+        const molecules = {
+            water: {
+                name: 'WATER',
+                formula: 'H₂O',
+                description: 'Essential for life',
+                atoms: [
+                    { element: 'O', pos: [0, 0, 0] },
+                    { element: 'H', pos: [0.8, 0.6, 0] },
+                    { element: 'H', pos: [-0.8, 0.6, 0] }
+                ],
+                bonds: [[0, 1], [0, 2]]
+            },
+            caffeine: {
+                name: 'CAFFEINE',
+                formula: 'C₈H₁₀N₄O₂',
+                description: 'Stimulant found in coffee',
+                atoms: [
+                    // Ring 1
+                    { element: 'N', pos: [0, 1, 0] },
+                    { element: 'C', pos: [1.2, 0.5, 0] },
+                    { element: 'N', pos: [1.2, -0.8, 0] },
+                    { element: 'C', pos: [0, -1.3, 0] },
+                    { element: 'C', pos: [-1.2, -0.8, 0] },
+                    { element: 'C', pos: [-1.2, 0.5, 0] },
+                    // Ring 2
+                    { element: 'C', pos: [2.4, 1, 0] },
+                    { element: 'O', pos: [3.4, 0.5, 0] },
+                    { element: 'N', pos: [2.4, 2.2, 0] },
+                    { element: 'C', pos: [1.2, 2.7, 0] },
+                    // Methyl groups and extras
+                    { element: 'C', pos: [-0.2, 3.3, 0] },
+                    { element: 'C', pos: [3.6, 2.8, 0] },
+                    { element: 'C', pos: [-2.4, 1.3, 0] },
+                    // Oxygens
+                    { element: 'O', pos: [-1.2, -2.1, 0] },
+                    // Hydrogens (simplified positions)
+                    { element: 'H', pos: [0.5, -2, 0.5] },
+                    { element: 'H', pos: [-0.5, -2, -0.5] },
+                    { element: 'H', pos: [2.8, 1, 0.8] },
+                    { element: 'H', pos: [3.8, 2.5, 0.5] },
+                    { element: 'H', pos: [3.4, 3.5, -0.5] },
+                    { element: 'H', pos: [4.2, 3, 0.3] },
+                    { element: 'H', pos: [-2.8, 0.8, 0.8] },
+                    { element: 'H', pos: [-2.8, 2, -0.3] },
+                    { element: 'H', pos: [-3, 1.5, 0.5] }
+                ],
+                bonds: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,6], [6,7], [6,8], [8,9], [9,0], [9,10], [8,11], [5,12], [4,13], [3,14], [3,15], [6,16], [11,17], [11,18], [11,19], [12,20], [12,21], [12,22]]
+            },
+            glucose: {
+                name: 'GLUCOSE',
+                formula: 'C₆H₁₂O₆',
+                description: 'Primary energy source',
+                atoms: [
+                    // Ring structure
+                    { element: 'O', pos: [0, 1.5, 0] },
+                    { element: 'C', pos: [1.2, 1, 0] },
+                    { element: 'C', pos: [1.2, -0.3, 0] },
+                    { element: 'C', pos: [0, -0.8, 0] },
+                    { element: 'C', pos: [-1.2, -0.3, 0] },
+                    { element: 'C', pos: [-1.2, 1, 0] },
+                    // OH groups and H atoms
+                    { element: 'O', pos: [2.3, 1.5, 0] },
+                    { element: 'O', pos: [2.3, -0.8, 0] },
+                    { element: 'O', pos: [0, -2, 0] },
+                    { element: 'O', pos: [-2.3, -0.8, 0] },
+                    { element: 'O', pos: [-2.3, 1.5, 0] },
+                    // Hydrogens
+                    { element: 'H', pos: [2.8, 1.2, 0.5] },
+                    { element: 'H', pos: [2.8, -0.5, 0.5] },
+                    { element: 'H', pos: [0.5, -2.3, 0] },
+                    { element: 'H', pos: [-2.8, -0.5, 0.5] },
+                    { element: 'H', pos: [-2.8, 1.2, 0.5] },
+                    { element: 'H', pos: [1.5, 1.3, 0.8] },
+                    { element: 'H', pos: [1.5, -0.6, 0.8] },
+                    { element: 'H', pos: [-0.3, -1.1, 0.8] },
+                    { element: 'H', pos: [-1.5, -0.6, 0.8] },
+                    { element: 'H', pos: [-1.5, 1.3, 0.8] },
+                    { element: 'H', pos: [0.3, 1.8, 0.5] }
+                ],
+                bonds: [[0,1], [1,2], [2,3], [3,4], [4,5], [5,0], [1,6], [2,7], [3,8], [4,9], [5,10], [6,11], [7,12], [8,13], [9,14], [10,15], [1,16], [2,17], [3,18], [4,19], [5,20], [0,21]]
+            }
+        };
+        
+        function loadMolecule(key) {
+            // Clear existing
+            while(moleculeGroup.children.length > 0) {
+                moleculeGroup.remove(moleculeGroup.children[0]);
+            }
+            
+            const mol = molecules[key];
+            const atomMeshes = [];
+            
+            // Create atoms
+            mol.atoms.forEach(atom => {
+                const mesh = createAtom(atom.element, ...atom.pos);
+                moleculeGroup.add(mesh);
+                atomMeshes.push(mesh);
+            });
+            
+            // Create bonds
+            mol.bonds.forEach(bond => {
+                const bondMesh = createBond(atomMeshes[bond[0]].position, atomMeshes[bond[1]].position);
+                moleculeGroup.add(bondMesh);
+            });
+            
+            // Update info
+            document.getElementById('moleculeInfo').innerHTML = `
+                <p class="text-cyan-400 font-mono text-sm">${mol.name}</p>
+                <p class="text-fuchsia-400 font-mono text-xs">${mol.formula}</p>
+                <p class="text-gray-400 text-xs">${mol.description}</p>
+            `;
+        }
+        
+        loadMolecule('water');
+        
+        // Button handlers
+        document.querySelectorAll('.molecule-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.molecule-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                loadMolecule(btn.dataset.mol);
+            });
+        });
+        
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            moleculeGroup.rotation.y += 0.003;
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight - 80);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        });
+    
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>
