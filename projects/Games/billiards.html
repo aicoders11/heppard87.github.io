@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Billiards | Cyberpunk Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f5d4;
+            --neon-magenta: #ff00f5;
+            --neon-amber: #ffaa00;
+            --neon-lime: #ccff00;
+            --dark-bg: #0a0a0f;
+            --panel-bg: rgba(10, 10, 15, 0.9);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            overflow-x: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Share Tech Mono', monospace; }
+        
+        .grid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 245, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 245, 212, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        
+        .nav-link {
+            position: relative;
+            transition: all 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; left: 0;
+            width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta));
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after { width: 100%; }
+        .nav-link:hover { color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan); }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 245, 212, 0.2);
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.1);
+        }
+        
+        .neon-btn {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-magenta));
+            border: none;
+            color: #000;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .neon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 245, 212, 0.5);
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 80px);
+            z-index: 5;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 100px;
+            left: 20px;
+            z-index: 10;
+            max-width: 280px;
+        }
+        
+        .power-bar {
+            height: 20px;
+            background: linear-gradient(90deg, #00f5d4, #ff00f5);
+            border-radius: 10px;
+            transition: width 0.1s;
+        }
+        
+        .aim-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, #00f5d4, transparent);
+            transform-origin: left center;
+            pointer-events: none;
+            display: none;
+        }
+    
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #00f5d4;
+            cursor: pointer;
+        }
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px; left: 0; width: 100%;
+            background: rgba(10, 10, 15, 0.98);
+            border-bottom: 1px solid rgba(0, 245, 212, 0.3);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 12px 0;
+            color: #888;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            border-bottom: 1px solid rgba(0, 245, 212, 0.1);
+            transition: all 0.3s;
+        }
+        .mobile-menu a:hover {
+            color: #00f5d4;
+            padding-left: 10px;
+        }
+        @media (max-width: 1024px) {
+            .cyber-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Footer */
+        .cyber-footer {
+            border-top: 1px solid rgba(0, 245, 212, 0.3);
+            text-align: center;
+        }
+        .cyber-footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        .cyber-footer-links a {
+            color: #666;
+            text-decoration: none;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s;
+        }
+        .cyber-footer-links a:hover { color: #00f5d4; }
+        .cyber-footer-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: #555;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    
+    <nav class="fixed top-0 left-0 w-full z-50 glass-panel border-b border-cyan-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <a href="index.html" class="font-orbitron text-2xl font-bold bg-gradient-to-r from-cyan-400 to-fuchsia-500 bg-clip-text text-transparent">
+                    CYBER<span class="text-cyan-400">MATRIX</span>
+                </a>
+                <div class="hidden md:flex items-center gap-6">
+                    <a href="index.html" class="nav-link text-gray-300 font-mono text-sm">[HOME]</a>
+                    <a href="portfolio.html" class="nav-link text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                    <a href="physics.html" class="nav-link text-gray-300 font-mono text-sm">[PHYSICS]</a>
+                    <a href="billiards.html" class="nav-link text-cyan-400 font-mono text-sm">[BILLIARDS]</a>
+                    <a href="zengarden.html" class="nav-link text-gray-300 font-mono text-sm">[ZEN]</a>
+                    <a href="chess3d.html" class="nav-link text-gray-300 font-mono text-sm">[3D_CHESS]</a>
+                </div>
+                <button id="mobileMenuBtn" class="md:hidden text-cyan-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden glass-panel border-t border-cyan-500/30">
+            <div class="px-4 py-2 space-y-2">
+                <a href="index.html" class="block py-2 text-gray-300 font-mono text-sm">[HOME]</a>
+                <a href="portfolio.html" class="block py-2 text-gray-300 font-mono text-sm">[ARSENAL]</a>
+                <a href="physics.html" class="block py-2 text-gray-300 font-mono text-sm">[PHYSICS]</a>
+                <a href="billiards.html" class="block py-2 text-cyan-400 font-mono text-sm">[BILLIARDS]</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="ui-overlay glass-panel rounded-lg p-4">
+        <h2 class="font-orbitron text-xl text-cyan-400 mb-2">COSMIC BILLIARDS</h2>
+        <p class="text-gray-400 text-xs mb-4 font-mono">Planetary Pool Physics</p>
+        
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs font-mono mb-1">SHOT POWER</p>
+            <div class="w-full bg-gray-800 rounded-full h-5 overflow-hidden">
+                <div id="powerBar" class="power-bar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-gray-400 text-xs font-mono mb-2">PLANETS</p>
+            <div class="text-xs text-gray-500 font-mono space-y-1">
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-400"></span> Cue Ball (Sun)</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-gray-400"></span> Mercury</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-300"></span> Venus</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-blue-500"></span> Earth</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-red-500"></span> Mars</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-600"></span> Jupiter</div>
+                <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-yellow-600"></span> Saturn</div>
+            </div>
+        </div>
+        
+        <div class="space-y-2">
+            <button id="resetBtn" class="neon-btn w-full py-2 rounded text-sm font-mono">RESET TABLE</button>
+        </div>
+        
+        <div class="mt-4 text-xs text-gray-500 font-mono">
+            <p>Drag back to aim</p>
+            <p>Release to shoot</p>
+            <p>Right click to rotate</p>
+        </div>
+    </div>
+    
+    <div id="canvas-container"></div>
+
+    <script>
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+        
+        // THREE.JS + CANNON.JS Cosmic Billiards
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a0f);
+        scene.fog = new THREE.Fog(0x0a0a0f, 20, 80);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / (window.innerHeight - 80), 0.1, 1000);
+        camera.position.set(0, 20, 25);
+        camera.lookAt(0, 0, 0);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        renderer.shadowMap.enabled = true;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        dirLight.position.set(0, 20, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+        
+        // Physics world
+        const world = new CANNON.World();
+        world.gravity.set(0, -9.82, 0);
+        world.broadphase = new CANNON.NaiveBroadphase();
+        
+        const physicsMaterial = new CANNON.Material('physics');
+        const physicsContactMaterial = new CANNON.ContactMaterial(physicsMaterial, physicsMaterial, {
+            friction: 0.1,
+            restitution: 0.9
+        });
+        world.addContactMaterial(physicsContactMaterial);
+        
+        // Table
+        const tableWidth = 24;
+        const tableLength = 40;
+        
+        const tableGeo = new THREE.BoxGeometry(tableWidth, 1, tableLength);
+        const tableMat = new THREE.MeshStandardMaterial({ 
+            color: 0x0d5c3b,
+            roughness: 0.8
+        });
+        const table = new THREE.Mesh(tableGeo, tableMat);
+        table.position.y = -0.5;
+        table.receiveShadow = true;
+        scene.add(table);
+        
+        const tableShape = new CANNON.Box(new CANNON.Vec3(tableWidth/2, 0.5, tableLength/2));
+        const tableBody = new CANNON.Body({ mass: 0, material: physicsMaterial });
+        tableBody.addShape(tableShape);
+        tableBody.position.set(0, -0.5, 0);
+        world.addBody(tableBody);
+        
+        // Table borders
+        const borderHeight = 1;
+        const borderThickness = 1;
+        
+        function createBorder(x, z, w, d) {
+            const geo = new THREE.BoxGeometry(w, borderHeight, d);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x4a3728 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, borderHeight/2, z);
+            mesh.castShadow = true;
+            scene.add(mesh);
+            
+            const shape = new CANNON.Box(new CANNON.Vec3(w/2, borderHeight/2, d/2));
+            const body = new CANNON.Body({ mass: 0, material: physicsMaterial });
+            body.addShape(shape);
+            body.position.set(x, borderHeight/2, z);
+            world.addBody(body);
+        }
+        
+        createBorder(0, -tableLength/2 - borderThickness/2, tableWidth + borderThickness*2, borderThickness);
+        createBorder(0, tableLength/2 + borderThickness/2, tableWidth + borderThickness*2, borderThickness);
+        createBorder(-tableWidth/2 - borderThickness/2, 0, borderThickness, tableLength);
+        createBorder(tableWidth/2 + borderThickness/2, 0, borderThickness, tableLength);
+        
+        // Pockets
+        const pocketRadius = 1.2;
+        const pockets = [
+            { x: -tableWidth/2 + 1, z: -tableLength/2 + 1 },
+            { x: 0, z: -tableLength/2 + 1 },
+            { x: tableWidth/2 - 1, z: -tableLength/2 + 1 },
+            { x: -tableWidth/2 + 1, z: tableLength/2 - 1 },
+            { x: 0, z: tableLength/2 - 1 },
+            { x: tableWidth/2 - 1, z: tableLength/2 - 1 }
+        ];
+        
+        pockets.forEach(p => {
+            const geo = new THREE.CylinderGeometry(pocketRadius, pocketRadius, 1, 16);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x000000 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(p.x, -0.4, p.z);
+            scene.add(mesh);
+        });
+        
+        // Balls
+        const ballRadius = 0.6;
+        const balls = [];
+        
+        const planetData = [
+            { name: 'Sun', color: 0xffaa00, emissive: 0xff6600, x: 0, z: 12 },
+            { name: 'Mercury', color: 0x8c8c8c, x: 0, z: -8 },
+            { name: 'Venus', color: 0xe6b89c, x: -1.5, z: -10 },
+            { name: 'Earth', color: 0x2244aa, x: 1.5, z: -10 },
+            { name: 'Mars', color: 0xc1440e, x: -3, z: -9 },
+            { name: 'Jupiter', color: 0xd4a574, x: 3, z: -9 },
+            { name: 'Saturn', color: 0xfad5a5, x: 0, z: -12 },
+            { name: 'Uranus', color: 0x88dddd, x: -1.5, z: -6 },
+            { name: 'Neptune', color: 0x4169e1, x: 1.5, z: -6 },
+            { name: 'Pluto', color: 0xbdc3c7, x: 0, z: -4 }
+        ];
+        
+        function createBall(data) {
+            const geometry = new THREE.SphereGeometry(ballRadius, 32, 32);
+            const material = new THREE.MeshStandardMaterial({
+                color: data.color,
+                emissive: data.emissive || 0x000000,
+                emissiveIntensity: data.emissive ? 0.3 : 0,
+                roughness: 0.2,
+                metalness: 0.5
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(data.x, ballRadius, data.z);
+            mesh.castShadow = true;
+            scene.add(mesh);
+            
+            const shape = new CANNON.Sphere(ballRadius);
+            const body = new CANNON.Body({ mass: 1, material: physicsMaterial });
+            body.addShape(shape);
+            body.position.set(data.x, ballRadius, data.z);
+            body.linearDamping = 0.3;
+            body.angularDamping = 0.3;
+            world.addBody(body);
+            
+            return { mesh, body, data, inPocket: false };
+        }
+        
+        function initBalls() {
+            balls.forEach(ball => {
+                world.removeBody(ball.body);
+                scene.remove(ball.mesh);
+            });
+            balls.length = 0;
+            
+            planetData.forEach(data => {
+                balls.push(createBall(data));
+            });
+        }
+        
+        initBalls();
+        
+        // Cue ball (Sun) reference
+        const cueBall = balls[0];
+        
+        // Shooting mechanics
+        let isAiming = false;
+        let aimStart = null;
+        let aimLine = null;
+        
+        function createAimLine() {
+            const geometry = new THREE.BufferGeometry();
+            const material = new THREE.LineBasicMaterial({ color: 0x00f5d4, linewidth: 2 });
+            const line = new THREE.Line(geometry, material);
+            scene.add(line);
+            return line;
+        }
+        
+        // Mouse events
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(table);
+            
+            if (intersects.length > 0) {
+                isAiming = true;
+                aimStart = intersects[0].point;
+                if (!aimLine) aimLine = createAimLine();
+            }
+        });
+        
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (!isAiming || !aimStart) return;
+            
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(table);
+            
+            if (intersects.length > 0) {
+                const currentPos = intersects[0].point;
+                const direction = new THREE.Vector3().subVectors(aimStart, currentPos);
+                const power = Math.min(direction.length() * 2, 20);
+                
+                document.getElementById('powerBar').style.width = (power / 20 * 100) + '%';
+                
+                // Update aim line
+                const positions = new Float32Array([
+                    cueBall.mesh.position.x, ballRadius, cueBall.mesh.position.z,
+                    cueBall.mesh.position.x + direction.x * 2, ballRadius, cueBall.mesh.position.z + direction.z * 2
+                ]);
+                aimLine.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            }
+        });
+        
+        renderer.domElement.addEventListener('mouseup', (e) => {
+            if (!isAiming || !aimStart) return;
+            
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(table);
+            
+            if (intersects.length > 0) {
+                const currentPos = intersects[0].point;
+                const direction = new THREE.Vector3().subVectors(aimStart, currentPos);
+                const power = Math.min(direction.length() * 2, 20);
+                
+                cueBall.body.velocity.set(direction.x * power * 0.5, 0, direction.z * power * 0.5);
+            }
+            
+            isAiming = false;
+            aimStart = null;
+            document.getElementById('powerBar').style.width = '0%';
+            if (aimLine) {
+                const positions = new Float32Array([0, 0, 0, 0, 0, 0]);
+                aimLine.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            }
+        });
+        
+        // Camera controls
+        let isRightMouseDown = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        
+        renderer.domElement.addEventListener('mousedown', (e) => {
+            if (e.button === 2) {
+                isRightMouseDown = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+        
+        renderer.domElement.addEventListener('mouseup', () => isRightMouseDown = false);
+        
+        renderer.domElement.addEventListener('mousemove', (e) => {
+            if (isRightMouseDown) {
+                const deltaX = e.clientX - previousMousePosition.x;
+                const deltaY = e.clientY - previousMousePosition.y;
+                
+                camera.position.x += deltaX * 0.05;
+                camera.position.y = Math.max(10, Math.min(40, camera.position.y - deltaY * 0.05));
+                camera.lookAt(0, 0, 0);
+                
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            }
+        });
+        
+        renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        renderer.domElement.addEventListener('wheel', (e) => {
+            camera.position.z = Math.max(15, Math.min(50, camera.position.z + e.deltaY * 0.05));
+        });
+        
+        // UI handlers
+        document.getElementById('resetBtn').addEventListener('click', initBalls);
+        
+        // Animation loop
+        const timeStep = 1 / 60;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            world.step(timeStep);
+            
+            // Update ball positions
+            balls.forEach(ball => {
+                if (ball.inPocket) return;
+                
+                ball.mesh.position.copy(ball.body.position);
+                ball.mesh.quaternion.copy(ball.body.quaternion);
+                
+                // Check for pockets
+                pockets.forEach(pocket => {
+                    const dist = Math.sqrt(
+                        Math.pow(ball.mesh.position.x - pocket.x, 2) +
+                        Math.pow(ball.mesh.position.z - pocket.z, 2)
+                    );
+                    if (dist < pocketRadius && ball.mesh.position.y < 0) {
+                        ball.inPocket = true;
+                        ball.body.velocity.set(0, 0, 0);
+                        ball.body.angularVelocity.set(0, 0, 0);
+                        
+                        // Animate sinking
+                        new TWEEN.Tween(ball.mesh.position)
+                            .to({ y: -2 }, 500)
+                            .easing(TWEEN.Easing.Quadratic.In)
+                            .start();
+                        
+                        new TWEEN.Tween(ball.mesh.scale)
+                            .to({ x: 0.5, y: 0.5, z: 0.5 }, 500)
+                            .easing(TWEEN.Easing.Quadratic.In)
+                            .start();
+                    }
+                });
+                
+                // Keep balls on table
+                if (ball.mesh.position.y < -3) {
+                    ball.mesh.visible = false;
+                }
+            });
+            
+            renderer.render(scene, camera);
+        }
+        
+        animate();
+        
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight - 80);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight - 80);
+        });
+    
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const btn = document.querySelector('.mobile-menu-btn');
+            if (menu && !menu.contains(e.target) && btn && !btn.contains(e.target)) {
+                menu.style.display = 'none';
+            }
+        });
+
+    </script>
+</body>
+</html>
