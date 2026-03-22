@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon 3D Pong</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050510; font-family: 'Courier New', monospace; user-select: none; touch-action: none; }
+        
+        #back-btn { 
+            position: absolute; top: 20px; left: 20px; 
+            color: #00f5d4; border: 1px solid #00f5d4; padding: 8px 16px; 
+            text-decoration: none; font-weight: bold; z-index: 100; 
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            border-radius: 4px;
+        }
+        
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        #score-board { 
+            position: absolute; top: 20px; width: 100%; text-align: center; 
+            color: white; font-size: 40px; font-weight: bold; 
+            text-shadow: 0 0 10px #00f5d4, 0 0 20px #d300c5;
+            letter-spacing: 5px;
+        }
+        
+        #start-screen {
+            background: rgba(0,0,0,0.85);
+            padding: 40px; border: 2px solid #00f5d4;
+            text-align: center; pointer-events: auto;
+            box-shadow: 0 0 30px rgba(0, 245, 212, 0.3);
+            border-radius: 10px;
+            max-width: 400px;
+        }
+        
+        h1 { color: #fff; text-shadow: 0 0 10px #00f5d4; margin: 0 0 10px 0; }
+        .credit { color: #d300c5; font-size: 0.9rem; margin-bottom: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: #aaa; margin-bottom: 30px; }
+        
+        button {
+            background: #00f5d4; color: #000; border: none;
+            padding: 15px 40px; font-size: 18px; font-weight: bold;
+            cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 0 15px #00f5d4; transition: 0.2s;
+        }
+        button:hover { background: white; box-shadow: 0 0 25px white; }
+
+        /* Scanline effect */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px; pointer-events: none; z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <a href="apps.html" id="back-btn">&lt; DASHBOARD</a>
+    
+    <div id="score-board">0 : 0</div>
+    
+    <div id="ui-layer">
+        <div id="start-screen">
+            <h1>NEON PONG 3D</h1>
+            <div class="credit">Designed and Coded by Chris Heppard</div>
+            <p>Mouse or Touch to Move<br>First to 5 Wins</p>
+            <button onclick="startGame()">INITIATE</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // --- SETUP ---
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050510, 0.02);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+
+        // --- ASSETS ---
+        // 1. Grid Floor
+        const gridHelper = new THREE.GridHelper(60, 20, 0x00f5d4, 0x111122);
+        gridHelper.position.y = -1.5;
+        gridHelper.scale.z = 2;
+        scene.add(gridHelper);
+
+        // 2. Starfield
+        const starsGeo = new THREE.BufferGeometry();
+        const starCount = 1000;
+        const starPos = new Float32Array(starCount * 3);
+        for(let i=0; i<starCount*3; i++) {
+            starPos[i] = (Math.random() - 0.5) * 200;
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.2, transparent: true });
+        const starSystem = new THREE.Points(starsGeo, starsMat);
+        scene.add(starSystem);
+
+        // 3. Paddles
+        const paddleGeo = new THREE.BoxGeometry(6, 1, 1);
+        // Player (Cyan)
+        const playerMat = new THREE.MeshBasicMaterial({ color: 0x00f5d4 });
+        const player = new THREE.Mesh(paddleGeo, playerMat);
+        player.position.z = 22;
+        scene.add(player);
+        
+        // Add glow mesh to player
+        const pGlow = new THREE.Mesh(new THREE.BoxGeometry(6.2, 1.2, 1.2), new THREE.MeshBasicMaterial({ color: 0x00f5d4, transparent: true, opacity: 0.3 }));
+        player.add(pGlow);
+
+        // AI (Magenta)
+        const aiMat = new THREE.MeshBasicMaterial({ color: 0xd300c5 });
+        const ai = new THREE.Mesh(paddleGeo, aiMat);
+        ai.position.z = -22;
+        scene.add(ai);
+
+        const aiGlow = new THREE.Mesh(new THREE.BoxGeometry(6.2, 1.2, 1.2), new THREE.MeshBasicMaterial({ color: 0xd300c5, transparent: true, opacity: 0.3 }));
+        ai.add(aiGlow);
+
+        // 4. Ball
+        const ballGeo = new THREE.BoxGeometry(1, 1, 1);
+        const ballMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const ball = new THREE.Mesh(ballGeo, ballMat);
+        scene.add(ball);
+        
+        // Ball Light
+        const ballLight = new THREE.PointLight(0xffffff, 1, 20);
+        ball.add(ballLight);
+
+        // 5. Walls (Visual only)
+        const wallGeo = new THREE.BoxGeometry(1, 2, 50);
+        const wallMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+        const leftWall = new THREE.Mesh(wallGeo, wallMat);
+        leftWall.position.set(-16, -0.5, 0);
+        scene.add(leftWall);
+        const rightWall = new THREE.Mesh(wallGeo, wallMat);
+        rightWall.position.set(16, -0.5, 0);
+        scene.add(rightWall);
+
+
+        // --- GAME STATE ---
+        let gameActive = false;
+        let ballVel = { x: 0, z: 0 };
+        let speedMultiplier = 1.0;
+        let playerScore = 0;
+        let aiScore = 0;
+        let shake = 0;
+
+        camera.position.set(0, 30, 40);
+        camera.lookAt(0, 0, -5);
+
+        // --- PARTICLE SYSTEM ---
+        const particles = [];
+        function spawnParticles(pos, color) {
+            for(let i=0; i<10; i++) {
+                const geo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+                const mat = new THREE.MeshBasicMaterial({ color: color });
+                const p = new THREE.Mesh(geo, mat);
+                p.position.copy(pos);
+                // Random velocity
+                p.userData = {
+                    vel: new THREE.Vector3((Math.random()-0.5)*0.8, Math.random()*0.5, (Math.random()-0.5)*0.8),
+                    life: 1.0
+                };
+                scene.add(p);
+                particles.push(p);
+            }
+        }
+
+        // --- TRAIL SYSTEM ---
+        const trailHistory = [];
+        const maxTrail = 10;
+        
+        // --- INPUT ---
+        function updatePaddle(normalizedX) {
+            // Clamp and scale
+            player.position.x = Math.max(-13, Math.min(13, normalizedX * 14));
+        }
+
+        // Mouse
+        document.addEventListener('mousemove', (e) => {
+            if(!gameActive) return;
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            updatePaddle(x);
+        });
+
+        // Touch
+        document.addEventListener('touchmove', (e) => {
+            if(!gameActive) return;
+            e.preventDefault(); // Stop scrolling
+            const touchX = e.touches[0].clientX;
+            const x = (touchX / window.innerWidth) * 2 - 1;
+            updatePaddle(x);
+        }, { passive: false });
+
+
+        // --- GAME LOGIC ---
+        window.startGame = function() {
+            document.getElementById('start-screen').style.display = 'none';
+            gameActive = true;
+            resetBall();
+        };
+
+        function resetBall() {
+            ball.position.set(0, 0, 0);
+            speedMultiplier = 1.0;
+            // Random start direction
+            const dirX = (Math.random() - 0.5) * 0.4;
+            const dirZ = Math.random() > 0.5 ? 0.4 : -0.4;
+            ballVel = { x: dirX, z: dirZ };
+            
+            // Clear trail
+            trailHistory.forEach(m => scene.remove(m));
+            trailHistory.length = 0;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if(gameActive) {
+                // Ball Movement
+                ball.position.x += ballVel.x * speedMultiplier;
+                ball.position.z += ballVel.z * speedMultiplier;
+                
+                // Trail Logic
+                if(trailHistory.length > maxTrail) {
+                    const old = trailHistory.shift();
+                    scene.remove(old);
+                }
+                const trailMesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.8, 0.8, 0.8),
+                    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 })
+                );
+                trailMesh.position.copy(ball.position);
+                scene.add(trailMesh);
+                trailHistory.push(trailMesh);
+                // Fade trails
+                trailHistory.forEach((t, i) => {
+                    t.material.opacity = i / maxTrail * 0.5;
+                    t.scale.setScalar(i / maxTrail);
+                });
+
+
+                // Wall Collision
+                if(ball.position.x > 15 || ball.position.x < -15) {
+                    ballVel.x *= -1;
+                    spawnParticles(ball.position, 0xffffff);
+                }
+
+                // Paddle Collision
+                // Player
+                if(ball.position.z > 21 && ball.position.z < 23) {
+                    if(Math.abs(ball.position.x - player.position.x) < 3.5) {
+                        ball.position.z = 21;
+                        ballVel.z *= -1;
+                        speedMultiplier += 0.05; // Speed up
+                        // Add spin based on where it hit
+                        const hitOffset = ball.position.x - player.position.x;
+                        ballVel.x = hitOffset * 0.15; 
+                        spawnParticles(ball.position, 0x00f5d4);
+                    }
+                }
+
+                // AI
+                if(ball.position.z < -21 && ball.position.z > -23) {
+                    if(Math.abs(ball.position.x - ai.position.x) < 3.5) {
+                        ball.position.z = -21;
+                        ballVel.z *= -1;
+                        speedMultiplier += 0.05;
+                        const hitOffset = ball.position.x - ai.position.x;
+                        ballVel.x = hitOffset * 0.15;
+                        spawnParticles(ball.position, 0xd300c5);
+                    }
+                }
+
+                // Scoring
+                if(ball.position.z > 30) {
+                    aiScore++;
+                    shake = 10;
+                    resetBall();
+                    updateScore();
+                }
+                if(ball.position.z < -30) {
+                    playerScore++;
+                    shake = 10;
+                    resetBall();
+                    updateScore();
+                }
+
+                // AI Logic (Imperfect)
+                // Moves towards ball but with a speed limit
+                const targetX = ball.position.x;
+                const dist = targetX - ai.position.x;
+                ai.position.x += dist * 0.08 * speedMultiplier;
+                ai.position.x = Math.max(-13, Math.min(13, ai.position.x));
+            }
+
+            // Particle Animation
+            for(let i=particles.length-1; i>=0; i--) {
+                const p = particles[i];
+                p.position.add(p.userData.vel);
+                p.userData.life -= 0.03;
+                p.scale.setScalar(p.userData.life);
+                p.rotation.x += 0.1;
+                if(p.userData.life <= 0) {
+                    scene.remove(p);
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Screen Shake
+            if(shake > 0) {
+                camera.position.x = (Math.random() - 0.5) * shake * 0.1;
+                camera.position.z = 40 + (Math.random() - 0.5) * shake * 0.1;
+                shake *= 0.9;
+                if(shake < 0.1) {
+                    shake = 0;
+                    camera.position.x = 0;
+                    camera.position.z = 40;
+                }
+            }
+            
+            // Visuals
+            gridHelper.position.z = (Date.now() * 0.005) % 2; // Moving floor
+
+            renderer.render(scene, camera);
+        }
+
+        function updateScore() {
+            document.getElementById('score-board').innerText = `${playerScore} : ${aiScore}`;
+            if(playerScore >= 5 || aiScore >= 5) {
+                gameActive = false;
+                document.querySelector('#start-screen h1').innerText = playerScore >= 5 ? "YOU WIN" : "GAME OVER";
+                document.querySelector('#start-screen button').innerText = "RESTART";
+                document.getElementById('start-screen').style.display = 'block';
+                playerScore = 0;
+                aiScore = 0;
+            }
+        }
+
+        animate();
+        
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
+
+
