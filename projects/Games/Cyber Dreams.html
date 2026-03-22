@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cyber Dreams by Mr. Heppard</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #050010; font-family: 'Courier New', monospace; }
+        
+        /* Cyber-Glass UI */
+        #ui-layer { position: absolute; top: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .hud-panel {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(10, 0, 30, 0.6); backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 255, 0.3); padding: 10px 30px; border-radius: 20px;
+            text-align: center; color: #0ff;
+        }
+        #score { font-size: 32px; text-shadow: 0 0 15px #0ff; font-weight: bold; margin: 0; }
+        #label { font-size: 10px; color: #aaa; letter-spacing: 4px; margin: 0; text-transform: uppercase; }
+
+        #start-screen, #game-over { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.85); padding: 50px; border: 1px solid #0ff; 
+            text-align: center; pointer-events: auto; cursor: pointer; backdrop-filter: blur(10px);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.2); color: #fff;
+        }
+        #game-over { display: none; border-color: #f0f; box-shadow: 0 0 50px rgba(255, 0, 255, 0.2); }
+        h1 { margin: 0 0 10px 0; text-shadow: 0 0 20px #0ff; font-size: 32px; letter-spacing: 2px; }
+        p { color: #ccc; font-size: 14px; letter-spacing: 1px; margin-bottom: 20px; }
+        
+        .btn { 
+            padding: 12px 30px; background: transparent; border: 1px solid #0ff; 
+            color: #0ff; font-family: inherit; font-weight: bold; cursor: pointer; 
+            transition: 0.3s; text-transform: uppercase;
+        }
+        .btn:hover { background: #0ff; color: #000; box-shadow: 0 0 20px #0ff; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="ui-layer">
+        <div class="hud-panel">
+            <p id="label">Neural Sync</p>
+            <p id="score">0000</p>
+        </div>
+        
+        <div id="start-screen" onclick="startGame()">
+            <h1>CYBER DREAMS</h1>
+            <p>BY MR. HEPPARD</p>
+            <div style="font-size: 12px; color: #0ff;">[ CLICK TO INITIATE ]</div>
+        </div>
+
+        <div id="game-over">
+            <h1 style="color:#f0f; text-shadow:0 0 20px #f0f">WAKE UP</h1>
+            <p id="final-score">Depth Reached: 0</p>
+            <button class="btn" onclick="location.reload()">RE-ENTER DREAM</button>
+        </div>
+    </div>
+
+    <script>
+        let isPlaying = false;
+        let score = 0;
+        let speed = 25;
+        const BPM = 110; 
+        const BEAT_INTERVAL = 60 / BPM;
+        let beatTimer = 0;
+        const LANE_WIDTH = 4.5;
+        let currentLane = 0;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050010);
+        scene.fog = new THREE.FogExp2(0x050010, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 3, 7);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lights
+        scene.add(new THREE.AmbientLight(0x404040));
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(0, 10, 5);
+        scene.add(light);
+
+        // Tunnel Rings
+        const rings = [];
+        const ringGeo = new THREE.TorusGeometry(8, 0.04, 12, 50);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.3 });
+        for(let i=0; i<30; i++) {
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.position.z = -i * 6;
+            scene.add(ring);
+            rings.push(ring);
+        }
+
+        // Starfield
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 1000;
+        const starPositions = new Float32Array(starCount * 3);
+        for(let i=0; i<starCount*3; i++) starPositions[i] = (Math.random() - 0.5) * 100;
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.5 });
+        const stars = new THREE.Points(starGeo, starMat);
+        scene.add(stars);
+
+        // Player Ship
+        const shipGeo = new THREE.ConeGeometry(0.7, 2, 4);
+        const shipMat = new THREE.MeshStandardMaterial({ color: 0xffffff, wireframe: true, emissive: 0x00ffff, emissiveIntensity: 0.5 });
+        const player = new THREE.Mesh(shipGeo, shipMat);
+        player.rotation.x = -Math.PI / 2;
+        player.position.y = 0.5;
+        scene.add(player);
+
+        // Obstacles
+        const obstacles = [];
+        const obsGeo = new THREE.IcosahedronGeometry(1.2, 1);
+        const obsMat = new THREE.MeshStandardMaterial({ color: 0xff00ff, emissive: 0xff00ff, emissiveIntensity: 0.2 });
+
+        function spawnObstacle() {
+            const mesh = new THREE.Mesh(obsGeo, obsMat);
+            const lane = Math.floor(Math.random() * 3) - 1;
+            mesh.position.set(lane * LANE_WIDTH, 1, -150);
+            scene.add(mesh);
+            obstacles.push(mesh);
+        }
+
+        window.startGame = function() {
+            document.getElementById('start-screen').style.display = 'none';
+            isPlaying = true;
+        };
+
+        window.addEventListener('keydown', (e) => {
+            if(!isPlaying) return;
+            if(e.key === 'ArrowLeft' && currentLane > -1) currentLane--;
+            if(e.key === 'ArrowRight' && currentLane < 1) currentLane++;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+
+            if(isPlaying) {
+                beatTimer += dt;
+                if(beatTimer >= BEAT_INTERVAL) {
+                    beatTimer -= BEAT_INTERVAL;
+                    score += 10;
+                    document.getElementById('score').innerText = score.toString().padStart(4, '0');
+                    // Pulse
+                    rings.forEach(r => { r.scale.set(1.1, 1.1, 1); setTimeout(() => r.scale.set(1,1,1), 100); });
+                    if(Math.random() > 0.4) spawnObstacle();
+                }
+
+                // Smooth movement
+                player.position.x += (currentLane * LANE_WIDTH - player.position.x) * 10 * dt;
+                player.rotation.z = (player.position.x - (currentLane * LANE_WIDTH)) * -0.2;
+                player.rotation.y += dt;
+
+                // Move Tunnel
+                rings.forEach(r => {
+                    r.position.z += speed * dt;
+                    if(r.position.z > 10) r.position.z = -170;
+                });
+
+                // Move Stars
+                const pos = stars.geometry.attributes.position.array;
+                for(let i=2; i<pos.length; i+=3) {
+                    pos[i] += speed * dt * 2;
+                    if(pos[i] > 10) pos[i] = -90;
+                }
+                stars.geometry.attributes.position.needsUpdate = true;
+
+                // Move Obstacles
+                for(let i=obstacles.length-1; i>=0; i--) {
+                    const o = obstacles[i];
+                    o.position.z += speed * dt;
+                    o.rotation.x += dt;
+                    
+                    // Collision
+                    if(Math.abs(o.position.z - player.position.z) < 1.5 && Math.abs(o.position.x - player.position.x) < 1.5) {
+                        isPlaying = false;
+                        document.getElementById('game-over').style.display = 'block';
+                        document.getElementById('final-score').innerText = `Depth Reached: ${score}`;
+                    }
+
+                    if(o.position.z > 10) {
+                        scene.remove(o);
+                        obstacles.splice(i, 1);
+                    }
+                }
+                speed += dt * 0.1;
+            } else {
+                // Background drift
+                stars.geometry.attributes.position.array.forEach((v, i) => { if(i % 3 === 2) stars.geometry.attributes.position.array[i] += 0.05; });
+                stars.geometry.attributes.position.needsUpdate = true;
+            }
+
+            renderer.render(scene, camera);
+        }
+        
+        window.onload = animate;
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
